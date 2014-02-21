@@ -327,14 +327,14 @@ var cktsim = (function() {
         for (i = netlist.length - 1; i >= 0; i -= 1) {
             component = netlist[i];
             var type = component.type;
-            connections = component.connections;
             var properties = component.properties;
 
             counts[type] = (counts[type] || 0) + 1;
 
             // convert node names to circuit indicies
-            for (c in connections) {
-                node = connections[c];
+            var connections;
+            for (c in component.connections) {
+                node = component.connections[c];
                 while (aliases[node] !== undefined) node = aliases[node];  // follow alias chain
                 var index = this.node_map[node];
                 if (index === undefined) index = this.node(node, T_VOLTAGE);
@@ -370,6 +370,8 @@ var cktsim = (function() {
                 break;
             case 'pfet':
                 this.p(connections.D, connections.G, connections.S, properties.W, properties.L, name);
+                break;
+            case 'voltage probe':
                 break;
 	    case 'ground':
 		break;

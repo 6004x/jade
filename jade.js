@@ -2269,9 +2269,9 @@ var jade = (function() {
             if (i == 0) focus = f;
             field.dialog = dialog[0]; // help event handler find us...
 
-            // if user hits enter, it counts as clicking OKY
+            // if user hits enter, it counts as clicking OK
             f.keypress(function (event) {
-                if (event.keyCode == 13) dialog_okay(event);
+                if (event.keyCode == 13) dialog.find('#ok').trigger('click');
             });
             // select entire contents of <input> when it gets focus
             f.focus(function () {

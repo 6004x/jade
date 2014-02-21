@@ -35,7 +35,6 @@ var plot = (function() {
     //   xvalues: array of xcoords
     //   yvalues: array of ycoords
     //   name: signal name to use in legend (optional)
-    //   offset: to be added to each yvalue (optional)
     //   color: color to use when drawing graph
     //   xunits: string for labeling xvalues (optional)
     //   yunits: string for labeling yvalues (optional - if omitted assumed to be bits)

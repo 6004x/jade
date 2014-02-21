@@ -2814,10 +2814,10 @@ var schematics = (function() {
     // build extraction environment, ask diagram to give us flattened netlist
     function diagram_netlist(diagram) {
         // extract netlist and convert to form suitable for new cktsim.js
-        // use modules in the schematics and analog libraries as the leafs
+        // use modules in the analog libraries as the leafs
         var mlist = ['ground'];
         $.each(jade.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
-        return diagram.netlist(mlist);
+        return cktsim_netlist(diagram.netlist(mlist));
     }
 
     // convert diagram netlist to cktsim format
@@ -2881,6 +2881,11 @@ var schematics = (function() {
                 revised_netlist.push({type: 'ground',
                                       connections: [c.gnd],
                                       properties: {}
+                                     });
+            else if (type == 'analog:s')   // ground connection
+                revised_netlist.push({type: 'voltage probe',
+                                      connections: c,
+                                      properties: {name: props.name, color: props.color, offset: parse_number(props.offset)}
                                      });
             else if (type == 'analog:a')   // current probe
                 revised_netlist.push({type: 'voltage source',
@@ -2991,7 +2996,7 @@ var schematics = (function() {
         // remove any previous annotations
         diagram.remove_annotations();
 
-        var netlist = cktsim_netlist(diagram_netlist(diagram));
+        var netlist = diagram_netlist(diagram);
 
         if (netlist.length > 0) {
             var ckt;
@@ -3013,7 +3018,7 @@ var schematics = (function() {
                 return;
             }
 
-            console.log('OP: '+JSON.stringify(operating_point));
+            //console.log('OP: '+JSON.stringify(operating_point));
 
             if (operating_point !== undefined) {
                 // save a copy of the results for submission
@@ -3047,13 +3052,18 @@ var schematics = (function() {
         var result = [];
         for (var i = netlist.length - 1; i >= 0; i -= 1) {
             var component = netlist[i];
-            var type = component[0];
-            var connections = component[1];
-            var properties = component[2];
+            var type = component.type;
+            var connections = component.connections;
+            var properties = component.properties;
             var offset = properties.offset;
             if (offset === undefined || offset === '') offset = '0';
-            if (type == 'analog:s') result.push([properties.color, connections.probe, offset, 'voltage']);
-            else if (type == 'analog:a') result.push([properties.color, 'I(' + properties.name + ')', offset, 'current']);
+            if (type == 'voltage probe') {
+                result.push([properties.color, connections.probe, offset, 'voltage']);
+            } else if (type == 'voltage source' &&
+                     properties.value.type == 'dc' &&
+                     properties.value.args.length == 1 &&
+                     properties.value.args[0] === 0)
+                result.push([properties.color, 'I(' + properties.name + ')', offset, 'current']);
         }
         return result;
     }
@@ -3104,7 +3114,7 @@ var schematics = (function() {
         var npts = 50;
 
         if (netlist.length > 0) {
-            var ckt = new cktsim.Circuit(cktsim_netlist(netlist));
+            var ckt = new cktsim.Circuit(netlist);
             var results;
             try {
                 results = ckt.ac(npts, fstart, fstop, ac_source_name);
@@ -3192,7 +3202,7 @@ var schematics = (function() {
                     if (probes[i][3] != 'voltage') continue;
                     color = probes[i][0];
                     label = probes[i][1];
-                    offset = parse_number(probes[i][2]);
+                    offset = probes[i][2];
 
                     v = results[label].magnitude;
                     // convert values into dB relative to source amplitude
@@ -3276,9 +3286,7 @@ var schematics = (function() {
         var tstop_lbl = 'Stop Time (seconds)';
 
         // use modules in the analog library as the leafs
-        var mlist = ['ground'];
-        $.each(jade.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
-        var netlist = diagram.netlist(mlist);
+        var netlist = diagram_netlist(diagram);
 
         if (find_probes(netlist).length === 0) {
             alert("Transient Analysis: there are no probes in the diagram!");
@@ -3294,12 +3302,9 @@ var schematics = (function() {
         diagram.dialog('Transient Analysis', content, function() {
             // retrieve parameters, remember for next time
             module.set_property('tran_tstop', fields[tstop_lbl].value);
-            var tstop = jade.parse_number_alert(module.properties.tran_tstop);
+            var tstop = parse_number_alert(module.properties.tran_tstop);
 
             if (netlist.length > 0 && tstop !== undefined) {
-                var ckt = new cktsim.Circuit();
-                if (!ckt.load_netlist(netlist)) return;
-
                 // gather a list of nodes that are being probed.  These
                 // will be added to the list of nodes checked during the
                 // LTE calculations in transient analysis
@@ -3309,54 +3314,37 @@ var schematics = (function() {
                     probe_names[i] = probes[i][1];
                 }
 
-                var progress = document.createElement('div');
-                progress.className = 'jade-progress';
-
-                // set up progress bar
-                var d = document.createElement('div');
-                d.className = 'jade-progress-wrapper';
-                progress.appendChild(d);
-                progress.bar = document.createElement('div');
-                progress.bar.className = 'jade-progress-bar';
-                $(progress.bar).width('0%');
-                d.appendChild(progress.bar);
+                var progress = $('<div class="jade-progress"><div class="jade-progress-wrapper"><div class="jade-progress-bar" style="width:0%"></div></div></div>');
 
                 // allow user to stop simulation
                 var stop = jade.build_button('Stop', function(event) {
                     event.target.progress.stop_requested = true;
                 });
-                stop.progress = progress;
-                progress.appendChild(stop);
-
-                progress.update_interval = 250; // ms between progress bar updates
-                progress.stop_requested = false;
-                progress.finish = transient_results; // what to do when done!
-                progress.probes = probes; // stash other useful info...
-                progress.probe_names = probe_names;
+                stop.progress = progress[0];
+                progress.append(stop);
 
                 diagram.window('Progress', progress); // display progress bar
 
-                // continue after a word from our sponsor
-                setTimeout(function() {
-                    ckt.tran_start(progress, 100, 0, tstop);
-                }, 1);
+                cktsim.transient_analysis(netlist,tstop,probe_names,function(percent_complete,results) {
+                    if (results === undefined) {
+                        progress.find('.jade-progress-bar').css('width',percent_complete+'%');
+                        return progress[0].stop_requested;
+                    } else {
+                        jade.window_close(progress.win); // all done with progress bar
+                        transient_results(results,diagram,probes);
+                    }
+                });
             }
         });
     }
 
     // process results of transient analysis
-    function transient_results(results, progress) {
-        var diagram = progress.win.diagram;
-        var probes = progress.probes;
+    function transient_results(results,diagram,probes) {
         var v;
-
-        jade.window_close(progress.win); // all done with progress bar
 
         if (typeof results == 'string') alert("Error during Transient analysis:\n\n" + results);
         else if (results === undefined) alert("Sorry, no results from transient analysis to plot!");
         else {
-            var xvalues = results._time_;
-
             // see what we need to submit.  Expecting attribute of the form
             // submit_analyses="{'tran':[[node_name,t1,t2,t3],...],
             //                   'ac':[[node_name,f1,f2,...],...]}"
@@ -3387,36 +3375,21 @@ var schematics = (function() {
                 diagram.aspect.module.set_property('tran_result', tran_results);
             }
 
-            // for plots see if there's some other x-axis
-            var i;
-            var xunits = 's';  // default x-axis is time
-            var xlabel;
-            for (i = probes.length - 1; i >= 0; i -= 1) {
-                if (probes[i][0] == 'color') {
-                    xvalues = results[probes[i][1]];
-                    xunits = (probes[i][3] == 'voltage') ? 'V' : 'A';
-                    xlabel = probes[i][1];
-                    break;
-                }
-            }
-
             // set up plot values for each node with a probe
             var dataseries = [];
             for (var i = probes.length - 1; i >= 0; i -= 1) {
                 var color = probes[i][0];
                 var label = probes[i][1];
-                var offset = parse_number(probes[i][2]);
                 v = results[label];
                 if (v === undefined) {
                     alert('The ' + color + ' probe is connected to node ' + '"' + label + '"' + ' which is not an actual circuit node');
                 } else if (color != 'x-axis') {
-                    dataseries.push({xvalues: xvalues,
-                                     yvalues: v,
+                    dataseries.push({xvalues: v.xvalues,
+                                     yvalues: v.yvalues,
                                      name: label,
                                      color: color,
-                                     xunits: xunits,
+                                     xunits: 's',
                                      yunits: (probes[i][3] == 'voltage') ? 'V' : 'A',
-                                     offset: offset
                                     });
                 }
             }
