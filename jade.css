@@ -10,6 +10,9 @@
   width: auto;
   font: 12px sans-serif;
 }
+#savelibs {
+  margin-right: 10px;
+}
 .jade-tabs-div {
   margin-top: 4px;
 }

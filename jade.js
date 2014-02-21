@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2013 Massachusetts Institute of Technology
+// Copyright (C) 2011-2014 Massachusetts Institute of Technology
 // Chris Terman
 
 // JADE: JAvascript Design Envrionment
@@ -2616,7 +2616,7 @@ var jade = (function() {
 
         // set up top-level toolbar
         if (owner.attr('hierarchical') !== undefined) {
-            top_level.find('.jade-tabs-div').before('<div id="jade-toolbar">Module: <input id="module" type="text"></input><button id="savelibs">Save</button></div>');
+            top_level.find('.jade-tabs-div').before('<div id="jade-toolbar"><button id="savelibs">Save changes</button>Module: <input id="module" type="text"></input></div>');
             this.input_field = top_level.find('#module');
             this.input_field.keypress(function(event) {
                 // when user hits ENTER, edit the specified module
@@ -2679,7 +2679,7 @@ var jade = (function() {
         resize[0].jade = this;
         resize.mousedown(resize_mouse_down);
 
-        this.status.text('Copyright \u00A9 MIT EECS 2011-2013');
+        this.status.text('Copyright \u00A9 MIT EECS 2011-2014');
 
         // should we expand to fill screen?
         if (owner.attr('fill_window')) {

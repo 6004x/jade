@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2013 Massachusetts Institute of Technology
+// Copyright (C) 2011-2014 Massachusetts Institute of Technology
 // Chris Terman
 
 // keep jslint happy
@@ -2193,11 +2193,10 @@ var schematics = (function() {
             this.status.text('This module does not have a schematic!');
             return;
         }
+
         var netlist;
         var mlist = ['ground'];
         $.each(jade.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
-
-        for (var m in jade.libraries.analog.modules) mlist.push('analog:' + m);
         try {
             netlist = this.module.aspect('schematic').netlist(mlist, '', {});
             netlist = cktsim_netlist(netlist);
@@ -2206,6 +2205,7 @@ var schematics = (function() {
             this.status.html("Error extracting netlist:<p>" + e);
             return;
         }
+
         var nodes = extract_nodes(netlist);  // get list of nodes in netlist
         function check_node(node) {
             if (nodes.indexOf(node) == -1)
@@ -2816,7 +2816,7 @@ var schematics = (function() {
         // extract netlist and convert to form suitable for new cktsim.js
         // use modules in the schematics and analog libraries as the leafs
         var mlist = ['ground'];
-        for (var m in jade.libraries.analog.modules) mlist.push('analog:' + m);
+        $.each(jade.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
         return diagram.netlist(mlist);
     }
 
@@ -3276,8 +3276,8 @@ var schematics = (function() {
         var tstop_lbl = 'Stop Time (seconds)';
 
         // use modules in the analog library as the leafs
-        var mlist = [];
-        for (var m in jade.libraries.analog.modules) mlist.push(m.get_name());
+        var mlist = ['ground'];
+        $.each(jade.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
         var netlist = diagram.netlist(mlist);
 
         if (find_probes(netlist).length === 0) {
