@@ -1,0 +1,203 @@
+.jade {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.jade-top-level {
+  display: inline-block;
+  padding: 5px;
+  border: 2px solid black;
+  background-color: #FFD9A1;
+  width: auto;
+  font: 12px sans-serif;
+}
+.jade-tabs-div {
+  margin-top: 4px;
+}
+.jade-tab {
+  display: inline;
+  position: relative;
+  cursor: default;
+  background-color: #DDDDDD;
+  margin-right: 3px;
+  padding-bottom: 3px;
+  padding-left: 4px;
+  padding-right: 4px;
+  border: 1px solid black;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  font: small-caps small sans-serif;
+}
+.jade-tab-active {
+  background-color: #EEEEEE;
+  padding-bottom: 4px;
+  border-bottom: none;
+  z-index: 2;
+}
+.jade-tab-body {
+  display: none;
+  position: relative;
+  margin-top: 2px;
+  background-color: #EEEEEE;
+  width: 570px;
+  min-width: 570px;
+  height: 300px;
+  min-height: 300px;
+  border: 1px solid black;
+  padding: 5px;
+}
+.jade-tab-body-active {
+  display: block;
+}
+.jade-status {
+  height: 14px;
+  padding-top: 5px;
+}
+.jade-resize {
+  float: right;
+  height: 12px;
+  width: 12px;
+  position: relative;
+  top: 4px;
+  cursor: se-resize;
+}
+.jade-schematic-diagram {
+  width: 490px;
+  min-width: 490px;
+  height: 270px;
+  min-height: 270px;
+  border: 1px solid black;
+  outline: none;
+}
+.jade-icon-diagram {
+  width: 570px;
+  min-width: 570px;
+  height: 270px;
+  min-height: 270px;
+  border: 1px solid black;
+  outline: none;
+}
+.jade-toolbar {
+  line-height: 25px;
+  cursor: default;
+  margin-bottom: 5px;
+}
+.jade-tool {
+  padding: 2px;
+  border: 1px solid #EEEEEE;
+  vertical-align: middle;
+  font: small-caps small sans-serif;
+}
+.jade-tool-spacer {
+  display: inline;
+  padding-left: 1em;
+}
+.jade-tool-disabled {
+  opacity: 0.2;
+}
+.jade-tool-enabled {
+  opacity: 1.0;
+}
+.jade-tool-enabled:hover {
+  border-color: #000;
+}
+.jade-tool-enabled:active {
+  background-color: #CCCCCC;
+}
+.jade-dialog-content {
+  margin-bottom: 5px;
+  padding: 5px;
+}
+.jade-dialog-button {
+  background-color: #FFF;
+  display: inline;
+  border: 1px solid #CCC;
+  padding: 5px;
+  margin: 10px;
+  cursor: default;
+}
+.jade-dialog-button:hover {
+  border-color: #000;
+}
+.jade-dialog-buttons {
+  text-align: center;
+  padding: 5px;
+  margin: 10px;
+}
+.jade-test-editor {
+  resize: none;
+  outline: none;
+  width: 564px;
+  min-width: 564px;
+  height: 264px;
+  min-height: 265px;
+  font: 10pt/1.25 "Lucida Console",monospace;
+}
+.jade-window {
+  background-image: -webkit-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);
+  background-image: -moz-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);
+  background-image: -ms-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);
+  position: absolute;
+  border: 2px solid black;
+  vertical-align: bottom;
+  box-shadow: 0 10px 10px 1px rgba(0,0,0,0.25);
+  -webkit-box-shadow: 0 10px 10px 1px rgba(0,0,0,0.25);
+}
+.jade-window-title {
+  background-color: black;
+  color: white;
+  text-align: center;
+  padding: 5px;
+  cursor: default;
+}
+.jade-window-contents {
+}
+.jade-window-resize {
+  height: 12px;
+  width: 12px;
+  cursor: se-resize;
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+}
+.jade-parts-bin {
+  float:right;
+  height: 270px;
+  width: 73px;
+  min-width: 73px;
+  max-width: 73px;
+  vertical-align: top;
+}
+.jade-parts-select {
+  width: 73px;
+}
+.jade-parts-list {
+  height: 250px;
+  width: 73px;
+  min-width: 73px;
+  max-width: 73px;
+  overflow-y: auto;
+  overflow-x: none;
+}
+.jade-part {
+  height: 42px;
+  width: 42px;
+}
+.icon-tool-selected {
+  background-color: #CCCCCC;
+  border-color: #AAAAAA;
+}
+.jade-progress {
+  text-align: center;
+  margin: 5px;
+}
+.jade-progress-wrapper {
+  background-color: #FFF;
+  height: 20px;
+  width: 200px;
+  border: 1px solid;
+  margin-bottom: 5px;
+}
+.jade-progress-bar {
+  height: 100%;
+  background-color: #dc322f;
+}
