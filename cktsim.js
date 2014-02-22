@@ -165,7 +165,12 @@ var cktsim = (function() {
                 if (progress_callback(percent_complete, undefined)) progress.stop_requested = true;
             };
 
-            ckt.tran_start(progress, 100, 0, tstop);
+            try {
+                ckt.tran_start(progress, 100, 0, tstop);
+            }
+            catch (e) {
+                progress.finish(e);
+            }
         }
 	return undefined;
     }
@@ -641,6 +646,7 @@ var cktsim = (function() {
         this.tstop = tstop;
         this.progress = progress;
         this.step_index = -3; // Start with two pseudo-Euler steps
+
         this.tran_steps(new Date().getTime() + progress.update_interval);
     };
 
@@ -807,7 +813,12 @@ var cktsim = (function() {
                 // then pick up where we left off
                 var ckt = this;
                 setTimeout(function() {
-                    ckt.tran_steps(t + ckt.progress.update_interval);
+                    try {
+                        ckt.tran_steps(t + ckt.progress.update_interval);
+                    }
+                    catch (e) {
+                        ckt.progress.finish(e);
+                    }
                 }, 1);
                 // our portion of the work is done
                 return;

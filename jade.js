@@ -222,8 +222,10 @@ var jade = (function() {
     };
 
     Module.prototype.set_property = function(prop, v) {
-        this.properties[prop] = v;
-        this.set_modified(true);
+        if (v != this.properties[prop]) {
+            this.properties[prop] = v;
+            this.set_modified(true);
+        }
     };
 
     Module.prototype.remove_property = function(prop) {

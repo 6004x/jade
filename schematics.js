@@ -2328,8 +2328,12 @@ var schematics = (function() {
 
         // do the simulation
         var editor = this;  // for closure
+        var progress = tran_progress_report();
+        jade.window('Progress',progress[0],editor.textarea.offset());
         cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), function(percent_complete,results) {
             if (percent_complete === undefined) {
+                jade.window_close(progress[0].win);  // done with progress bar
+
                 // check the sampled node values for each test cycle
                 var errors = [];
                 $.each(sampled_signals,function(node,tvlist) {
@@ -2403,6 +2407,9 @@ var schematics = (function() {
                     win[0].resize(Math.floor(0.75*editor.textarea.width()) - win_w,
                                   Math.floor(0.75*editor.textarea.height()) - win_h);
                 }
+            } else {
+                progress.find('.jade-progress-bar').css('width',percent_complete+'%');
+                return progress[0].stop_requested;
             }
         });
     };
@@ -3280,6 +3287,17 @@ var schematics = (function() {
     //
     //////////////////////////////////////////////////////////////////////////////
 
+    // build simple progress bar with stop button
+    function tran_progress_report() {
+        var progress = $('<div class="jade-progress"><div class="jade-progress-wrapper"><div class="jade-progress-bar" style="width:0%"></div></div><button id="stop">Stop</button></div>');
+        var stop = progress.find('#stop');
+        stop.on('click',function(event) {
+            event.target.progress.stop_requested = true;
+        });
+        stop[0].progress = progress[0];
+        return progress;
+    }
+
     function setup_transient_analysis(diagram) {
         diagram.remove_annotations();
 
@@ -3314,15 +3332,7 @@ var schematics = (function() {
                     probe_names[i] = probes[i][1];
                 }
 
-                var progress = $('<div class="jade-progress"><div class="jade-progress-wrapper"><div class="jade-progress-bar" style="width:0%"></div></div></div>');
-
-                // allow user to stop simulation
-                var stop = jade.build_button('Stop', function(event) {
-                    event.target.progress.stop_requested = true;
-                });
-                stop.progress = progress[0];
-                progress.append(stop);
-
+                var progress = tran_progress_report();
                 diagram.window('Progress', progress); // display progress bar
 
                 cktsim.transient_analysis(netlist,tstop,probe_names,function(percent_complete,results) {
