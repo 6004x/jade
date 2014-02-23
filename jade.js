@@ -42,6 +42,7 @@ var jade = (function() {
         this.name = name;
         this.modules = {}; // attributes are Module objects
         this.modified = false;
+        this.read_only = false;
 
         libraries[name] = this;
 
@@ -102,7 +103,7 @@ var jade = (function() {
 
     // if necessary save library to server
     Library.prototype.save = function() {
-        if (this.modified) {
+        if (!this.read_only && this.modified) {
             var lib = this; // for closure
             var args = {
                 url: 'server.cgi',
@@ -149,7 +150,8 @@ var jade = (function() {
             success: function(json) {
                 // allocate new library, add to list so we know we're loading it
                 var lib = new Library(lname);
-                lib.load(json);
+                lib.load(json[0]);
+                if (json[1] == 'shared') lib.read_only = true;
             }
         };
         $.ajax(args);

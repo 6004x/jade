@@ -58,15 +58,18 @@ if json is not None:
     http_status('200 OK')
 
 # request for a file, return as json
+source = requester
 if not os.path.exists(filename):
     filename = os.path.join(lib_path,'shared',file)
+    source = 'shared'
 if not os.path.exists(filename):
-    json = '[]'    # empty library
+    json = '[[],"%s"]' % requester    # empty library
 else:
     try:
         f = open(filename,'r')
         json = f.read()
         f.close()
+        json = '[%s,"%s"]' % (json,source)
     except:
         http_status('500 Read failed: %s' % sys.exc_info()[0])
 

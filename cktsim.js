@@ -522,10 +522,10 @@ var cktsim = (function() {
         if (typeof iterations == 'undefined') {
             // too many iterations
             if (this.current_sources.length > 0) {
-                throw 'Newton Method Failed, do your current sources have a conductive path to ground?';
+                throw 'Unable to find circuit\'s operating point: do your current sources have a conductive path to ground?';
             }
             else {
-                throw 'Newton Method Failed, it may be your circuit or it may be our simulator.';
+                throw 'Unable to find circuit\'s operating point: is there a loop in your circuit that\'s oscillating?';
             }
 
             return undefined;
