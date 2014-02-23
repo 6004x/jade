@@ -87,6 +87,9 @@ var schematics = (function() {
         part = this.toolbar.add_tool('port', port_icon, 'I/O Port: click and drag to insert', null, function() { return true; });
         part_tool(part,div.diagram,'port');
 
+        part = this.toolbar.add_tool('text', text_icon, 'Text: click and drag to insert', null, function() { return true; });
+        part_tool(part,div.diagram,'text');
+
         this.toolbar.add_spacer();
 
         // add external tools
@@ -651,6 +654,130 @@ var schematics = (function() {
         return undefined;
     };
 
+    // text, aligned around reference point
+
+    var text_alignments = ['top-left', 'top-center', 'top-right', 'center-left', 'center', 'center-right', 'bottom-left', 'bottom-center', 'bottom-right'];
+
+    // crude estimate of bbox for aligned text
+    function text_bbox(text, align) {
+        var h = 8;
+        var w = 4 * (text ? text.length : 0);
+        var bbox = [0, 0, 0, 0];
+
+        var position = align.split('-');
+
+        // adjust for alignment
+        var vertical = position[0];
+        if (vertical == 'top') {
+            bbox[1] = 0;
+            bbox[3] = h;
+        }
+        else if (vertical == 'center') {
+            bbox[1] = -h / 2;
+            bbox[3] = h / 2;
+        }
+        else {
+            bbox[1] = -h;
+            bbox[3] = 0;
+        }
+
+        var horizontal = position[1] || position[0];
+        if (horizontal == 'left') {
+            bbox[0] = 0;
+            bbox[2] = w;
+        }
+        else if (horizontal == 'center') {
+            bbox[0] = -w / 2;
+            bbox[2] = w / 2;
+        }
+        else {
+            bbox[0] = -w;
+            bbox[2] = 0;
+        }
+
+        return bbox;
+    }
+
+    function Text(json) {
+        jade.Component.call(this);
+        this.module = text_module;
+        this.load(json);
+    }
+    Text.prototype = new jade.Component();
+    Text.prototype.constructor = Text;
+    Text.prototype.required_grid = 1;
+    jade.built_in_components.text = Text;
+    var text_module = {
+        has_aspect: function () {return false;},
+        properties: {
+            "text": {
+                "type": "string",
+                "label": "Text",
+                "value": "???",
+                "edit": "yes"
+            },
+            "font": {
+                "type": "string",
+                "label": "CSS Font",
+                "value": "6pt sans-serif",
+                "edit": "yes"
+            },
+            "align": {
+                "type": "menu",
+                "label": "Alignment",
+                "value": "center-left",
+                "edit": "yes",
+                "choices": text_alignments
+            }
+        }
+    };
+
+    Text.prototype.load = function(json) {
+        this.type = json[0];
+        this.coords = json[1];
+        this.properties = json[2] || {};
+
+        this.default_properties(); // add any missing properties
+
+        this.bounding_box = text_bbox(this.properties.text, this.properties.align);
+        this.update_coords();
+    };
+
+    Text.prototype.drag_callback = function(x, y, action) {
+        // nothing to do
+        return true;
+    };
+
+    Text.prototype.draw = function(diagram) {
+        if (this.selected) {
+            // "+" marks the reference point for the property
+            this.draw_line(diagram, - 1, 0, 1, 0);
+            this.draw_line(diagram, 0, - 1, 0, 1);
+        }
+
+        var align = text_alignments.indexOf(this.properties.align);
+        this.draw_text(diagram, this.properties.text, 0, 0, align, this.properties.font);
+    };
+
+    Text.prototype.draw_icon = function(c, diagram) {
+        // need to adjust alignment accounting for our rotation
+        var align = text_alignments.indexOf(this.properties.align);
+        align = jade.aOrient[this.coords[2] * 9 + align];
+
+        c.draw_text(diagram, this.properties.text, this.coords[0], this.coords[1], align, this.properties.font);
+    };
+
+    Text.prototype.edit_properties = function(diagram, x, y) {
+        return jade.Component.prototype.edit_properties.call(this, diagram, x, y, function(c) {
+            c.bounding_box = text_bbox(c.properties.text, c.properties.align);
+            c.update_coords();
+        });
+    };
+
+    Text.prototype.netlist = function(prefix) {
+        return undefined;
+    };
+
     ///////////////////////////////////////////////////////////////////////////////
     //
     //  Parts bin
@@ -1106,8 +1233,6 @@ var schematics = (function() {
 
     var circle_icon = 'data:image/x-icon;base64,AAABAAEAEBAAAAEAIAAoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwAAAF4AAACyAAAA5QAAAPoAAADlAAAAsgAAAF4AAAAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgAAANIAAAC9AAAAWgAAABkAAAACAAAAGQAAAFoAAAC9AAAA0gAAAB8AAAAAAAAAAAAAAAAAAAAAAAAAHwAAAP8AAACbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHoAAAD/AAAADwAAAAAAAAAAAAAABwAAANIAAAB6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAnAAAANEAAAAHAAAAAAAAAF4AAAC9AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC9AAAAXgAAAAAAAACyAAAAWgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWQAAALMAAAAAAAAA5QAAABkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAADmAAAAAAAAAPoAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAA+gAAAAAAAADlAAAAGQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGAAAAOYAAAAAAAAAsgAAAFoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFkAAACzAAAAAAAAAF4AAAC9AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC9AAAAXgAAAAAAAAAHAAAA0gAAAJoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB7AAAA0gAAAAcAAAAAAAAAAAAAAA4AAAD/AAAAewAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACbAAAA/wAAACAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAANEAAAC9AAAAWQAAABgAAAACAAAAGAAAAFkAAAC9AAAA0gAAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAAAAXgAAALMAAADmAAAA+gAAAOYAAACzAAAAXgAAAAcAAAAAAAAAAAAAAAAAAAAA';
 
-    var text_icon = 'data:image/gif;base64,R0lGODlhEAAQALMAAAAAAIAAAACAAICAAAAAgIAAgACAgMDAwICAgP8AAAD/AP//AAAA//8A/wD//////yH5BAEAAAcALAAAAAAQABAAAAQz8MhJq5UAXYsA2JWXgVInkodnalunnZtXqpc7weE3rZUp/rpbcEebsXJBWY32u/yOKEkEADs=';
-
     var property_icon = '{P}'; // just text
 
     var terminal_icon = 'data:image/x-icon;base64,AAABAAEAEBAAAAEAIAAoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAACNAAAA4gAAAPoAAADiAAAAjQAAAAcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcAAADsAAAA/gAAACUAAAACAAAAJQAAAKUAAADrAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACNAAAAxAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/gAAAI0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4gAAACUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQAAADiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPoAAAACAAAAAAAAAAAAAAD+AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP4AAADiAAAAJQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAOIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAjQAAAOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMQAAABsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAADrAAAAxAAAACQAAAACAAAAJAAAAP8AAADqAAAABwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwAAAI0AAADiAAAA+gAAAOIAAABsAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
@@ -1455,122 +1580,6 @@ var schematics = (function() {
         c.draw_arc(diagram, this.coords[0], this.coords[1], x2, y2, x3, y3);
     };
 
-    var text_alignments = ['top-left', 'top-center', 'top-right', 'center-left', 'center', 'center-right', 'bottom-left', 'bottom-center', 'bottom-right'];
-
-    // crude estimate of bbox for aligned text
-    function text_bbox(text, align) {
-        var h = 8;
-        var w = 4 * (text ? text.length : 0);
-        var bbox = [0, 0, 0, 0];
-
-        var position = align.split('-');
-
-        // adjust for alignment
-        var vertical = position[0];
-        if (vertical == 'top') {
-            bbox[1] = 0;
-            bbox[3] = h;
-        }
-        else if (vertical == 'center') {
-            bbox[1] = -h / 2;
-            bbox[3] = h / 2;
-        }
-        else {
-            bbox[1] = -h;
-            bbox[3] = 0;
-        }
-
-        var horizontal = position[1] || position[0];
-        if (horizontal == 'left') {
-            bbox[0] = 0;
-            bbox[2] = w;
-        }
-        else if (horizontal == 'center') {
-            bbox[0] = -w / 2;
-            bbox[2] = w / 2;
-        }
-        else {
-            bbox[0] = -w;
-            bbox[2] = 0;
-        }
-
-        return bbox;
-    }
-
-    // text, aligned around reference point
-    function Text(json) {
-        jade.Component.call(this);
-        this.module = text_module;
-        this.load(json);
-    }
-    Text.prototype = new jade.Component();
-    Text.prototype.constructor = Text;
-    Text.prototype.required_grid = 1;
-    jade.built_in_components.text = Text;
-    var text_module = {
-        properties: {
-            "text": {
-                "type": "string",
-                "label": "Text",
-                "value": "???",
-                "edit": "yes"
-            },
-            "font": {
-                "type": "string",
-                "label": "CSS Font",
-                "value": "6pt sans-serif",
-                "edit": "yes"
-            },
-            "align": {
-                "type": "menu",
-                "label": "Alignment",
-                "value": "center-left",
-                "edit": "yes",
-                "choices": text_alignments
-            }
-        }
-    };
-
-    Text.prototype.load = function(json) {
-        this.type = json[0];
-        this.coords = json[1];
-        this.properties = json[2] || {};
-
-        this.default_properties(); // add any missing properties
-
-        this.bounding_box = text_bbox(this.properties.text, this.properties.align);
-        this.update_coords();
-    };
-
-    Text.prototype.drag_callback = function(x, y, action) {
-        // nothing to do
-        return true;
-    };
-
-    Text.prototype.draw = function(diagram) {
-        // "+" marks the reference point for the property
-        this.draw_line(diagram, - 1, 0, 1, 0);
-        this.draw_line(diagram, 0, - 1, 0, 1);
-
-        var align = text_alignments.indexOf(this.properties.align);
-        this.draw_text(diagram, this.properties.text, 0, 0, align, this.properties.font);
-    };
-
-    Text.prototype.draw_icon = function(c, diagram) {
-        // need to adjust alignment accounting for our rotation
-        var align = text_alignments.indexOf(this.properties.align);
-        align = jade.aOrient[this.coords[2] * 9 + align];
-
-        c.draw_text(diagram, this.properties.text, this.coords[0], this.coords[1], align, this.properties.font);
-    };
-
-    Text.prototype.edit_properties = function(diagram, x, y) {
-        return jade.Component.prototype.edit_properties.call(this, diagram, x, y, function(c) {
-            c.bounding_box = text_bbox(c.properties.text, c.properties.align);
-            c.update_coords();
-        });
-    };
-
     // circle: center point + radius
     function Circle(json) {
         jade.Component.call(this);
@@ -1666,9 +1675,11 @@ var schematics = (function() {
     };
 
     Property.prototype.draw = function(diagram) {
-        // "+" marks the reference point for the property
-        this.draw_line(diagram, - 1, 0, 1, 0);
-        this.draw_line(diagram, 0, - 1, 0, 1);
+        if (this.selected) {
+            // "+" marks the reference point for the property
+            this.draw_line(diagram, - 1, 0, 1, 0);
+            this.draw_line(diagram, 0, - 1, 0, 1);
+        }
 
         var align = text_alignments.indexOf(this.properties.align);
         this.draw_text(diagram, this.properties.format || '-no format-', 0, 0, align, diagram.property_font);
@@ -2801,6 +2812,8 @@ var schematics = (function() {
     var vdd_icon = 'data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wAA//8AAP//AAD+/wAA/v8AAP7/AAD+/wAA/v8AAP7/AAD+/wAA/v8AAP7/AADABwAA//8AAP//AAD//wAA';
 
     var port_icon = 'data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wAA//8AAP//AAD//wAAAH8AAH+/AAB/3wAAf+8AAH/wAAB/7wAAf98AAH+/AAAAfwAA//8AAP//AAD//wAA';
+
+    var text_icon = 'data:image/gif;base64,R0lGODlhEAAQALMAAAAAAIAAAACAAICAAAAAgIAAgACAgMDAwICAgP8AAAD/AP//AAAA//8A/wD//////yH5BAEAAAcALAAAAAAQABAAAAQz8MhJq5UAXYsA2JWXgVInkodnalunnZtXqpc7weE3rZUp/rpbcEebsXJBWY32u/yOKEkEADs=';
 
     var check_icon = 'data:image/gif;base64,R0lGODlhEAAQAPcAADHOMf///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH5BAEAAAEALAAAAAAQABAAAAg2AAMIHEiwoMGDAQAAQFhQ4UKGCR1CjPgQosSJFzFWbEhQIcKLHhlKDCkyY0mSFlGWnMiSYEAAADs=';
 
