@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////
+ /////////////////////////////////////////////////////////////////////////////
 //
 //  Circuit simulator
 //
@@ -13,17 +13,18 @@ var cktsim = (function() {
     //                             connections: {port_name: signal, ...},
     //                             properties: {prop_name: value, ...}} ... ]
     // device_type is one of
-    //    "resistor"		ports: n1, n2; properties: value, name
-    //    "capacitor"		ports: n1, n2; properties: value, name
-    //    "inductor"		ports: n1, n2; properties: value, name
-    //    "diode"		ports: anode, cathode; properties: area, type, name
-    //    "opamp"		ports: nplus, nminus, output, gnd; properties: A, name
-    //    "nfet"		ports: D, G, S; properties: W, L, name
-    //    "pfet"		ports: D, G, S; properties: W, L, name
-    //    "voltage source"	ports: nplus, nminus; properties: value=src, name
-    //    "current source"	ports: nplus, nminus; properties: value=src, name
+    //    "resistor"            ports: n1, n2; properties: value, name
+    //    "capacitor"           ports: n1, n2; properties: value, name
+    //    "inductor"            ports: n1, n2; properties: value, name
+    //    "diode"               ports: anode, cathode; properties: area, type, name
+    //    "opamp"               ports: nplus, nminus, output, gnd; properties: A, name
+    //    "nfet"                ports: D, G, S; properties: W, L, name
+    //    "pfet"                ports: D, G, S; properties: W, L, name
+    //    "voltage source"      ports: nplus, nminus; properties: value=src, name
+    //    "current source"      ports: nplus, nminus; properties: value=src, name
     //    "connect"             ports are all aliases for the same electrical node
     //    "ground"              connections is list of aliases for gnd
+    //    "initial voltage"     ports: node; properties: IV, name
     // signals are just strings
     // src == {type: function_name, args: [number, ...]}
 
@@ -77,7 +78,7 @@ var cktsim = (function() {
                 if (source2 !== undefined) source2.src = parse_source({type: 'dc', args: [val2]});
 
                 // do DC analysis, add result to accumulated results for each node and branch
-                var result = ckt.dc();
+                var result = ckt.dc(true);
                 for (var n in result) {
                     if (results[n] === undefined) results[n] = [];
                     results[n].push(result[n]);
@@ -118,7 +119,7 @@ var cktsim = (function() {
             //   sweep value of the second source
             return results;
         }
-	return undefined;
+        return undefined;
     }
 
     // AC analysis
@@ -135,7 +136,7 @@ var cktsim = (function() {
             var ckt = new Circuit(netlist);
             return ckt.ac(npts, fstart, fstop, ac_source_name);
         }
-	return undefined;
+        return undefined;
     }
 
     // Transient analysis
@@ -172,7 +173,7 @@ var cktsim = (function() {
                 progress.finish(e);
             }
         }
-	return undefined;
+        return undefined;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -202,12 +203,12 @@ var cktsim = (function() {
     function Circuit(netlist) {
         this.node_map = {};
         this.ntypes = [];
-        this.initial_conditions = []; // ic's for each element
 
         this.devices = []; // list of devices
         this.device_map = {}; // map name -> device
         this.voltage_sources = []; // list of voltage sources
         this.current_sources = []; // list of current sources
+        this.initial_voltages = [];
 
         this.finalized = false;
         this.diddc = false;
@@ -224,11 +225,10 @@ var cktsim = (function() {
     };
 
     // allocate a new node index
-    Circuit.prototype.node = function(name, ntype, ic) {
+    Circuit.prototype.node = function(name, ntype) {
         this.node_index += 1;
         if (name) this.node_map[name] = this.node_index;
         this.ntypes.push(ntype);
-        this.initial_conditions.push(ic);
         return this.node_index;
     };
 
@@ -258,6 +258,14 @@ var cktsim = (function() {
                 this.abstol[i] = this.ntypes[i] == T_VOLTAGE ? v_abstol : i_abstol;
                 this.solution[i] = 0.0;
                 this.rhs[i] = 0.0;
+            }
+
+            // apply any initial voltages
+            for (i = 0; i < this.initial_voltages.length; i += 1) {
+                var node = this.initial_voltages[i].node;
+                var v = this.initial_voltages[i].v;
+                this.solution[node] = v;
+                this.soln_max[node] = v;
             }
 
             // Load up the linear elements once and for all
@@ -290,13 +298,13 @@ var cktsim = (function() {
 
         // set up mapping for all ground connections
         for (i = netlist.length - 1; i >= 0; i -= 1) {
-	    if (netlist[i].type == 'ground') {
+            if (netlist[i].type == 'ground') {
                 connections = netlist[i].connections;
                 for (j = 0; j < connections.length; j += 1) {
                     c = connections[j];
-		    this.node_map[c] = this.gnd_node();
-		}
-	    }
+                    this.node_map[c] = this.gnd_node();
+                }
+            }
         }
 
         // "connect a b ..." makes a, b, ... aliases for the same node
@@ -305,19 +313,19 @@ var cktsim = (function() {
             if (netlist[i].type == 'connect') {
                 connections = netlist[i].connections;
                 if (connections.length <= 1) continue;
-		// see if any of the connected nodes is a ground node.
-		// if so, make it the canonical name. Otherwise just choose
-		// connections[0] as the canonical name.
+                // see if any of the connected nodes is a ground node.
+                // if so, make it the canonical name. Otherwise just choose
+                // connections[0] as the canonical name.
                 var cname = connections[0];
                 for (j = 1; j < connections.length; j += 1) {
-		    c = connections[j];
-		    if (this.node_map[c] !== undefined) {
-			cname = c;
-			break;
-		    }
-		}
+                    c = connections[j];
+                    if (this.node_map[c] !== undefined) {
+                        cname = c;
+                        break;
+                    }
+                }
                 while (aliases[cname] !== undefined) cname = aliases[cname];  // follow alias chain
-		// so make all the other connected nodes aliases for the canonical name
+                // so make all the other connected nodes aliases for the canonical name
                 for (j = 1; j < connections.length; j += 1) {
                     c = connections[j];
                     while (aliases[c] !== undefined) c = aliases[c];  // follow alias chain
@@ -337,7 +345,7 @@ var cktsim = (function() {
             counts[type] = (counts[type] || 0) + 1;
 
             // convert node names to circuit indicies
-            var connections;
+            var connections = {};
             for (c in component.connections) {
                 node = component.connections[c];
                 while (aliases[node] !== undefined) node = aliases[node];  // follow alias chain
@@ -378,10 +386,13 @@ var cktsim = (function() {
                 break;
             case 'voltage probe':
                 break;
-	    case 'ground':
-		break;
+            case 'ground':
+                break;
             case 'connect':
                 break;  
+            case 'initial voltage':
+                this.initial_voltages.push({node: connections.node, v:properties.IV});
+                break;
             default:
                 throw 'Unrecognized device type ' + type;
             }
@@ -511,7 +522,7 @@ var cktsim = (function() {
     };
 
     // DC analysis
-    Circuit.prototype.dc = function() {
+    Circuit.prototype.dc = function(report_results) {
 
         // Allocation matrices for linear part, etc.
         if (this.finalize() === false) return undefined;
@@ -533,19 +544,21 @@ var cktsim = (function() {
         else {
             // Note that a dc solution was computed
             this.diddc = true;
-            // create solution dictionary
-            var result = {};
-            // capture node voltages
-            for (var name in this.node_map) {
-                var index = this.node_map[name];
-                result[name] = (index == -1) ? 0 : this.solution[index];
-            }
-            // capture branch currents from voltage sources
-            for (var i = this.voltage_sources.length - 1; i >= 0; i -= 1) {
-                var v = this.voltage_sources[i];
-                result['I(' + v.name + ')'] = this.solution[v.branch];
-            }
-            return result;
+            if (report_results) {
+                // create solution dictionary
+                var result = {};
+                // capture node voltages
+                for (var name in this.node_map) {
+                    var index = this.node_map[name];
+                    result[name] = (index == -1) ? 0 : this.solution[index];
+                }
+                // capture branch currents from voltage sources
+                for (var i = this.voltage_sources.length - 1; i >= 0; i -= 1) {
+                    var v = this.voltage_sources[i];
+                    result['I(' + v.name + ')'] = this.solution[v.branch];
+                }
+                return result;
+            } else return true;
         }
     };
 
@@ -556,7 +569,7 @@ var cktsim = (function() {
         // Standard to do a dc analysis before transient
         // Otherwise, do the setup also done in dc.
         if (this.diddc === false) {
-            if (this.dc() === undefined) { // DC failed, realloc mats and vects.
+            if (this.dc(false) === undefined) { // DC failed, realloc mats and vects.
                 //throw 'DC failed, trying transient analysis from zero.';
                 this.finalized = false; // Reset the finalization.
                 if (this.finalize() === false) progress.finish(undefined); // nothing more to do
@@ -853,7 +866,7 @@ var cktsim = (function() {
     Circuit.prototype.ac = function(npts, fstart, fstop, source_name) {
         var i;
 
-        if (this.dc() === undefined) { // DC failed, realloc mats and vects.
+        if (this.dc(false) === undefined) { // DC failed, realloc mats and vects.
             return undefined;
         }
 
@@ -969,7 +982,7 @@ var cktsim = (function() {
             var d = new Diode(n1, n2, area, type);
             return this.add_device(d, name);
         } // zero area diodes discarded.
-	return undefined;
+        return undefined;
     };
 
 
@@ -1823,8 +1836,8 @@ var cktsim = (function() {
     function parse_source(v) {
         // generic parser: parse v as either <value> or <fun>(<value>,...)
         var src = {};
-	src.fun = v.type;
-	src.args = v.args;
+        src.fun = v.type;
+        src.args = v.args;
         src.period = 0; // Default not periodic
         src.value = function(t) {
             return 0;
@@ -2016,7 +2029,7 @@ var cktsim = (function() {
     //
     ///////////////////////////////////////////////////////////////////////////////
     var module = {
-	Circuit: Circuit,
+        Circuit: Circuit,
         dc_analysis: dc_analysis,
         ac_analysis: ac_analysis,
         transient_analysis: transient_analysis

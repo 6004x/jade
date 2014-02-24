@@ -2912,6 +2912,11 @@ var schematics = (function() {
                                       connections: c,
                                       properties: {name: props.name, value: {type: 'dc', args: [0]}}
                                      });
+            else if (type == 'analog:iv') // initial voltage
+                revised_netlist.push({type: 'initial voltage',
+                                      connections: c,
+                                      properties: {name: props.name, IV: parse_number(props.IV)}
+                                     });
         });
 
         //console.log(JSON.stringify(netlist));
