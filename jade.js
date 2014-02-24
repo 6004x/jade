@@ -1831,7 +1831,7 @@ var jade = (function() {
         this.c = c;
 
         // put static image in the background
-        c.drawImage(this.bg_image, 0, 0);
+        c.drawImage(this.bg_image, 0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
 
         // selected components
         this.bbox = this.aspect.selected_bbox(this.unsel_bbox);
@@ -2329,7 +2329,12 @@ var jade = (function() {
 
     // build an input field
     function build_input(type, size, value) {
-        var input = $('<input class="property"></input>').attr('type',type).attr('size',size);
+        var input;
+        if (type == 'text') {
+            input = $('<textarea class="property" autocorrect="off" autocapitalize="off" rows="1"></textarea>');
+        } else {
+            input = $('<input class="property" autocorrect="off" autocapitalize="off"></input>').attr('type',type).attr('size',size);
+        }
         input.val(value === undefined ? '' : value.toString());
         return input[0];
     }
@@ -2620,7 +2625,7 @@ var jade = (function() {
 
         // set up top-level toolbar
         if (owner.attr('hierarchical') !== undefined) {
-            top_level.find('.jade-tabs-div').before('<div id="jade-toolbar"><button id="savelibs">Save changes</button>Module: <input id="module" type="text"></input></div>');
+            top_level.find('.jade-tabs-div').before('<div id="jade-toolbar"><button id="savelibs">Save changes</button>Module: <input id="module" type="text" autocorrect="off" autocapitalize="off"></input></div>');
             this.input_field = top_level.find('#module');
             this.input_field.keypress(function(event) {
                 // when user hits ENTER, edit the specified module
