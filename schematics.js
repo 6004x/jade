@@ -659,11 +659,25 @@ var schematics = (function() {
     var text_alignments = ['top-left', 'top-center', 'top-right', 'center-left', 'center', 'center-right', 'bottom-left', 'bottom-center', 'bottom-right'];
 
     // crude estimate of bbox for aligned text
-    function text_bbox(text, align) {
-        var h = 8;
-        var w = 4 * (text ? text.length : 0);
-        var bbox = [0, 0, 0, 0];
+    var text_canvas = $('<canvas></canvas>');
+    function text_bbox(text, align, font) {
+        var ctx = text_canvas[0].getContext('2d');
+        if (font) {
+            text_canvas.css('font',font);
+            ctx.font = font;
+        }
+        var w = ctx.measureText(text).width;
 
+        var font_size = text_canvas.css('font-size').match(/([\d\.]*)(\w*)/);
+        var h = parseFloat(font_size[1]);
+        // pt = 0.75*px, em = pt/12
+        if (font_size[2] == 'em') h *= 16;   // px = 16*em
+        else if (font_size[2] == 'pt') h *= 4/3;  // px = (4/3)*pt
+
+        //var h = 8;
+        //var w = 4 * (text ? text.length : 0);
+
+        var bbox = [0, 0, 0, 0];
         var position = align.split('-');
 
         // adjust for alignment
@@ -739,7 +753,7 @@ var schematics = (function() {
 
         this.default_properties(); // add any missing properties
 
-        this.bounding_box = text_bbox(this.properties.text, this.properties.align);
+        this.bounding_box = text_bbox(this.properties.text, this.properties.align, this.properties.font);
         this.update_coords();
     };
 
@@ -1665,7 +1679,7 @@ var schematics = (function() {
 
         this.default_properties(); // add any missing properties
 
-        this.bounding_box = text_bbox(this.properties.format, this.properties.align);
+        this.bounding_box = text_bbox(this.properties.format, this.properties.align, '5pt sans-serif');
         this.update_coords();
     };
 
@@ -1703,7 +1717,7 @@ var schematics = (function() {
 
     Property.prototype.edit_properties = function(diagram, x, y) {
         return jade.Component.prototype.edit_properties.call(this, diagram, x, y, function(c) {
-            c.bounding_box = text_bbox(c.properties.format, c.properties.align);
+            c.bounding_box = text_bbox(c.properties.format, c.properties.align, diagram.property_font);
             c.update_coords();
         });
     };
