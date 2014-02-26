@@ -87,6 +87,9 @@ var schematics = (function() {
         part = this.toolbar.add_tool('port', port_icon, 'I/O Port: click and drag to insert', null, function() { return true; });
         part_tool(part,div.diagram,'port');
 
+        part = this.toolbar.add_tool('jumper', jumper_icon, 'Jumper for connecting wires with different names: click and drag to insert', null, function() { return true; });
+        part_tool(part,div.diagram,'jumper');
+
         part = this.toolbar.add_tool('text', text_icon, 'Text: click and drag to insert', null, function() { return true; });
         part_tool(part,div.diagram,'text');
 
@@ -610,6 +613,38 @@ var schematics = (function() {
 
     Vdd.prototype.netlist = function(prefix) {
         return undefined;
+    };
+
+    // Jumper
+
+    function Jumper(json) {
+        jade.Component.call(this);
+        this.module = jumper_module; // set up properties for this component
+        this.load(json);
+    }
+    Jumper.prototype = new jade.Component();
+    Jumper.prototype.constructor = Jumper;
+    jade.built_in_components.jumper = Jumper;
+    var jumper_module = {
+        has_aspect: function () {return false;}
+    };
+
+    Jumper.prototype.load = function(json) {
+        this.type = json[0];
+        this.coords = json[1];
+        this.properties = json[2] || {};   // not expecting any properties...
+        this.default_properties(); // add any missing properties
+        this.add_connection(0, 0, "n1");
+        this.add_connection(8, 0, "n2");
+
+        // compute bounding box (expanded slightly)
+        var r = [0, -4, 8, 0];
+        this.bounding_box = r;
+        this.update_coords(); // update bbox
+    };
+
+    Jumper.prototype.draw = function(diagram) {
+        this.draw_arc(diagram, 0,0, 8,0, 4,-4);  // a "bump" to distinguish jumper from wire
     };
 
     // I/O port
@@ -1742,7 +1777,7 @@ var schematics = (function() {
             },
             "line": {
                 "type": "menu",
-                "label": "Draw line",
+                "label": "Draw line?",
                 "value": "yes",
                 "edit": "yes",
                 "choices": ["yes", "no"]
@@ -2220,7 +2255,7 @@ var schematics = (function() {
         }
 
         var netlist;
-        var mlist = ['ground'];
+        var mlist = ['ground','jumper'];
         $.each(jade.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
         try {
             netlist = this.module.aspect('schematic').netlist(mlist, '', {});
@@ -2827,6 +2862,8 @@ var schematics = (function() {
 
     var port_icon = 'data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wAA//8AAP//AAD//wAAAH8AAH+/AAB/3wAAf+8AAH/wAAB/7wAAf98AAH+/AAAAfwAA//8AAP//AAD//wAA';
 
+    var jumper_icon = 'data:image/x-icon;base64,AAABAAEAEBAAAAEAIAAoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAjAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAvgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxAAAADsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPgAAAMEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEIAAAC2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALgAAAA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKgAAAOMAAABIAAAAJQAAAAAAAAAlAAAASQAAAOQAAAAmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAjAAAAkgAAANoAAAC+AAAA2gAAAJEAAAAhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+
     var text_icon = 'data:image/gif;base64,R0lGODlhEAAQALMAAAAAAIAAAACAAICAAAAAgIAAgACAgMDAwICAgP8AAAD/AP//AAAA//8A/wD//////yH5BAEAAAcALAAAAAAQABAAAAQz8MhJq5UAXYsA2JWXgVInkodnalunnZtXqpc7weE3rZUp/rpbcEebsXJBWY32u/yOKEkEADs=';
 
     var check_icon = 'data:image/gif;base64,R0lGODlhEAAQAPcAADHOMf///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH5BAEAAAEALAAAAAAQABAAAAg2AAMIHEiwoMGDAQAAQFhQ4UKGCR1CjPgQosSJFzFWbEhQIcKLHhlKDCkyY0mSFlGWnMiSYEAAADs=';
@@ -2849,7 +2886,7 @@ var schematics = (function() {
     function diagram_netlist(diagram) {
         // extract netlist and convert to form suitable for new cktsim.js
         // use modules in the analog libraries as the leafs
-        var mlist = ['ground'];
+        var mlist = ['ground','jumper'];
         $.each(jade.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
         return cktsim_netlist(diagram.netlist(mlist));
     }
@@ -2916,6 +2953,14 @@ var schematics = (function() {
                                       connections: [c.gnd],
                                       properties: {}
                                      });
+            else if (type == 'jumper') {  // jumper connection
+                var clist = [];
+                $.each(c,function (name,node) { clist.push(node); });
+                revised_netlist.push({type: 'connect',
+                                      connections: clist,
+                                      properties: {}
+                                     });
+            }
             else if (type == 'analog:s')   // ground connection
                 revised_netlist.push({type: 'voltage probe',
                                       connections: c,

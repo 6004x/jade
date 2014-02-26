@@ -210,7 +210,7 @@ var jade = (function() {
 
     Module.prototype.set_modified = function(which) {
         if (this.modified != which) {
-            this.modifed = which;
+            this.modified = which;
             if (which) this.library.set_modified(true);
             else library.check_modified();
         }
@@ -810,7 +810,8 @@ var jade = (function() {
         var props = {};
         for (var p in this.properties) {
             var v = this.properties[p];
-            if (v !== undefined && v !== '' && (!remove_default_values || v != this.module.properties[p].value)) props[p] = v;
+            if (v !== undefined && v !== '' && this.module.properties[p] &&
+                (!remove_default_values || v != this.module.properties[p].value)) props[p] = v;
         }
         return props;
     };
