@@ -81,15 +81,26 @@ var jade = (function() {
         return json;
     };
 
+    Library.prototype.clear_modified = function() {
+        // this will clear the library's modified flag when
+        // all modules are unmodified
+        for (m in this.modules) this.modules[m].clear_modified();
+    };
+
     Library.prototype.set_modified = function(which) {
         if (which != this.modified) {
             this.modified = which;
-            if (which) $('body').attr('data-dirty','yes');
-            else {
+            if (which) {
+                $('body').attr('data-dirty','yes');
+                $('#savelibs').prop('disabled',false);
+            } else {
                 // if all libraries are now unmodified, clear data-dirty attr
                 var dirty = false;
                 $.each(libraries,function (lname,lib) { if (lib.modified) dirty = true; });
-                if (!dirty) $('body').removeAttr('data-dirty');
+                if (!dirty) {
+                    $('body').removeAttr('data-dirty');
+                    $('#savelibs').prop('disabled',true);
+                }
             }
         }
     };
@@ -117,10 +128,7 @@ var jade = (function() {
                 },
                 success: function() {
                     // clear modified status for library and its modules
-                    for (var m in this.modules) {
-                        this.modules[m].set_modified(false);
-                    }
-                    lib.set_modified(false);
+                    lib.clear_modified();
                 }
             };
             $.ajax(args);
@@ -208,11 +216,17 @@ var jade = (function() {
         else this.listeners.push(callback);
     };
 
+    Module.prototype.clear_modified = function() {
+        // this will clear the module's modified flag when
+        // all aspects are unmodified
+        for (a in this.aspects) this.aspects[a].set_modified(false);
+    };
+
     Module.prototype.set_modified = function(which) {
         if (this.modified != which) {
             this.modified = which;
             if (which) this.library.set_modified(true);
-            else library.check_modified();
+            else this.library.check_modified();
         }
     };
 
@@ -382,7 +396,7 @@ var jade = (function() {
             this.clean_up_wires(false); // canonicalize diagram's wires
         }
 
-        this.set_modified(this.current_action == -1);
+        this.set_modified(this.current_action != -1);
     };
 
     Aspect.prototype.can_redo = function() {
@@ -2626,7 +2640,7 @@ var jade = (function() {
 
         // set up top-level toolbar
         if (owner.attr('hierarchical') !== undefined) {
-            top_level.find('.jade-tabs-div').before('<div id="jade-toolbar"><button id="savelibs">Save changes</button>Module: <input id="module" type="text" autocorrect="off" autocapitalize="off"></input></div>');
+            top_level.find('.jade-tabs-div').before('<div id="jade-toolbar"><button id="savelibs" disabled>Save changes</button>Module: <input id="module" type="text" autocorrect="off" autocapitalize="off"></input></div>');
             this.input_field = top_level.find('#module');
             this.input_field.keypress(function(event) {
                 // when user hits ENTER, edit the specified module
@@ -2754,8 +2768,9 @@ var jade = (function() {
         if (typeof module == 'string') module = find_module(module);
         this.module = module;
 
-        if (this.input_field !== undefined)
+        if (this.input_field !== undefined) {
             this.input_field.val(module.get_name());
+        }
 
         this.bookmark();    // remember current module for next visit
         this.refresh();  // tell each tab which module we're editing
