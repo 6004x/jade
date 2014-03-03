@@ -1531,6 +1531,7 @@ var jade = (function() {
 
     Diagram.prototype.set_aspect = function(aspect) {
         this.aspect = aspect;
+        this.show_grid = true;
         this.redraw_background(); // compute bounding box
         this.zoomall(); // let's see the whole diagram
     };
@@ -2127,6 +2128,9 @@ var jade = (function() {
             if (zy < 16) this.zoomin();
             else if (zy < 32) this.zoomout();
             else this.zoomall();
+        }
+        else if (sx >= -20 && sx <= -12 && sy >= -20 && sy <= -12) {   // "secret" grid toggle
+            this.show_grid = !this.show_grid;
         }
         else return false;
 
