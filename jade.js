@@ -2636,7 +2636,8 @@ var jade = (function() {
 
         var top_level = $('<div class="jade-top-level">' +
                           ' <div class="jade-tabs-div"></div>' +
-                          ' <div class="jade-status"><span id="message"></span><img class="jade-resize"></img></div>' +
+                          ' <div class="jade-status"><span id="message"></span>' +
+                          //' <img class="jade-resize"></img></div>' +
                           '</div>');
 
         // insert framework into DOM
@@ -2644,7 +2645,7 @@ var jade = (function() {
 
         // set up top-level toolbar
         if (owner.attr('hierarchical') !== undefined) {
-            top_level.find('.jade-tabs-div').before('<div id="jade-toolbar"><button id="savelibs" disabled>Save changes</button>Module: <input id="module" type="text" autocorrect="off" autocapitalize="off"></input></div>');
+            top_level.find('.jade-tabs-div').before('<div id="jade-toolbar">'+/*'<button id="savelibs" disabled>Save changes</button>'+*/'Module: <input id="module" type="text" autocorrect="off" autocapitalize="off"></input></div>');
             this.input_field = top_level.find('#module');
             this.input_field.keypress(function(event) {
                 // when user hits ENTER, edit the specified module
@@ -2702,13 +2703,16 @@ var jade = (function() {
         }
 
         // add status line at the bottom
+        /*
         var resize = top_level.find('.jade-resize');
         resize.attr('src',resize_icon);
         resize[0].jade = this;
         resize.mousedown(resize_mouse_down);
+        */
 
         this.status.text('Copyright \u00A9 MIT EECS 2011-2014');
 
+        /*
         // should we expand to fill screen?
         if (owner.attr('fill_window')) {
             // set up handler to resize jade
@@ -2724,10 +2728,18 @@ var jade = (function() {
             // trigger handler on startup
             $(window).trigger('resize');
         };
+        */
+
+        var win_w = $(window).width();
+        var win_h = $(window).height();
+        var offset = top_level.offset();
+        var w = offset.left + top_level.outerWidth(true) + 10;
+        var h = offset.top + top_level.outerHeight(true) + 10;
+        this.resize(win_w - w,win_h - h);
 
         // starting module?
         var mname = owner.attr('edit');
-        if (mname === undefined) mname = localStorage.getItem('jade-module');
+        //if (mname === undefined) mname = localStorage.getItem('jade-module');
         if (mname !== undefined) {
             // mname = library:module.aspect
             mname = mname.split('.');
@@ -2820,6 +2832,7 @@ var jade = (function() {
         }
     };
 
+    /*
     function resize_mouse_down(event) {
         var jade = event.target.jade;
         var lastX = event.pageX;
@@ -2840,6 +2853,7 @@ var jade = (function() {
 
         return false;
     }
+    */
 
     ////////////////////////////////////////////////////////////////////////////////
     //
