@@ -370,7 +370,7 @@ jade.icon_view = (function() {
 
         // compute bounding box (expanded slightly)
         var r = [0, 0, dx, dy];
-        jade.canonicalize(r);
+        jade.model.canonicalize(r);
         r[0] -= line_distance;
         r[1] -= line_distance;
         r[2] += line_distance;
@@ -470,12 +470,12 @@ jade.icon_view = (function() {
         else {
             // compute bounding box enclosing all three points
             var r = [0, 0, dx, dy];
-            jade.canonicalize(r);
+            jade.model.canonicalize(r);
             if (ex < r[0]) r[0] = ex;
             else if (ex > r[2]) r[2] = ex;
             if (ey < r[1]) r[1] = ey;
             else if (ey > r[3]) r[3] = ey;
-            jade.canonicalize(r);
+            jade.model.canonicalize(r);
             this.bounding_box = r;
             this.update_coords(); // update bbox
         }
@@ -616,7 +616,7 @@ jade.icon_view = (function() {
 
         this.default_properties(); // add any missing properties
 
-        this.bounding_box = text_bbox(this.properties.format, this.properties.align, '5pt sans-serif');
+        this.bounding_box = jade.schematic_view.text_bbox(this.properties.format, this.properties.align, '5pt sans-serif');
         this.update_coords();
     };
 
@@ -647,14 +647,14 @@ jade.icon_view = (function() {
 
         // need to adjust alignment accounting for our rotation
         var align =  jade.schematic_view.text_alignments.indexOf(this.properties.align);
-        align = jade.aOrient[this.coords[2] * 9 + align];
+        align = jade.model.aOrient[this.coords[2] * 9 + align];
 
         c.draw_text(diagram, s, this.coords[0], this.coords[1], align, diagram.property_font);
     };
 
     Property.prototype.edit_properties = function(diagram, x, y) {
         return jade.model.Component.prototype.edit_properties.call(this, diagram, x, y, function(c) {
-            c.bounding_box = text_bbox(c.properties.format, c.properties.align, diagram.property_font);
+            c.bounding_box = jade.schematic_view.text_bbox(c.properties.format, c.properties.align, diagram.property_font);
             c.update_coords();
         });
     };
@@ -694,8 +694,8 @@ jade.icon_view = (function() {
 
         this.default_properties(); // add any missing properties
 
-        this.bounding_box = [-jade.connection_point_radius, - jade.connection_point_radius,
-                             8 + jade.connection_point_radius, jade.connection_point_radius];
+        this.bounding_box = [-jade.model.connection_point_radius, -jade.model.connection_point_radius,
+                             8 + jade.model.connection_point_radius, jade.model.connection_point_radius];
         this.update_coords();
     };
 
@@ -705,9 +705,9 @@ jade.icon_view = (function() {
     };
 
     Terminal.prototype.draw = function(diagram) {
-        this.draw_circle(diagram, 0, 0, jade.connection_point_radius, false);
+        this.draw_circle(diagram, 0, 0, jade.model.connection_point_radius, false);
         if (this.properties.line != 'no') this.draw_line(diagram, 0, 0, 8, 0);
-        this.draw_text(diagram, this.properties.name, jade.connection_point_radius - 4, 0, 5, diagram.property_font);
+        this.draw_text(diagram, this.properties.name, jade.model.connection_point_radius - 4, 0, 5, diagram.property_font);
     };
 
     Terminal.prototype.draw_icon = function(c, diagram) {

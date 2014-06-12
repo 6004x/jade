@@ -34,6 +34,14 @@ var jade = (function() {
         this.load_library(owner.text());
         owner.empty();
 
+        // load specified libraries
+        var libs = owner.attr('libs');
+        if (libs) {
+            $.each(libs.split(','),function(index,lname) {
+                jade.model.load_library(lname);
+            });
+        };
+
         var top_level = $('<div class="jade-top-level">' +
                           ' <div class="jade-tabs-div"></div>' +
                           ' <div class="jade-status"><span id="message"></span>' +
@@ -105,24 +113,17 @@ var jade = (function() {
         }
 
         // add status line at the bottom
-        /*
-        var resize = top_level.find('.jade-resize');
-        resize.attr('src',jade.icons.resize_icon);
-        resize[0].jade = this;
-        resize.mousedown(resize_mouse_down);
-        */
-
         this.status.text('Copyright \u00A9 MIT EECS 2011-2014');
 
         // set up handler to resize jade
-        var jade = this;
+        var me = this;
         $(window).on('resize',function() {
             var win_w = $(window).width();
             var win_h = $(window).height();
             var offset = top_level.offset();
             var w = offset.left + top_level.outerWidth(true) + 10;
             var h = offset.top + top_level.outerHeight(true) + 10;
-            jade.resize(win_w - w,win_h - h);
+            me.resize(win_w - w,win_h - h);
         });
         // trigger handler on startup
         $(window).trigger('resize');
@@ -171,7 +172,7 @@ var jade = (function() {
     };
 
     Jade.prototype.edit = function(module) {
-        if (typeof module == 'string') module = find_module(module);
+        if (typeof module == 'string') module = jade.model.find_module(module);
         this.module = module;
 
         if (this.input_field !== undefined) {
@@ -1028,7 +1029,7 @@ var jade = (function() {
     Diagram.prototype.message = function(message) {
         var status = this.editor.status;
 
-        if (status) status.text(message);
+        if (status) status.html(message);
     };
 
     Diagram.prototype.clear_message = function(message) {

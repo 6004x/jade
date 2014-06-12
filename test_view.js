@@ -55,10 +55,10 @@ jade.test_view = (function() {
     function do_test(diagram) {
         var module = diagram.aspect.module;
         if (module) {
-            if (!module.has_aspect('test')) {
+            if (module.has_aspect('test')) {
                 var test = module.aspect('test').components[0];
                 if (test) {
-                    run_test(test,diagram);
+                    run_tests(test.test,diagram,module);
                     return;
                 }
             }
@@ -103,7 +103,7 @@ jade.test_view = (function() {
         this.aspect = module.aspect('test');
         this.test_component = this.aspect.components[0];
         if (this.test_component === undefined) {
-            this.test_component = jade.make_component(["test",""]);
+            this.test_component = jade.model.make_component(["test",""]);
             this.aspect.add_component(this.test_component);
         }
         this.textarea.val(this.test_component.test);
@@ -112,7 +112,7 @@ jade.test_view = (function() {
     TestEditor.prototype.event_coords = function () { };
 
     TestEditor.prototype.check = function () {
-        run_tests(this.textarea.val(),this.module);
+        run_tests(this.textarea.val(),this,this.module);
     };
 
     TestEditor.prototype.message = function(msg) {
@@ -129,7 +129,7 @@ jade.test_view = (function() {
 
     // Test component that lives inside a Test aspect
     function Test(json) {
-        jade.Component.call(this);
+        jade.model.Component.call(this);
         this.load(json);
     }
     Test.prototype = new jade.model.Component();
@@ -145,7 +145,7 @@ jade.test_view = (function() {
         return [this.type, this.test];
     };
 
-    function run_tests(source,module) {
+    function run_tests(source,diagram,module) {
         // remove multiline comments, in-line comments
         source = source.replace(/\/\*(.|\n)*?\*\//g,'');   // multi-line using slash-star
         source = source.replace(/\/\/.*\n/g,'\n');
@@ -174,7 +174,7 @@ jade.test_view = (function() {
                         errors.push('Malformed '+line[0]+' statement: '+source[k]);
                         break;
                     }
-                    v = parse_number(line[i+2]);
+                    v = jade.utils.parse_number(line[i+2]);
                     if (isNaN(v)) {
                         errors.push('Unrecognized voltage specification "'+line[i+2]+'": '+source[k]);
                         break;
@@ -235,7 +235,7 @@ jade.test_view = (function() {
                         continue;
                     }
                     else if (line[i] == 'tran' && (i + 1 < line.length)) {
-                        v = parse_number(line[i+1]);
+                        v = jade.utils.parse_number(line[i+1]);
                         if (isNaN(v)) {
                             errors.push('Unrecognized tran duration "'+line[i+1]+'": '+source[k]);
                             break;
@@ -308,17 +308,17 @@ jade.test_view = (function() {
 
         var netlist;
         var mlist = ['ground','jumper'];
-        $.each(jade.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
+        $.each(jade.model.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
         try {
             netlist = module.aspect('schematic').netlist(mlist, '', {});
-            netlist = cktsim_netlist(netlist);
+            netlist = jade.schematic_view.cktsim_netlist(netlist);
         }
         catch (e) {
             diagram.message("Error extracting netlist:<p>" + e);
             return;
         }
 
-        var nodes = extract_nodes(netlist);  // get list of nodes in netlist
+        var nodes = jade.schematic_view.extract_nodes(netlist);  // get list of nodes in netlist
         function check_node(node) {
             if (nodes.indexOf(node) == -1)
                 errors.push('Circuit does not have a node named "'+node+'".');
@@ -439,8 +439,8 @@ jade.test_view = (function() {
         //print_netlist(netlist);
 
         // do the simulation
-        var progress = tran_progress_report();
-        jade.window('Progress',progress[0],diagram.canvas.offset());
+        var progress = jade.schematic_view.tran_progress_report();
+        jade.window('Progress',progress[0],$(diagram.canvas).offset());
         cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), function(percent_complete,results) {
             if (percent_complete === undefined) {
                 jade.window_close(progress[0].win);  // done with progress bar
@@ -451,11 +451,11 @@ jade.test_view = (function() {
                     var times = results[node].xvalues;
                     var observed = results[node].yvalues;
                     $.each(tvlist,function(index,tvpair) {
-                        var v = interpolate(tvpair[0], times, observed);
+                        var v = jade.schematic_view.interpolate(tvpair[0], times, observed);
                         if ((tvpair[1] == 'L' && v > thresholds.Vil) ||
                             (tvpair[1] == 'H' && v < thresholds.Vih)) 
                             errors.push('Expected signal '+node+' to be a valid '+tvpair[1]+
-                                        ' at time '+engineering_notation(tvpair[0],2)+'s.');
+                                        ' at time '+jade.utils.engineering_notation(tvpair[0],2)+'s.');
                     });
                 });
                 if (errors.length > 0) {
@@ -494,7 +494,7 @@ jade.test_view = (function() {
                         if (dataset !== undefined) {
                             callback(dataset);
                         }
-                    },diagram.canvas.offset());
+                    },$(diagram.canvas).offset());
                 }
 
                 // produce requested plots
@@ -509,14 +509,14 @@ jade.test_view = (function() {
 
                     // graph the result and display in a window
                     var graph1 = plot.graph(dataseries);
-                    var offset = diagram.canvas.offset();
+                    var offset = $(diagram.canvas).offset();
                     var win = jade.window('Test Results',graph1,offset);
 
                     // resize window to 75% of test pane
                     var win_w = win.width();
                     var win_h = win.height();
-                    win[0].resize(Math.floor(0.75*diagram.canvas.width()) - win_w,
-                                  Math.floor(0.75*diagram.canvas.width()) - win_h);
+                    win[0].resize(Math.floor(0.75*$(diagram.canvas).width()) - win_w,
+                                  Math.floor(0.75*$(diagram.canvas).height()) - win_h);
                 }
             } else {
                 progress.find('.jade-progress-bar').css('width',percent_complete+'%');

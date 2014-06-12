@@ -123,15 +123,11 @@ jade.model = (function () {
         }
     }
 
-    function load_library(lname) {
-        //var base_url = document.getElementById('jade-script').src;
-        //base_url = base_url.substr(0,base_url.length - 7);  // strip off 'jade.js'
-        // get contents from the server
+    function load_library(lname,read_only) {
         var args = {
             async: false, // hang until load completes
-            url: 'server.cgi',
-            type: 'POST',
-            data: { file: lname },
+            url: lname,
+            type: 'GET',
             dataType: 'json',
             error: function(jqXHR, textStatus, errorThrown) {
                 alert('Error while loading library '+lname+': '+errorThrown);
@@ -139,8 +135,8 @@ jade.model = (function () {
             success: function(json) {
                 // allocate new library, add to list so we know we're loading it
                 var lib = new Library(lname);
-                lib.load(json[0]);
-                if (json[1] == 'shared') lib.read_only = true;
+                lib.load(json);
+                if (read_only) lib.read_only = true;
             }
         };
         $.ajax(args);
@@ -1311,16 +1307,16 @@ jade.model = (function () {
 
                 var lbl = mprop.label || p; // use provided label
                 var input;
-                if (mprop.type == 'menu') input = build_select(mprop.choices, this.properties[p]);
+                if (mprop.type == 'menu') input = jade.build_select(mprop.choices, this.properties[p]);
                 else {
                     var v = this.properties[p];
-                    input = build_input('text', Math.max(10, (v === undefined ? 1 : v.length) + 5), this.properties[p]);
+                    input = jade.build_input('text', Math.max(10, (v === undefined ? 1 : v.length) + 5), this.properties[p]);
                 }
                 input.prop_name = p;
                 fields[lbl] = input;
             }
 
-            var content = build_table(fields);
+            var content = jade.build_table(fields);
             var component = this;
 
             diagram.dialog('Edit Properties', content, function() {
@@ -1388,7 +1384,7 @@ jade.model = (function () {
             // possibly label other cp's for this device?
             this.parent.propagate_label(label);
         }
-        else if (!signal_equals(this.label, label))
+        else if (!jade.utils.signal_equals(this.label, label))
             // signal an error while generating netlist
             throw "Node has two conflicting sets of labels: [" + this.label + "], [" + label + "]";
     };
@@ -1439,6 +1435,7 @@ jade.model = (function () {
     return {
         libraries: libraries,
         find_module: find_module,
+        load_library: load_library,
         Aspect: Aspect,
         Component: Component,
         make_component: make_component,

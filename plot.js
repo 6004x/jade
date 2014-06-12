@@ -374,7 +374,7 @@ var plot = (function() {
             c.beginPath();
             c.moveTo(temp,dataset.top); c.lineTo(temp,dataset.top + dataset.hplot);
             c.stroke();
-            c.fillText(schematics.engineering_notation(t, 2)+xunits, temp, dataset.top + dataset.hplot);
+            c.fillText(jade.utils.engineering_notation(t, 2)+xunits, temp, dataset.top + dataset.hplot);
         }
 
         if (dataset.yunits) {
@@ -387,7 +387,7 @@ var plot = (function() {
                 c.beginPath();
                 c.moveTo(dataset.left,temp); c.lineTo(dataset.left + dataset.wplot,temp);
                 c.stroke();
-                c.fillText(schematics.engineering_notation(t, 2)+dataset.yunits,dataset.left-2,temp);
+                c.fillText(jade.utils.engineering_notation(t, 2)+dataset.yunits,dataset.left-2,temp);
             }
             c.stroke();
         }
@@ -531,7 +531,7 @@ var plot = (function() {
                 c.stroke();
 
                 // add x-axis label
-                var label = schematics.engineering_notation(x,1);
+                var label = jade.utils.engineering_notation(x,1);
                 if (dataset.xunits) label += dataset.xunits;
                 c.font = graph_font;
                 c.textAlign = 'center';
@@ -543,7 +543,7 @@ var plot = (function() {
 
                 // now add label
                 if (dataset.yunits) {
-                    label = '='+schematics.engineering_notation(y,1) + dataset.yunits;
+                    label = '='+jade.utils.engineering_notation(y,1) + dataset.yunits;
                     c.font = graph_legend_font;
 
                     // translucent background so graph doesn't obscure label

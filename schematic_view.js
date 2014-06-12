@@ -244,7 +244,7 @@ jade.schematic_view = (function() {
         var dx = Math.abs(diagram.aspect_x - diagram.cursor_x);
         var dy = Math.abs(diagram.aspect_y - diagram.cursor_y);
         var cplist = diagram.aspect.connection_points[diagram.cursor_x + ',' + diagram.cursor_y];
-        if (dx <= jade.connection_point_radius && dy <= jade.connection_point_radius && cplist && !event.shiftKey) {
+        if (dx <= jade.model.connection_point_radius && dy <= jade.model.connection_point_radius && cplist && !event.shiftKey) {
             diagram.unselect_all(-1);
             diagram.redraw_background();
             diagram.wire = [diagram.cursor_x, diagram.cursor_y, diagram.cursor_x, diagram.cursor_y];
@@ -351,7 +351,7 @@ jade.schematic_view = (function() {
 
         // compute bounding box (expanded slightly)
         var r = [0, 0, dx, dy];
-        jade.canonicalize(r);
+        jade.model.canonicalize(r);
         r[0] -= wire_distance;
         r[1] -= wire_distance;
         r[2] += wire_distance;
@@ -811,7 +811,7 @@ jade.schematic_view = (function() {
     Text.prototype.draw_icon = function(c, diagram) {
         // need to adjust alignment accounting for our rotation
         var align = text_alignments.indexOf(this.properties.align);
-        align = jade.aOrient[this.coords[2] * 9 + align];
+        align = jade.model.aOrient[this.coords[2] * 9 + align];
 
         c.draw_text(diagram, this.properties.text, this.coords[0], this.coords[1], align, this.properties.font);
     };
@@ -902,7 +902,7 @@ jade.schematic_view = (function() {
             // create a part for each module in select library, add to parts list
             var lname = this.lib_select.value;
             if (lname) {
-                var mlist = Object.keys(jade.libraries[lname].modules);
+                var mlist = Object.keys(jade.model.libraries[lname].modules);
                 mlist.sort();
                 for (var i = 0; i < mlist.length; i += 1) {
                     this.add_part(lname + ':' + mlist[i]);
@@ -917,7 +917,7 @@ jade.schematic_view = (function() {
         if (part === undefined) {
             part = new Part(this.diagram);
             this.parts[mname] = part;
-            part.set_component(jade.make_component([mname, [0, 0, 0]]));
+            part.set_component(jade.model.make_component([mname, [0, 0, 0]]));
         }
 
         this.parts_list.appendChild(part.canvas[0]);
@@ -1102,7 +1102,7 @@ jade.schematic_view = (function() {
     // parse foo(1,2,3) into {type: foo, args: [1,2,3]}
     function parse_source(value) {
         var m = value.match(/(\w+)\s*\((.*?)\)\s*/);
-        var args = $.map(m[2].split(','),parse_number);
+        var args = $.map(m[2].split(','),jade.utils.parse_number);
         return {type: m[1], args: args};
     }
 
@@ -1129,29 +1129,29 @@ jade.schematic_view = (function() {
                 revised_netlist.push({type: 'nfet',
                                       connections: c,
                                       properties: {name: props.name, 
-                                                   W: parse_number(props.W),
-                                                   L: parse_number(props.L)}
+                                                   W: jade.utils.parse_number(props.W),
+                                                   L: jade.utils.parse_number(props.L)}
                                      });
             else if (type == 'analog:pfet')
                 revised_netlist.push({type: 'pfet',
                                       connections: c,
                                       properties: {name: props.name, 
-                                                   W: parse_number(props.W),
-                                                   L: parse_number(props.L)}
+                                                   W: jade.utils.parse_number(props.W),
+                                                   L: jade.utils.parse_number(props.L)}
                                      });
             else if (type == 'analog:r')
                 revised_netlist.push({type: 'resistor',
                                       connections: c,
-                                      properties: {name: props.name, value: parse_number(props.r)}
+                                      properties: {name: props.name, value: jade.utils.parse_number(props.r)}
                                      });
             else if (type == 'analog:l')
                 revised_netlist.push({type: 'inductor',
                                       connections: c,
-                                      properties: {name: props.name, value: parse_number(props.l)}
+                                      properties: {name: props.name, value: jade.utils.parse_number(props.l)}
                                      });
             if (type == 'analog:c')                revised_netlist.push({type: 'capacitor',
                                       connections: c,
-                                      properties: {name: props.name, value: parse_number(props.c)}
+                                      properties: {name: props.name, value: jade.utils.parse_number(props.c)}
                                      });
             else if (type == 'analog:v')
                 revised_netlist.push({type: 'voltage source',
@@ -1166,12 +1166,12 @@ jade.schematic_view = (function() {
             else if (type == 'analog:o')
                 revised_netlist.push({type: 'opamp',
                                       connections: c,
-                                      properties: {name: props.name, A: parse_number(props.A)}
+                                      properties: {name: props.name, A: jade.utils.parse_number(props.A)}
                                      });
             else if (type == 'analog:d')
                 revised_netlist.push({type: 'diode',
                                       connections: c,
-                                      properties: {name: props.name, area: parse_number(props.area)}
+                                      properties: {name: props.name, area: jade.utils.parse_number(props.area)}
                                      });
             else if (type == 'ground')   // ground connection
                 revised_netlist.push({type: 'ground',
@@ -1189,7 +1189,7 @@ jade.schematic_view = (function() {
             else if (type == 'analog:s')   // ground connection
                 revised_netlist.push({type: 'voltage probe',
                                       connections: c,
-                                      properties: {name: props.name, color: props.color, offset: parse_number(props.offset)}
+                                      properties: {name: props.name, color: props.color, offset: jade.utils.parse_number(props.offset)}
                                      });
             else if (type == 'analog:a')   // current probe
                 revised_netlist.push({type: 'voltage source',
@@ -1199,7 +1199,7 @@ jade.schematic_view = (function() {
             else if (type == 'analog:iv') // initial voltage
                 revised_netlist.push({type: 'initial voltage',
                                       connections: c,
-                                      properties: {name: props.name, IV: parse_number(props.IV)}
+                                      properties: {name: props.name, IV: jade.utils.parse_number(props.IV)}
                                      });
         });
 
@@ -1320,7 +1320,7 @@ jade.schematic_view = (function() {
             // run the analysis
             var operating_point;
             try {
-                operating_point = ckt.dc();
+                operating_point = ckt.dc(true);
             }
             catch (e) {
                 diagram.message("Error during DC analysis:\n\n" + e);
@@ -1410,8 +1410,8 @@ jade.schematic_view = (function() {
             module.set_property('ac_fstop', ac_fstop);
             module.set_property('ac_source', ac_source);
 
-            ac_fstart = parse_number_alert(ac_fstart);
-            ac_fstop = parse_number_alert(ac_fstop);
+            ac_fstart = jade.utils.parse_number_alert(ac_fstart);
+            ac_fstop = jade.utils.parse_number_alert(ac_fstop);
             if (ac_fstart === undefined || ac_fstop === undefined) return;
 
             ac_analysis(netlist, diagram, ac_fstart, ac_fstop, ac_source);
@@ -1622,7 +1622,7 @@ jade.schematic_view = (function() {
         diagram.dialog('Transient Analysis', content, function() {
             // retrieve parameters, remember for next time
             module.set_property('tran_tstop', fields[tstop_lbl].value);
-            var tstop = parse_number_alert(module.properties.tran_tstop);
+            var tstop = jade.utils.parse_number_alert(module.properties.tran_tstop);
 
             if (netlist.length > 0 && tstop !== undefined) {
                 // gather a list of nodes that are being probed.  These
@@ -1724,7 +1724,12 @@ jade.schematic_view = (function() {
     return {
         schematic_tools: schematic_tools,
         text_alignments: text_alignments,
-        print_netlist: print_netlist
+        text_bbox: text_bbox,
+        print_netlist: print_netlist,
+        cktsim_netlist: cktsim_netlist,
+        extract_nodes: extract_nodes,
+        tran_progress_report: tran_progress_report,
+        interpolate: interpolate
     };
 
 }());
