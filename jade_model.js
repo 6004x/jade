@@ -236,7 +236,7 @@ jade.model = (function () {
         }
 
         // load properties
-        this.properties = json[1];
+        this.properties = json[1] || {};
 
         // a newly loaded module starts as unmodified
         this.set_modified(false);
@@ -1435,6 +1435,7 @@ jade.model = (function () {
     return {
         libraries: libraries,
         find_module: find_module,
+        Library: Library,
         load_library: load_library,
         Aspect: Aspect,
         Component: Component,

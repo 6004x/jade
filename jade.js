@@ -42,6 +42,16 @@ var jade = (function() {
             });
         };
 
+        // create specified libraries
+        var create_libs = owner.attr('create_libs');
+        if (create_libs) {
+            create_libs = JSON.parse(create_libs);  // object mapping libnames to JSON
+            $.each(create_libs,function(lname,json) {
+                var lib = new jade.model.Library(lname);
+                lib.load(json);
+            });
+        };
+
         var top_level = $('<div class="jade-top-level">' +
                           ' <div class="jade-tabs-div"></div>' +
                           ' <div class="jade-status"><span id="message"></span>' +
