@@ -124,6 +124,8 @@ jade.model = (function () {
     }
 
     function load_library(lname,read_only) {
+        if (libraries[lname] !== undefined) return;
+
         var args = {
             async: false, // hang until load completes
             url: lname,
@@ -330,6 +332,17 @@ jade.model = (function () {
             json.push(this.components[i].json());
         }
         return json;
+    };
+
+    Aspect.prototype.read_only = function() {
+        // is this aspect read only?
+        if (this.module.properties[this.name + '-readonly'] == 'true') return true;
+
+        // is this module read only?
+        if (this.module.properties['readonly'] == 'true') return true;
+
+        // is this library read only?
+        return this.module.library.read_only;
     };
 
     Aspect.prototype.empty = function() {

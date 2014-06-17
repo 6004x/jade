@@ -107,6 +107,9 @@ jade.test_view = (function() {
             this.aspect.add_component(this.test_component);
         }
         this.textarea.val(this.test_component.test);
+
+        if (this.aspect.read_only()) this.textarea.attr('disabled','disabled');
+        else this.textarea.removeAttr('disabled');
     };
 
     TestEditor.prototype.event_coords = function () { };

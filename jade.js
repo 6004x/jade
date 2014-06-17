@@ -25,49 +25,54 @@ var jade = (function() {
 
     function Jade(owner) {
         owner.jade = this;
-        owner = $(owner);
         this.parent = owner;
         this.module = undefined;
 
-        // grab children and empty out div
-        this.id = owner.attr('id');
-        this.load_library(owner.text());
-        owner.empty();
-
-        // load specified libraries
-        var libs = owner.attr('libs');
-        if (libs) {
-            $.each(libs.split(','),function(index,lname) {
-                jade.model.load_library(lname);
-            });
-        };
-
-        // create specified libraries
-        var create_libs = owner.attr('create_libs');
-        if (create_libs) {
-            create_libs = JSON.parse(create_libs);  // object mapping libnames to JSON
-            $.each(create_libs,function(lname,json) {
-                var lib = new jade.model.Library(lname);
-                lib.load(json);
-            });
-        };
-
-        var top_level = $('<div class="jade-top-level">' +
-                          ' <div class="jade-tabs-div"></div>' +
-                          ' <div class="jade-status"><span id="message"></span>' +
-                          //' <img class="jade-resize"></img></div>' +
-                          '</div>');
+        this.top_level = $('<div class="jade-top-level">' +
+                           ' <div class="jade-tabs-div"></div>' +
+                           ' <div class="jade-status"><span id="message"></span>' +
+                           '</div>');
 
         // insert framework into DOM
-        owner.append(top_level);
+        $(owner).append(this.top_level);
+
+        this.status = this.top_level.find('#message');
+
+        // now add a display tab for each registered editor
+        this.tabs_div = this.top_level.find('.jade-tabs-div');
+        this.tabs = {}; 
+        this.selected_tab = undefined;
+
+        // add status line at the bottom
+        this.status.text('Copyright \u00A9 MIT EECS 2011-2014');
+
+        // set up handler to resize jade
+        var me = this;
+        $(window).on('resize',function() {
+            var win_w = $(window).width();
+            var win_h = $(window).height();
+            var offset = me.top_level.offset();
+            var w = offset.left + me.top_level.outerWidth(true) + 10;
+            var h = offset.top + me.top_level.outerHeight(true) + 20;
+            me.resize(win_w - w,win_h - h);
+        });
+    }
+
+    // initialize editor from configuration object
+    Jade.prototype.initialize = function (configuration) {
+        var me = this;
+        this.configuration = configuration;
+
+        // remember who we are
+        this.id = configuration.id;
 
         // set up top-level toolbar
-        if (owner.attr('hierarchical') !== undefined) {
-            top_level.find('.jade-tabs-div').before('<div id="jade-toolbar">'+/*'<button id="savelibs" disabled>Save changes</button>'+*/'Module: <input id="module" type="text" autocorrect="off" autocapitalize="off"></input></div>');
-            this.input_field = top_level.find('#module');
+        if (configuration.hierarchical) {
+            this.top_level.find('.jade-tabs-div').before('<div id="jade-toolbar">'+/*'<button id="savelibs" disabled>Save changes</button>'+*/'Module: <input id="module" type="text" autocorrect="off" autocapitalize="off"></input></div>');
+            this.input_field = this.top_level.find('#module');
             this.input_field.keypress(function(event) {
                 // when user hits ENTER, edit the specified module
-                if (event.keyCode == 13) owner[0].jade.edit(event.target.value);
+                if (event.keyCode == 13) me.edit(event.target.value);
             });
 
             /*
@@ -77,19 +82,12 @@ var jade = (function() {
             */
         }
 
-        this.status = top_level.find('#message');
-
-        // now add a display tab for each registered editor
-        var tabs_div = top_level.find('.jade-tabs-div');
-        var tabs = {};
-        this.tabs = tabs;
-        this.selected_tab = undefined;
-
+        // setup editor panes
         var elist;
-        var editor_list = owner.attr('editors');  // did user supply list?
-        if (editor_list !== undefined) {
+        if (configuration.editors) {
             elist = [];
-            $.each(editor_list.split(','),function(index,value) {
+            $.each(configuration.editors.split(','),function(index,value) {
+                // look through list of defined editors to see if we have a match
                 $.each(editors,function(eindex,evalue) {
                     if (evalue.prototype.editor_name == value) elist.push(evalue);
                 });
@@ -102,52 +100,52 @@ var jade = (function() {
 
             // add tab selector
             var tab = $('<div class="jade-tab">'+ename+'</div>');
-            tab[0].name = ename;
-            tabs_div.append(tab);
+            me.tabs_div.append(tab);
             tab.click(function(event) {
-                owner[0].jade.show(event.target.name);
+                me.show(ename);
                 event.preventDefault();
             });
 
             // add body for each tab (only one will have display != none)
             var body = $('<div class="jade-tab-body"></div>');
-            top_level.find('.jade-tabs-div').after(body);
+            me.top_level.find('.jade-tabs-div').after(body);
             // make a new editor for this aspect
-            body[0].editor = new editor(body[0], owner[0].jade);
+            body[0].editor = new editor(body[0], me);
 
-            tabs[ename] = [tab[0], body[0]];
+            me.tabs[ename] = [tab[0], body[0]];
         });
         // select first aspect as the one to be displayed
         if (elist.length > 0) {
             this.show(elist[0].prototype.editor_name);
         }
+        $(window).trigger('resize');  // let editors know their size
 
-        // add status line at the bottom
-        this.status.text('Copyright \u00A9 MIT EECS 2011-2014');
+        /*
+        // load specified libraries
+        if (configuration.libs) {
+            $.each(configuration.libs.split(','),function(index,lname) {
+                jade.model.load_library(lname);
+            });
+        };
+         */
 
-        // set up handler to resize jade
-        var me = this;
-        $(window).on('resize',function() {
-            var win_w = $(window).width();
-            var win_h = $(window).height();
-            var offset = top_level.offset();
-            var w = offset.left + top_level.outerWidth(true) + 10;
-            var h = offset.top + top_level.outerHeight(true) + 10;
-            me.resize(win_w - w,win_h - h);
-        });
-        // trigger handler on startup
-        $(window).trigger('resize');
+        // create specified libraries
+        if (configuration.create_libs) {
+            var create_libs = JSON.parse(configuration.create_libs);  // object mapping libnames to JSON
+            $.each(create_libs,function(lname,json) {
+                var lib = new jade.model.Library(lname);
+                lib.load(json);
+            });
+        };
 
         // starting module?
-        var mname = owner.attr('edit');
-        //if (mname === undefined) mname = localStorage.getItem('jade-module');
-        if (mname !== undefined) {
+        if (configuration.edit) {
             // mname = library:module.aspect
-            mname = mname.split('.');
+            var mname = configuration.edit.split('.');
             this.edit(mname[0]);  // select module
             if (mname.length > 1) this.show(mname[1]);
-        }
-    }
+        } else this.refresh();
+    };
 
     // remember module and aspect for next visit
     Jade.prototype.bookmark = function() {
@@ -232,29 +230,6 @@ var jade = (function() {
             ediv.editor.resize(dx, dy, tab == this.selected_tab);
         }
     };
-
-    /*
-    function resize_mouse_down(event) {
-        var jade = event.target.jade;
-        var lastX = event.pageX;
-        var lastY = event.pageY;
-
-        $(document).mousemove(function(event) {
-            jade.resize(event.pageX - lastX, event.pageY - lastY);
-            lastX = event.pageX;
-            lastY = event.pageY;
-            return false;
-        });
-
-        $(document).mouseup(function(event) {
-            $(document).unbind('mousemove');
-            $(document).unbind('mouseup');
-            return false;
-        });
-
-        return false;
-    }
-    */
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -1256,50 +1231,19 @@ var jade = (function() {
     }
 
     // capture mouse events in title bar of window
-    function window_mouse_down(event) {
+    function window_mouse_down(e) {
+        var event = window.event || e;
+        var doc = $(document).get(0);
         var win = event.target.win;
-
         bring_to_front(win, true);
 
-        // add handlers to document so we capture them no matter what
-        $(document).mousemove(window_mouse_move);
-        $(document).mouseup(window_mouse_up);
-        document.tracking_window = win;
-
-        // in Chrome avoid selecting everything as we drag window
-        win.saved_onselectstart = document.onselectstart;
-        document.onselectstart = function() {
-            return false;
-        };
-
         // remember where mouse is so we can compute dx,dy during drag
-        win.drag_x = event.pageX;
-        win.drag_y = event.pageY;
+        var drag_x = event.pageX;
+        var drag_y = event.pageY;
 
-        return false;
-    }
-
-    function window_mouse_up(event) {
-        var win = document.tracking_window;
-
-        // show's over folks...
-        $(document).unbind('mousemove');
-        $(document).unbind('mouseup');
-        document.tracking_window = undefined;
-        win.drag_x = undefined;
-        win.drag_y = undefined;
-
-        document.onselectstart = win.saved_onselectstart;
-
-        return false; // consume event
-    }
-
-    function window_mouse_move(event) {
-        var win = document.tracking_window;
-
-        if (win.drag_x) {
-            var dx = event.pageX - win.drag_x;
-            var dy = event.pageY - win.drag_y;
+        function move(event) {
+            var dx = event.pageX - drag_x;
+            var dy = event.pageY - drag_y;
 
             // move window by dx,dy
             var offset = $(win).offset();
@@ -1308,11 +1252,21 @@ var jade = (function() {
             $(win).offset(offset);
 
             // update reference point
-            win.drag_x += dx;
-            win.drag_y += dy;
+            drag_x += dx;
+            drag_y += dy;
+            return false;
+        }
 
+        function up(event) {
+            doc.removeEventListener('mousemove',move,true);
+            doc.removeEventListener('mouseup',up,true);
             return false; // consume event
         }
+
+        // add handlers to document so we capture them no matter what
+        doc.addEventListener('mousemove',move,true);
+        doc.addEventListener('mouseup',up,true);
+
         return false;
     }
 
@@ -1320,19 +1274,24 @@ var jade = (function() {
         var win = event.target.win;
         var lastX = event.pageX;
         var lastY = event.pageY;
+        var doc = $(document).get(0);
 
-        $(document).mousemove(function(event) {
+        function move(e) {
+            var event = window.event || e;
             win[0].resize(event.pageX - lastX, event.pageY - lastY);
             lastX = event.pageX;
             lastY = event.pageY;
             return false;
-        });
+        };
 
-        $(document).mouseup(function(event) {
-            $(document).unbind('mousemove');
-            $(document).unbind('mouseup');
-            return false;
-        });
+        function up(event) {
+            doc.removeEventListener('mousemove',move,true);
+            doc.removeEventListener('mouseup',up,true);
+            return false; // consume event
+        };
+
+        doc.addEventListener('mousemove',move,true);
+        doc.addEventListener('mouseup',up,true);
 
         return false;
     }

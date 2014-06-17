@@ -1,4 +1,3 @@
-
 jade.setup = (function () {
 
     var configuration = {};   // default null jade configuration
@@ -25,6 +24,8 @@ jade.setup = (function () {
 
     // set up editor inside of div's with class "jade"
     function setup() {
+        var configuration = {};
+
         // if we're inside an iframe, try to reach into parent frame to get
         // configuration attributes
         if (window.parent != window) {
@@ -72,14 +73,19 @@ jade.setup = (function () {
         $('.jade').each(function(index, div) {
             // skip if this div has already been configured
             if (div.jade === undefined) {
-                // apply configuration to div
-                $.each(configuration,function (attr,value) {
-                    $(div).attr(attr,value);
-                });
-
                 // now create the editor
-                new jade.Jade(div);
+                var j = new jade.Jade(div);
+
+                // start configuration with whatever is provided by <jade> tag
+                var config = {};
+                $.each(div.attributes,function () {
+                    if (this.name != 'class') config[this.name] = this.value;
+                });
+                $.extend(config,configuration);  // extend with external configuration
+
+                j.initialize(config);
             }
+
         });
     }
 

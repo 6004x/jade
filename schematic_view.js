@@ -17,7 +17,6 @@ jade.schematic_view = (function() {
     function Schematic(div, parent) {
         this.jade = parent;
         this.status = parent.status;
-        this.components = parent.parent.attr('components');
 
         this.diagram = new jade.Diagram(this, 'jade-schematic-diagram');
         div.diagram = this.diagram;
@@ -96,7 +95,7 @@ jade.schematic_view = (function() {
         this.toolbar.add_spacer();
 
         // add external tools
-        var tools = parent.parent.attr('tools');
+        var tools = parent.configuration.tools;
         if (tools !== undefined) tools = tools.split(',');
         for (var i = 0; i < schematic_tools.length; i += 1) {
             var info = schematic_tools[i]; // [name,icon,tip,callback,enable_check]
@@ -112,9 +111,57 @@ jade.schematic_view = (function() {
         this.diagram.set_aspect(this.aspect);
 
         // set up parts bin
-        this.parts_bin = new PartsBin(this);
+        this.parts_bin = new PartsBin(this,parent.configuration.parts);
         div.appendChild(this.parts_bin.top_level);
 
+        // set up resizer
+        this.resizer = $('<div class="jade-xparts-resize"></div>');
+        var sch = this;
+        var lastX, lastY;
+        this.resizer.on('mousedown',function (event) {
+            lastX = event.pageX;
+            lastY = event.pageY;
+
+            function move(e) {
+                var event = window.event || e;
+                var dx = event.pageX - lastX;
+                var parts = $(sch.parts_bin.top_level);
+                var sch_canvas = $(sch.diagram.canvas);
+                var w;
+
+                if (dx >= 0) {
+                    // min size for parts bin is 75
+                    w = parts.width() - dx;
+                    if (w < 75) dx -= 75 - w;
+                } else {
+                    // min size for schematic is 300
+                    w = sch_canvas.width() + dx;
+                    if (w < 300) dx += 300 - w;
+                }
+
+                parts.width(parts.width() - dx);
+                sch_canvas.width(sch_canvas.width() + dx);
+                sch_canvas[0].diagram.resize();
+
+                lastX = event.pageX;
+                lastY = event.pageY;
+                return false;
+            }
+
+            function up() {
+                var doc = $(document).get(0);
+                doc.removeEventListener('mousemove',move,true);
+                doc.removeEventListener('mouseup',up,true);
+                return false;
+            }
+
+            $(document).get(0).addEventListener('mousemove',move,true);
+            $(document).get(0).addEventListener('mouseup',up,true);
+
+            return false;
+        });
+
+        div.appendChild(this.resizer[0]);
     }
 
     function part_tool(tool,diagram,pname) {
@@ -129,6 +176,9 @@ jade.schematic_view = (function() {
         // schematic canvas
         var e = $(this.diagram.canvas);
         e.width(dx + e.width());
+        e.height(dy + e.height());
+
+        e = this.resizer;
         e.height(dy + e.height());
 
         this.parts_bin.resize(dx, dy, selected);
@@ -836,101 +886,72 @@ jade.schematic_view = (function() {
     var part_w = 42; // size of a parts bin compartment
     var part_h = 42;
 
-    function PartsBin(editor) {
+    function PartsBin(editor,parts_wanted) {
         this.diagram = editor.diagram;
         this.components = editor.components;
+        this.parts_wanted = parts_wanted;
 
-        this.top_level = document.createElement('div');
-        this.top_level.className = 'jade-parts-bin';
+        var bin = $('<div class="jade-xparts-bin"></div>');
+        this.top_level = bin[0];
         this.top_level.parts_bin = this;
 
-        if (this.components === undefined) {
-            this.lib_select = document.createElement('select');
-            this.lib_select.className = 'jade-parts-select';
-            //this.lib_select.style.width = '120px';
-            this.top_level.appendChild(this.lib_select);
-
-            var parts_bin = this; // for closure
-            $(this.lib_select).change(function() {
-                parts_bin.update_modules();
-            });
-        }
-
         this.parts = {}; // lib:module => Part
-        this.parts_list = document.createElement('div');
-        this.parts_list.className = 'jade-parts-list';
-        this.top_level.appendChild(this.parts_list);
-
-
     }
 
     PartsBin.prototype.resize = function(dx, dy, selected) {
-        var e = $(this.parts_list);
+        var e = $(this.top_level);
         e.height(dy + e.height());
     };
 
     PartsBin.prototype.show = function() {
-        if (this.lib_select !== undefined) {
-            // remove existing list of libraries from select
-            var options = this.lib_select.options;
-            for (var i = options.length - 1; i >= 0; i -= 1) {
-                options.remove(i);
-            }
-
-            // add existing libraries as options for select
-            var libs = Object.keys(jade.model.libraries);
-            libs.sort();
-            jade.build_select(libs, libs[0], this.lib_select);
-        }
-
-        this.update_modules();
-    };
-
-    // update list of modules for selected library
-    PartsBin.prototype.update_modules = function() {
-        // remove old parts from parts list
-        $(this.parts_list).empty();
-
-        if (this.components !== undefined) {
-            // create a part for each module/library on list
-            var partsbin = this;  // for closure
-            $.each(this.components.split(','),function(index,component) {
-                jade.find_module(component);  // make sure it's loaded
-                partsbin.add_part(component);
+        var parts_bin = this;
+        var bin = $(this.top_level);
+        bin.empty();
+ 
+        // figure out all the parts to appear in parts bin
+        var plist = [];
+        $.each((this.parts_wanted || '').split(','),function (index,p) {
+            var part = p.split(':');   // split into lib and module
+            var lib = part[0];
+            var mpattern = new RegExp(part[1] ? '^'+part[1]+'$' : '^.+$');
+            jade.model.load_library(lib);   // load reference library
+            // add all matching modules in library to parts list
+            $.each(jade.model.libraries[lib].modules,function (mname, m) {
+                if (mpattern.test(mname)) plist.push(m.get_name());
             });
-        } else {
-            // create a part for each module in select library, add to parts list
-            var lname = this.lib_select.value;
-            if (lname) {
-                var mlist = Object.keys(jade.model.libraries[lname].modules);
-                mlist.sort();
-                for (var i = 0; i < mlist.length; i += 1) {
-                    this.add_part(lname + ':' + mlist[i]);
-                }
+        });
+        plist.sort();   // arrange alphabetically
+
+        var current = '';
+        var header,parts_list;
+        $.each(plist,function (index,p) {
+            // check cache, create Part if new module
+            var part = parts_bin.parts[p];
+            if (part === undefined) {
+                part = new Part(parts_bin.diagram);
+                parts_bin.parts[p] = part;
+                part.set_component(jade.model.make_component([p, [0, 0, 0]]));
             }
-        }
-    };
+            // incorporate any recent edits to the icon
+            part.component.compute_bbox();
+            part.rescale();
+            part.redraw();
 
-    PartsBin.prototype.add_part = function(mname) {
-        // check cache, create Part if new module
-        var part = this.parts[mname];
-        if (part === undefined) {
-            part = new Part(this.diagram);
-            this.parts[mname] = part;
-            part.set_component(jade.model.make_component([mname, [0, 0, 0]]));
-        }
+            // add handlers here since any old handlers were
+            // removed if part was removed from parts_list
+            // at some earlier point
+            part.canvas.mouseover(part_enter).mouseout(part_leave).mousedown(part_mouse_down).mouseup(part_mouse_up);
 
-        this.parts_list.appendChild(part.canvas[0]);
-
-        // incorporate any recent edits to the icon
-        part.component.compute_bbox();
-        part.rescale();
-        part.redraw();
-
-        // add handlers here since any old handlers were
-        // removed if part was removed from parts_list
-        // at some earlier point
-        $(part.canvas).mouseover(part_enter).mouseout(part_leave).mousedown(part_mouse_down).mouseup(part_mouse_up);
+            // add icon to parts bin along with new header if needed
+            var lname = part.component.module.library.name;
+            if (current != lname) {
+                header = $('<div class="jade-xparts-header"></div>').text(lname).attr('id',lname);
+                parts_list =  $('<div class="jade-xparts-list"></div>').attr('id',lname+'-parts');
+                current = lname;
+                bin.append(header,parts_list);
+            }
+            parts_list.append(part.canvas);
+        });
     };
 
     // one instance will be created for each part in the parts bin
@@ -940,7 +961,7 @@ jade.schematic_view = (function() {
         this.selected = false;
 
         // set up canvas
-        this.canvas = $('<canvas class="jade-part jade-tool jade-tool-enabled"></div>').css('cursor','default');
+        this.canvas = $('<canvas class="jade-xpart jade-tool jade-tool-enabled"></div>').css('cursor','default');
         this.canvas[0].part = this;
 
         // handle retina devices properly
