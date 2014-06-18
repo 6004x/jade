@@ -9,7 +9,13 @@ jade.setup = (function () {
 
     // return JSON representation of persistent state
     function getState() {
-        return "";
+        var div = $('.jade').get(0);
+
+        // skip if this div has already been configured
+        var state = {};
+        if (div.jade) state = div.jade.get_state();
+
+        return JSON.stringify(state);
     }
 
     // process incoming state from jsinput framework
@@ -19,7 +25,9 @@ jade.setup = (function () {
     function setState() {
         var stateStr = arguments.length === 1 ? arguments[0] : arguments[1];
         var state = JSON.parse(stateStr);
-        // more here...
+
+        var div = $('.jade').get(0);
+        if (div.jade) div.jade.initialize(state);
     }
 
     // set up editor inside of div's with class "jade"

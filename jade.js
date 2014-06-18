@@ -147,6 +147,15 @@ var jade = (function() {
         } else this.refresh();
     };
 
+    Jade.prototype.get_state = function() {
+        var state = $.extend({},this.configuration);
+
+        if (jade.model.libraries.user)
+            state.create_libs = {user: jade.model.libraries.user.json()};
+
+        return state;
+    };
+
     // remember module and aspect for next visit
     Jade.prototype.bookmark = function() {
         if (this.module !== undefined) {

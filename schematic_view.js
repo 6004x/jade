@@ -33,7 +33,14 @@ jade.schematic_view = (function() {
         this.hierarchy_stack = []; // remember path when traveling up/down hierarchy
 
         // register event handlers
-        $(this.diagram.canvas).mousemove(schematic_mouse_move).mouseover(schematic_mouse_enter).mouseout(schematic_mouse_leave).mouseup(schematic_mouse_up).mousedown(schematic_mouse_down).dblclick(schematic_double_click).keydown(schematic_key_down);
+        $(this.diagram.canvas)
+            .mousemove(schematic_mouse_move)
+            .mouseover(schematic_mouse_enter)
+            .mouseout(schematic_mouse_leave)
+            .mouseup(schematic_mouse_up)
+            .mousedown(schematic_mouse_down)
+            .dblclick(schematic_double_click)
+            .keydown(schematic_key_down);
 
         this.toolbar = new jade.Toolbar(this.diagram);
         this.toolbar.add_tool('undo', jade.icons.undo_icon, 'Undo: undo effect of previous action', jade.diagram_undo,
@@ -49,48 +56,73 @@ jade.schematic_view = (function() {
             return diagram.aspect.selections();
         }
         
-        this.toolbar.add_tool('cut', jade.icons.cut_icon, 'Cut: move selected components from diagram to the clipboard', jade.diagram_cut, has_selections);
-        this.toolbar.add_tool('copy', jade.icons.copy_icon, 'Copy: copy selected components into the clipboard', jade.diagram_copy, has_selections);
-        this.toolbar.add_tool('paste', jade.icons.paste_icon, 'Paste: copy clipboard into the diagram', jade.diagram_paste,
+        this.toolbar.add_tool('cut', jade.icons.cut_icon,
+                              'Cut: move selected components from diagram to the clipboard',
+                              jade.diagram_cut, has_selections);
+        this.toolbar.add_tool('copy', jade.icons.copy_icon,
+                              'Copy: copy selected components into the clipboard',
+                              jade.diagram_copy, has_selections);
+        this.toolbar.add_tool('paste', jade.icons.paste_icon,
+                              'Paste: copy clipboard into the diagram', jade.diagram_paste,
                               function(diagram) {
                                   return jade.clipboards[diagram.editor.editor_name].length > 0;
                               });
-        this.toolbar.add_tool('fliph', jade.icons.fliph_icon, 'Flip Horizontally: flip selection horizontally', jade.diagram_fliph, has_selections);
-        this.toolbar.add_tool('flipv', jade.icons.flipv_icon, 'Flip Vertically: flip selection vertically', jade.diagram_flipv, has_selections);
-        this.toolbar.add_tool('rotcw', jade.icons.rotcw_icon, 'Rotate Clockwise: rotate selection clockwise', jade.diagram_rotcw, has_selections);
-        this.toolbar.add_tool('rotccw', jade.icons.rotccw_icon, 'Rotate Counterclockwise: rotate selection counterclockwise', jade.diagram_rotccw, has_selections);
+        this.toolbar.add_tool('fliph', jade.icons.fliph_icon,
+                              'Flip Horizontally: flip selection horizontally',
+                              jade.diagram_fliph, has_selections);
+        this.toolbar.add_tool('flipv', jade.icons.flipv_icon,
+                              'Flip Vertically: flip selection vertically',
+                              jade.diagram_flipv, has_selections);
+        this.toolbar.add_tool('rotcw', jade.icons.rotcw_icon,
+                              'Rotate Clockwise: rotate selection clockwise',
+                              jade.diagram_rotcw, has_selections);
+        this.toolbar.add_tool('rotccw', jade.icons.rotccw_icon,
+                              'Rotate Counterclockwise: rotate selection counterclockwise',
+                              jade.diagram_rotccw, has_selections);
         this.toolbar.add_spacer();
 
         // are we supporting hierarchy?
         this.hierarchy = (parent.input_field !== undefined);
         if (this.hierarchy) {
-            this.toolbar.add_tool('down', jade.icons.down_icon, 'Down in the hierarchy: view selected included module', schematic_down,
+            this.toolbar.add_tool('down', jade.icons.down_icon,
+                                  'Down in the hierarchy: view selected included module', schematic_down,
                                   function(diagram) {
                                       var selected = diagram.aspect.selected_component();
                                       if (selected !== undefined) return selected.has_aspect(Schematic.prototype.editor_name);
                                       else return false;
                                   });
-            this.toolbar.add_tool('up', jade.icons.up_icon, 'Up in the hierarchy: return to including module', schematic_up,
+            this.toolbar.add_tool('up', jade.icons.up_icon,
+                                  'Up in the hierarchy: return to including module', schematic_up,
                                   function(diagram) {
                                       return diagram.editor.hierarchy_stack.length > 0;
                                   });
             this.toolbar.add_spacer();
         }
 
-        var part = this.toolbar.add_tool('ground', jade.icons.ground_icon, 'Ground connection: click and drag to insert', null, function() { return true; });
-        part_tool(part,div.diagram,'ground');
+        var part = this.toolbar.add_tool('ground', jade.icons.ground_icon,
+                                         'Ground connection: click and drag to insert', null,
+                                         function() { return true; });
+        part_tool(part,this,'ground');
 
-        part = this.toolbar.add_tool('vdd', jade.icons.vdd_icon, 'Power supply connection: click and drag to insert', null, function() { return true; });
-        part_tool(part,div.diagram,'vdd');
+        part = this.toolbar.add_tool('vdd', jade.icons.vdd_icon,
+                                     'Power supply connection: click and drag to insert', null,
+                                     function() { return true; });
+        part_tool(part,this,'vdd');
 
-        part = this.toolbar.add_tool('port', jade.icons.port_icon, 'I/O Port: click and drag to insert', null, function() { return true; });
-        part_tool(part,div.diagram,'port');
+        part = this.toolbar.add_tool('port', jade.icons.port_icon,
+                                     'I/O Port: click and drag to insert', null, 
+                                     function() { return true; });
+        part_tool(part,this,'port');
 
-        part = this.toolbar.add_tool('jumper', jade.icons.jumper_icon, 'Jumper for connecting wires with different names: click and drag to insert', null, function() { return true; });
-        part_tool(part,div.diagram,'jumper');
+        part = this.toolbar.add_tool('jumper', jade.icons.jumper_icon,
+                                     'Jumper for connecting wires with different names: click and drag to insert', null,
+                                     function() { return true; });
+        part_tool(part,this,'jumper');
 
-        part = this.toolbar.add_tool('text', jade.icons.text_icon, 'Text: click and drag to insert', null, function() { return true; });
-        part_tool(part,div.diagram,'text');
+        part = this.toolbar.add_tool('text', jade.icons.text_icon,
+                                     'Text: click and drag to insert', null, 
+                                     function() { return true; });
+        part_tool(part,this,'text');
 
         this.toolbar.add_spacer();
 
@@ -164,12 +196,12 @@ jade.schematic_view = (function() {
         div.appendChild(this.resizer[0]);
     }
 
-    function part_tool(tool,diagram,pname) {
+    function part_tool(tool,editor,pname) {
         tool.off('click');   // different gesture for this tool
-        var part = new Part(diagram);
+        var part = new Part(editor);
         part.set_component(jade.model.make_component([pname,[0,0,0],{}]));
-        tool.mousedown(function(event) { diagram.new_part = part; });
-        tool.mouseup(function(event) { diagram.new_part = undefined; });
+        tool.mousedown(function(event) { editor.diagram.new_part = part; });
+        tool.mouseup(function(event) { editor.diagram.new_part = undefined; });
     }
 
     Schematic.prototype.resize = function(dx, dy, selected) {
@@ -887,6 +919,7 @@ jade.schematic_view = (function() {
     var part_h = 42;
 
     function PartsBin(editor,parts_wanted) {
+        this.editor = editor;
         this.diagram = editor.diagram;
         this.components = editor.components;
         this.parts_wanted = parts_wanted;
@@ -908,56 +941,64 @@ jade.schematic_view = (function() {
         var bin = $(this.top_level);
         bin.empty();
  
-        // figure out all the parts to appear in parts bin
-        var plist = [];
-        $.each((this.parts_wanted || '').split(','),function (index,p) {
-            var part = p.split(':');   // split into lib and module
-            var lib = part[0];
-            var mpattern = new RegExp(part[1] ? '^'+part[1]+'$' : '^.+$');
-            jade.model.load_library(lib);   // load reference library
-            // add all matching modules in library to parts list
-            $.each(jade.model.libraries[lib].modules,function (mname, m) {
-                if (mpattern.test(mname)) plist.push(m.get_name());
+        if (this.parts_wanted) {
+            // figure out all the parts to appear in parts bin
+            var plist = [];
+            $.each((this.parts_wanted || '').split(','),function (index,p) {
+                var part = p.split(':');   // split into lib and module
+                var lib = part[0];
+                var mpattern = new RegExp(part[1] ? '^'+part[1]+'$' : '^.+$');
+                jade.model.load_library(lib);   // load reference library
+                // add all matching modules in library to parts list
+                $.each(jade.model.libraries[lib].modules,function (mname, m) {
+                    if (mpattern.test(mname)) plist.push(m.get_name());
+                });
             });
-        });
-        plist.sort();   // arrange alphabetically
+            plist.sort();   // arrange alphabetically
 
-        var current = '';
-        var header,parts_list;
-        $.each(plist,function (index,p) {
-            // check cache, create Part if new module
-            var part = parts_bin.parts[p];
-            if (part === undefined) {
-                part = new Part(parts_bin.diagram);
-                parts_bin.parts[p] = part;
-                part.set_component(jade.model.make_component([p, [0, 0, 0]]));
-            }
-            // incorporate any recent edits to the icon
-            part.component.compute_bbox();
-            part.rescale();
-            part.redraw();
+            var current = '';
+            var header,parts_list;
+            $.each(plist,function (index,p) {
+                // check cache, create Part if new module
+                var part = parts_bin.parts[p];
+                if (part === undefined) {
+                    part = new Part(parts_bin.editor);
+                    parts_bin.parts[p] = part;
+                    part.set_component(jade.model.make_component([p, [0, 0, 0]]));
+                }
+                // incorporate any recent edits to the icon
+                part.component.compute_bbox();
+                part.rescale();
+                part.redraw();
 
-            // add handlers here since any old handlers were
-            // removed if part was removed from parts_list
-            // at some earlier point
-            part.canvas.mouseover(part_enter).mouseout(part_leave).mousedown(part_mouse_down).mouseup(part_mouse_up);
+                // add handlers here since any old handlers were
+                // removed if part was removed from parts_list
+                // at some earlier point
+                part.canvas
+                    .mouseover(part_enter)
+                    .mouseout(part_leave)
+                    .mousedown(part_mouse_down)
+                    .mouseup(part_mouse_up)
+                    .dblclick(part_dblclick);
 
-            // add icon to parts bin along with new header if needed
-            var lname = part.component.module.library.name;
-            if (current != lname) {
-                header = $('<div class="jade-xparts-header"></div>').text(lname).attr('id',lname);
-                parts_list =  $('<div class="jade-xparts-list"></div>').attr('id',lname+'-parts');
-                current = lname;
-                bin.append(header,parts_list);
-            }
-            parts_list.append(part.canvas);
-        });
+                // add icon to parts bin along with new header if needed
+                var lname = part.component.module.library.name;
+                if (current != lname) {
+                    header = $('<div class="jade-xparts-header"></div>').text(lname).attr('id',lname);
+                    parts_list =  $('<div class="jade-xparts-list"></div>').attr('id',lname+'-parts');
+                    current = lname;
+                    bin.append(header,parts_list);
+                }
+                parts_list.append(part.canvas);
+            });
+        }
     };
 
     // one instance will be created for each part in the parts bin
-    function Part(diagram) {
-        this.diagram = diagram;
-        this.aspect = undefined;
+    function Part(editor) {
+        this.editor = editor;
+        this.diagram = editor.diagram;
+        this.component = undefined;
         this.selected = false;
 
         // set up canvas
@@ -1084,7 +1125,7 @@ jade.schematic_view = (function() {
         var tip = part.component.module.properties.tool_tip;
         if (tip !== undefined) tip = tip.value;
         else tip = part.component.type;
-        tip += ': drag onto diagram to insert';
+        tip += ': drag onto diagram to insert, double click to edit';
 
         part.diagram.message(tip);
         return false;
@@ -1113,6 +1154,10 @@ jade.schematic_view = (function() {
         return false;
     }
 
+    function part_dblclick(event) {
+        var part = event.target.part;
+        part.editor.set_aspect(part.component.module);
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     //

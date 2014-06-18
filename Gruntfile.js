@@ -7,7 +7,7 @@ module.exports = function(grunt) {
             }
         },
         copy: {
-            jade: {src: ['jade.html', 'jade.css', 'analog', 'gates'], dest: 'edX/'}
+            jade_edx: {src: ['jade_edx.html', 'jade.css', 'analog', 'gates'], dest: 'edX/'}
         },
         uglify: {
             options: {
@@ -18,14 +18,14 @@ module.exports = function(grunt) {
             }
         },
         useminPrepare: {
-            jade: 'jade.html',
+            jade_edx: 'jade_edx.html',
             options: {
                 dest: 'edX'
             }
         },
         usemin: {
-            jade: {
-                src: 'edX/jade.html',
+            jade_edx: {
+                src: 'edX/jade_edx.html',
                 options: {type: 'html'}
             },
             options: {
@@ -41,8 +41,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
 
-    grunt.registerTask('jade', ['copy:jade', 'useminPrepare:jade', 'concat', 'uglify', 'usemin:jade']);
+    //grunt.registerTask('jade_edx', ['copy:jade_edx', 'useminPrepare:jade_edx', 'concat', 'uglify', 'usemin:jade_edx']);
+    grunt.registerTask('jade_edx', ['copy:jade_edx', 'useminPrepare:jade_edx', 'concat', 'usemin:jade_edx']);
 
     // Builds everything if just called as 'grunt'
-    grunt.registerTask('default', ['jade']);
+    grunt.registerTask('default', ['jade_edx']);
 }
