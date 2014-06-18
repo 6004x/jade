@@ -1422,9 +1422,3 @@ var jade = (function() {
     };
 
 }());
-
-$(window).bind('beforeunload',function () {
-    if ($('body').attr('data-dirty') !== undefined)
-        return 'You have unsaved changes on this page.';
-    return undefined;
-});

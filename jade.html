@@ -21,5 +21,13 @@
 </head>
 <body>
 <div class="jade" parts="analog,gates"></div>
+<script>
+// notify user of unsaved changes
+$(window).bind('beforeunload',function () {
+    if ($('body').attr('data-dirty') !== undefined)
+        return 'You have unsaved changes on this page.';
+    return undefined;
+});
+</script>
 </body>
 </html>
