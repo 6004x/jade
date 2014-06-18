@@ -85,11 +85,21 @@ jade.icon_view = (function() {
         this.diagram.set_aspect(this.aspect);
     }
 
-    Icon.prototype.resize = function(dx, dy, selected) {
+    Icon.prototype.resize = function(w, h, selected) {
+        this.w = w;
+        this.h = h;
+
         // schematic canvas
         var e = $(this.diagram.canvas);
-        e.width(dx + e.width());
-        e.height(dy + e.height());
+
+        var w_extra = e.outerWidth(true) - e.width();
+        var h_extra = e.outerHeight(true) - e.height();
+        var h_toolbar = this.toolbar.toolbar.outerHeight(true);
+        
+        var tw = w -  w_extra;
+        var th = h - h_extra - h_toolbar;
+        e.width(tw);
+        e.height(th);
 
         // adjust diagram to reflect new size
         if (selected) this.diagram.resize();
@@ -97,7 +107,7 @@ jade.icon_view = (function() {
 
     Icon.prototype.show = function() {
         this.diagram.canvas.focus(); // capture key strokes
-        this.diagram.resize();
+        this.resize(this.w,this.h,true);
     };
 
     Icon.prototype.set_aspect = function(module) {

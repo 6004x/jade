@@ -49,12 +49,10 @@ var jade = (function() {
         // set up handler to resize jade
         var me = this;
         $(window).on('resize',function() {
-            var win_w = $(window).width();
-            var win_h = $(window).height();
-            var offset = me.top_level.offset();
-            var w = offset.left + me.top_level.outerWidth(true) + 10;
-            var h = offset.top + me.top_level.outerHeight(true) + 20;
-            me.resize(win_w - w,win_h - h);
+            var body = $('body');
+            var win_w = $(window).width() - (body.outerWidth(true) - body.width()) - 1;
+            var win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 1;
+            me.resize(win_w,win_h);
         });
     }
 
@@ -219,19 +217,30 @@ var jade = (function() {
         }
     };
 
-    Jade.prototype.resize = function(dx, dy) {
+    Jade.prototype.resize = function(w, h) {
         var e = $(this.top_level);
-        e.width(dx + e.width());
-        e.height(dy + e.height());
+
+        // adjust target w,h to reflect postion and sizes of padding, borders, margins
+        var w_extra = e.outerWidth(true) - e.width();
+        var h_extra = e.outerHeight(true) - e.height();
+        w -= w_extra;
+        h -= h_extra + $('.jade-tabs-div',e).outerHeight(true) + $('.jade-status',e).outerHeight(true);
 
         // adjust size of all the tab bodies
         for (var tab in this.tabs) {
             var ediv = this.tabs[tab][1]; // [tab div, body div]
             e = $(ediv);
-            e.width(dx + e.width());
-            e.height(dy + e.height());
+
+            w_extra = e.outerWidth(true) - e.width();
+            h_extra = e.outerHeight(true) - e.height();
+
+            var tw = w - w_extra;
+            var th = h - h_extra;
+            e.width(tw);
+            e.height(th);
+
             // inform associated editor about its new size
-            ediv.editor.resize(dx, dy, tab == this.selected_tab);
+            ediv.editor.resize(tw, th, tab == this.selected_tab);
         }
     };
 

@@ -90,10 +90,16 @@ jade.test_view = (function() {
         div.appendChild(textarea[0]);
     }
 
-    TestEditor.prototype.resize = function(dx, dy, selected) {
+    TestEditor.prototype.resize = function(w, h, selected) {
         var e = this.textarea;
-        e.width(dx + e.width());
-        e.height(dy + e.height());
+
+        var w_extra = e.outerWidth(true) - e.width();
+        var h_extra = e.outerHeight(true) - e.height();
+        
+        var tw = w -  w_extra;
+        var th = h - h_extra;
+        e.width(tw);
+        e.height(th);
     };
 
     TestEditor.prototype.show = function() {};

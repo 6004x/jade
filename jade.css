@@ -192,6 +192,7 @@
     cursor: ew-resize;
     width: 3px;
     margin-right: 3px;
+    margin-left: 3px;
     background-color: black;
     height: 270px;
 }

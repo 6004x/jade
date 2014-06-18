@@ -204,16 +204,24 @@ jade.schematic_view = (function() {
         tool.mouseup(function(event) { editor.diagram.new_part = undefined; });
     }
 
-    Schematic.prototype.resize = function(dx, dy, selected) {
+    Schematic.prototype.resize = function(w, h, selected) {
         // schematic canvas
         var e = $(this.diagram.canvas);
-        e.width(dx + e.width());
-        e.height(dy + e.height());
+
+        var w_extra = e.outerWidth(true) - e.width();
+        var h_extra = e.outerHeight(true) - e.height();
+        var w_parts = this.resizer.outerWidth(true) + $(this.parts_bin.top_level).outerWidth(true);
+        var h_toolbar = this.toolbar.toolbar.outerHeight(true);
+        
+        var tw = w -  w_extra;
+        var th = h - h_extra - h_toolbar;
+        e.width(tw - w_parts);
+        e.height(th);
 
         e = this.resizer;
-        e.height(dy + e.height());
+        e.height(th);
 
-        this.parts_bin.resize(dx, dy, selected);
+        this.parts_bin.resize(tw, th, selected);
 
         // adjust diagram to reflect new size
         if (selected) this.diagram.resize();
@@ -931,9 +939,9 @@ jade.schematic_view = (function() {
         this.parts = {}; // lib:module => Part
     }
 
-    PartsBin.prototype.resize = function(dx, dy, selected) {
+    PartsBin.prototype.resize = function(w, h, selected) {
         var e = $(this.top_level);
-        e.height(dy + e.height());
+        e.height(h);
     };
 
     PartsBin.prototype.show = function() {
