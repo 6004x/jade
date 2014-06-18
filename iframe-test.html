@@ -7,7 +7,7 @@
 <span>
   <div class="jade-attrs" style="display:none">
     {"libs":"analog,gates",
-     "create_libs":"{\"user\":{\"Test Problem\":[{\"schematic\":[[\"port\",[-256,-96,0],{\"signal\":\"A\"}],[\"port\",[-184,-96,4],{\"signal\":\"Z\"}]],\"test\":[[\"test\",\".power Vdd=1\\n.thresholds Vol=0 Vil=0.1 Vih=0.9 Voh=1\\n\\n.group inputs A\\n.group outputs Z\\n\\n.cycle assert inputs tran 9n sample outputs tran 1n\\n0 H\\n1 L\\n\\n\\n.plot A\\n.plot Z\\n\"]]},{\"test-readonly\":\"true\"}]}}",
+     "initial_state":{"user":{"Test Problem":[{"schematic":[["port",[-256,-96,0],{"signal":"A"}],["port",[-184,-96,4],{"signal":"Z"}]],"test":[["test",".power Vdd=1\n.thresholds Vol=0 Vil=0.1 Vih=0.9 Voh=1\n\n.group inputs A\n.group outputs Z\n\n.cycle assert inputs tran 9n sample outputs tran 1n\n0 H\n1 L\n\n.plot A\n.plot Z\n"]]},{"test-readonly":"true"}]}},
      "tools":"check",
      "edit":"user:Test Problem",
      "editors":"schematic,test",

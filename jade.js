@@ -68,6 +68,7 @@ var jade = (function() {
 
         // set up top-level toolbar
         if (configuration.hierarchical) {
+            this.top_level.find('.jade-toolbar').remove();
             this.top_level.find('.jade-tabs-div').before('<div id="jade-toolbar">'+/*'<button id="savelibs" disabled>Save changes</button>'+*/'Module: <input id="module" type="text" autocorrect="off" autocapitalize="off"></input></div>');
             this.input_field = this.top_level.find('#module');
             this.input_field.keypress(function(event) {
@@ -94,6 +95,11 @@ var jade = (function() {
             });
         } else elist = editors;
 
+        // clear out existing tabs
+        me.tabs_div.empty();
+        $('.jade-tab-body',me.top_level).remove();
+
+        // add tabs for specified editors
         $.each(elist,function(i,editor) {
             var ename = editor.prototype.editor_name;
             clipboards[ename] = []; // initialize editor's clipboard
@@ -120,23 +126,12 @@ var jade = (function() {
         }
         $(window).trigger('resize');  // let editors know their size
 
-        /*
-        // load specified libraries
-        if (configuration.libs) {
-            $.each(configuration.libs.split(','),function(index,lname) {
-                jade.model.load_library(lname);
-            });
-        };
-         */
-
-        // create specified libraries
-        if (configuration.create_libs) {
-            var create_libs = JSON.parse(configuration.create_libs);  // object mapping libnames to JSON
-            $.each(create_libs,function(lname,json) {
-                var lib = new jade.model.Library(lname);
-                lib.load(json);
-            });
-        };
+        // load state (dictionary of lname:lib)
+        var state = configuration.state || configuration.initial_state || {};
+        $.each(state,function(lname,json) {
+            var lib = new jade.model.Library(lname);
+            lib.load(json);
+        });
 
         // starting module?
         if (configuration.edit) {
@@ -151,7 +146,7 @@ var jade = (function() {
         var state = $.extend({},this.configuration);
 
         if (jade.model.libraries.user)
-            state.create_libs = {user: jade.model.libraries.user.json()};
+            state.state = {user: jade.model.libraries.user.json()};
 
         return state;
     };

@@ -24,10 +24,8 @@ jade.setup = (function () {
     // object that will not be used here (see http://mozilla.github.io/jschannel/docs/)
     function setState() {
         var stateStr = arguments.length === 1 ? arguments[0] : arguments[1];
-        var state = JSON.parse(stateStr);
-
         var div = $('.jade').get(0);
-        if (div.jade) div.jade.initialize(state);
+        if (div.jade) div.jade.initialize(JSON.parse(stateStr));
     }
 
     // set up editor inside of div's with class "jade"
