@@ -155,6 +155,10 @@ jade.test_view = (function() {
     };
 
     function run_tests(source,diagram,module) {
+        var test_results = diagram.editor.jade.configuration.tests;
+        test_results[module.get_name()] = 'Error detect: test did yield a result.';
+        var msg;
+
         // remove multiline comments, in-line comments
         source = source.replace(/\/\*(.|\n)*?\*\//g,'');   // multi-line using slash-star
         source = source.replace(/\/\/.*\n/g,'\n');
@@ -299,7 +303,9 @@ jade.test_view = (function() {
         if (tests.length == 0) errors.push('No tests specified!');
 
         if (errors.length != 0) {
-            diagram.message('The following errors were found in the test specification:<li>'+errors.join('<li>'));
+            msg = '<li>'+errors.join('<li>');
+            diagram.message('The following errors were found in the test specification:'+msg);
+            test_results[module.get_name()] = 'Error detected: invalid test specification'+msg;
             return;
         }
 
@@ -312,6 +318,7 @@ jade.test_view = (function() {
         // extract netlist and make sure it has the signals referenced by the test
         if (!module.has_aspect('schematic')) {
             diagram.message('This module does not have a schematic!');
+            test_results[module.get_name()] = 'Error detected: this module has no schematic!';
             return;
         }
 
@@ -324,6 +331,7 @@ jade.test_view = (function() {
         }
         catch (e) {
             diagram.message("Error extracting netlist:<p>" + e);
+            test_results[module.get_name()] = 'Error detected extracting netlist:<p>'+e;
             return;
         }
 
@@ -336,7 +344,9 @@ jade.test_view = (function() {
         $.each(sampled_signals,check_node);
 
         if (errors.length != 0) {
-            diagram.message('The following errors were found in the test specification:<li>'+errors.join('<li>'));
+            msg = '<li>'+errors.join('<li>');
+            diagram.message('The following errors were found in the test specification:'+msg);
+            test_results[module.get_name()] = 'Error detected:'+msg;
             return;
         }
 
@@ -473,9 +483,13 @@ jade.test_view = (function() {
                         errors = errors.slice(0,5);
                         postscript = '<br>...';
                     }
-                    diagram.message('<li>'+errors.join('<li>')+postscript);
+                    msg = '<ul><li>'+errors.join('<li>')+postscript+'</ul>';
+                    diagram.message(msg);
+                    test_results[module.get_name()] = 'Error detected: '+msg;
+                } else {
+                    diagram.message('Test succesful!');
+                    test_results[module.get_name()] = 'passed';
                 }
-                else diagram.message('Test succesful!');
 
                 // construct a data set for the given signal
                 function new_dataset(signal) {

@@ -318,7 +318,11 @@ jade.schematic_view = (function() {
 
     function schematic_mouse_leave(event) {
         var diagram = event.target.diagram;
-
+        var module = diagram.aspect.module;
+        if (module && module.modified) {
+            var tests = diagram.editor.jade.configuration.tests;
+            delete tests[module.get_name()];
+        }
         diagram.redraw();
         return false;
     }

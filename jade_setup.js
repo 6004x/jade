@@ -4,17 +4,17 @@ jade.setup = (function () {
 
     // return JSON representation to be used by server-side grader
     function getGrade() {
-        return "";
+        var div = $('.jade').get(0);
+        var grade = {};
+        if (div.jade) grade = div.jade.get_grade();
+        return JSON.stringify(grade);
     }
 
     // return JSON representation of persistent state
     function getState() {
         var div = $('.jade').get(0);
-
-        // skip if this div has already been configured
         var state = {};
         if (div.jade) state = div.jade.get_state();
-
         return JSON.stringify(state);
     }
 

@@ -50,8 +50,8 @@ var jade = (function() {
         var me = this;
         $(window).on('resize',function() {
             var body = $('body');
-            var win_w = $(window).width() - (body.outerWidth(true) - body.width()) - 1;
-            var win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 1;
+            var win_w = $(window).width() - (body.outerWidth(true) - body.width()) - 2;
+            var win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 2;
             me.resize(win_w,win_h);
         });
     }
@@ -64,6 +64,9 @@ var jade = (function() {
         // remember who we are
         this.id = configuration.id;
 
+        // initialize object for recording test results
+        if (configuration.tests === undefined) configuration.tests = {};
+
         // set up top-level toolbar
         if (configuration.hierarchical) {
             this.top_level.find('.jade-toolbar').remove();
@@ -73,12 +76,6 @@ var jade = (function() {
                 // when user hits ENTER, edit the specified module
                 if (event.keyCode == 13) me.edit(event.target.value);
             });
-
-            /*
-            top_level.find('#savelibs').click(function(event) {
-                save_libraries();
-            });
-            */
         }
 
         // setup editor panes
@@ -143,10 +140,15 @@ var jade = (function() {
     Jade.prototype.get_state = function() {
         var state = $.extend({},this.configuration);
 
-        if (jade.model.libraries.user)
+        if (jade.model.libraries.user) {
             state.state = {user: jade.model.libraries.user.json()};
+        }
 
         return state;
+    };
+
+    Jade.prototype.get_grade = function() {
+        return this.configuration.tests;
     };
 
     // remember module and aspect for next visit
@@ -632,6 +634,15 @@ var jade = (function() {
         this.aspect.map_over_components(function(c) {
             if (!c.selected) c.draw(diagram);
         });
+
+        // show name of module in lower right corner
+        if (this.aspect && this.aspect.module) {
+            c.textAlign = 'left';
+            c.textBaseline = 'bottom';
+            c.font = this.annotationFont;
+            c.style = this.normal_style;
+            c.fillText(this.aspect.module.get_name(), 2, this.canvas.height - 2);
+        }
 
         this.redraw(); // background changed, redraw on screen
     };
