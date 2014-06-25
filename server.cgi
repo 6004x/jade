@@ -29,7 +29,8 @@ def http_status(status):
 # see if requester is an authorized user
 requester = os.environ.get('SSL_CLIENT_S_DN_Email','???')   
 if not requester in auth_user:
-    http_status('401 %s not authorized' % requester)
+    requester = 'guest'
+    #http_status('401 %s not authorized' % requester)
 
 # locate user's directory, create if necessary
 user_dir = os.path.join(lib_path,requester)
