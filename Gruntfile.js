@@ -7,7 +7,11 @@ module.exports = function(grunt) {
             }
         },
         copy: {
-            jade_edx: {src: ['jade_edx.html', 'jade.css', 'analog', 'gates'], dest: 'edX/'}
+            jade_edx: {expand: true,
+                       flatten: true,
+                       src: ['jade_edx.html', 'jade.css', 'libraries/shared/analog', 'libraries/shared/gates'],
+                       dest: 'edX/'
+                       }
         },
         uglify: {
             options: {

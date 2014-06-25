@@ -14,10 +14,123 @@
 <script type="text/javascript" src="jade_utils.js"></script>
 <script type="text/javascript" src="plot.js"></script>
 <script type="text/javascript" src="cktsim.js"></script>
-
 <script type="text/javascript" src="jschannel.js"></script>
-<script type="text/javascript" src="jade_setup.js"></script>
 <!-- endbuild -->
+
+<script type="text/javascript">
+jade.load_from_server = function (lib) {
+    // user library will be loaded by jsinput wrapper from stored state
+    if (lib.name == 'user') return;
+
+    // otherwise load library from edX static resources
+    var args = {
+        async: false, // hang until load completes
+        url: lname,
+        type: 'GET',
+        dataType: 'json',
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert('Error while loading library '+lname+': '+errorThrown);
+        },
+        success: function(json) {
+            lib.load(json);
+        }
+    };
+    $.ajax(args);
+}
+
+jade.save_to_server = function (lib) {
+    // actual save will be handled by jsinput call to getState()
+    return;
+};
+
+jade.setup = (function () {
+    // return JSON representation to be used by server-side grader
+    function getGrade() {
+        var div = $('.jade').get(0);
+        var grade = {};
+        if (div.jade) grade = div.jade.get_grade();
+        return JSON.stringify(grade);
+    }
+
+    // return JSON representation of persistent state
+    function getState() {
+        var div = $('.jade').get(0);
+        var state = {};
+        if (div.jade) state = div.jade.get_state();
+        return JSON.stringify(state);
+    }
+
+    // process incoming state from jsinput framework
+    // This function will be called with 1 argument when JSChannel is not used,
+    // 2 otherwise. In the latter case, the first argument is a transaction 
+    // object that will not be used here (see http://mozilla.github.io/jschannel/docs/)
+    function setState() {
+        var stateStr = arguments.length === 1 ? arguments[0] : arguments[1];
+        var div = $('.jade').get(0);
+        if (div.jade) div.jade.initialize(JSON.parse(stateStr));
+    }
+
+    // set up editor inside of div's with class "jade"
+    function setup() {
+        // if we're inside an iframe, try to reach into parent frame to get
+        // configuration attributes
+        if (window.parent != window) {
+            // Establish a channel only if this application is embedded in an iframe.
+            // This will let the parent window communicate with this application using
+            // RPC and bypass SOP restrictions.
+            if (window.parent !== window) {
+                channel = Channel.build({
+                    window: window.parent,
+                    origin: "*",
+                    scope: "JSInput"
+                });
+
+                channel.bind("getGrade", getGrade);
+                channel.bind("getState", getState);
+                channel.bind("setState", setState);
+            }
+        }
+
+        // look for nodes of class "jade" and give them an editor
+        $('.jade').each(function(index, div) {
+            // skip if this div has already been configured
+            if (div.jade === undefined) {
+                // now create the editor
+                var j = new jade.Jade(div);
+
+                // start configuration with whatever is provided by <jade> tag
+                var config = {};
+                $.each(div.attributes,function () {
+                    if (this.name != 'class') config[this.name] = this.value;
+                });
+
+                // other configuration will happen when jsinput calls setState()
+                j.initialize(config);
+            }
+        });
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    //
+    // Module exports
+    //
+    //////////////////////////////////////////////////////////////////////
+
+    return {
+        setup: setup,   // called to initialize jade editors on this page
+
+        // communication to/from edX jsinput framework
+        getState: getState,
+        setState: setState,
+        getGrade: getGrade
+    };
+
+}());
+
+// set up editor inside of div's with class "jade"
+$(document).ready(jade.setup.setup);
+</script>
+
 </head>
 <body>
 <div class="jade"></div>

@@ -96,23 +96,7 @@ jade.model = (function () {
     // if necessary save library to server
     Library.prototype.save = function() {
         if (!this.read_only && this.modified) {
-            var lib = this; // for closure
-            var args = {
-                url: 'server.cgi',
-                type: 'POST',
-                data: {
-                    file: this.name,
-                    json: JSON.stringify(this.json())
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    alert(errorThrown);
-                },
-                success: function() {
-                    // clear modified status for library and its modules
-                    lib.clear_modified();
-                }
-            };
-            $.ajax(args);
+            jade.save_to_server(lib);
         }
     };
 
@@ -126,22 +110,11 @@ jade.model = (function () {
     function load_library(lname,read_only) {
         if (libraries[lname] !== undefined) return;
 
-        var args = {
-            async: false, // hang until load completes
-            url: lname,
-            type: 'GET',
-            dataType: 'json',
-            error: function(jqXHR, textStatus, errorThrown) {
-                alert('Error while loading library '+lname+': '+errorThrown);
-            },
-            success: function(json) {
-                // allocate new library, add to list so we know we're loading it
-                var lib = new Library(lname);
-                lib.load(json);
-                if (read_only) lib.read_only = true;
-            }
-        };
-        $.ajax(args);
+        // allocate new library, add to list so we know we're loading it
+        var lib = new Library(lname);
+        if (read_only) lib.read_only = true;
+
+        jade.load_from_server(lib);
     }
 
     // return specified Module, newly created if necessary. Module names have
