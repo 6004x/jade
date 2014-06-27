@@ -81,9 +81,17 @@ jade.icon_view = (function() {
         div.appendChild(this.toolbar.toolbar[0]);
 
         div.appendChild(this.diagram.canvas);
-        this.aspect = new jade.model.Aspect('untitled', null);
-        this.diagram.set_aspect(this.aspect);
+        var aspect = new jade.model.Aspect('untitled', null);
+        this.diagram.set_aspect(aspect);
     }
+
+    Icon.prototype.diagram_changed = function(diagram) {
+        var module = diagram.aspect.module;
+        if (module) {
+            var tests = this.jade.configuration.tests;
+            delete tests[module.get_name()];
+        }
+    };
 
     Icon.prototype.resize = function(w, h, selected) {
         this.w = w;

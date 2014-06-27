@@ -139,8 +139,8 @@ jade.schematic_view = (function() {
         div.appendChild(this.toolbar.toolbar[0]);
 
         div.appendChild(this.diagram.canvas);
-        this.aspect = new jade.model.Aspect('untitled', null);
-        this.diagram.set_aspect(this.aspect);
+        var aspect = new jade.model.Aspect('untitled', null);
+        this.diagram.set_aspect(aspect);
 
         // set up parts bin
         this.parts_bin = new PartsBin(this,parent.configuration.parts);
@@ -203,6 +203,14 @@ jade.schematic_view = (function() {
         tool.mousedown(function(event) { editor.diagram.new_part = part; });
         tool.mouseup(function(event) { editor.diagram.new_part = undefined; });
     }
+
+    Schematic.prototype.diagram_changed = function(diagram) {
+        var module = diagram.aspect.module;
+        if (module) {
+            var tests = this.jade.configuration.tests;
+            delete tests[module.get_name()];
+        }
+    };
 
     Schematic.prototype.resize = function(w, h, selected) {
         // schematic canvas
@@ -318,11 +326,6 @@ jade.schematic_view = (function() {
 
     function schematic_mouse_leave(event) {
         var diagram = event.target.diagram;
-        var module = diagram.aspect.module;
-        if (module && module.modified) {
-            var tests = diagram.editor.jade.configuration.tests;
-            delete tests[module.get_name()];
-        }
         diagram.redraw();
         return false;
     }
@@ -1004,6 +1007,11 @@ jade.schematic_view = (function() {
                 parts_list.append(part.canvas);
             });
         }
+
+        // bug?  nudge DOM's redraw so it will actually dispaly the newly added part
+        // without this, sometimes the parts contents aren't shown ?!
+        bin.width(bin.width()-1);
+        bin.width(bin.width()+1);
     };
 
     // one instance will be created for each part in the parts bin

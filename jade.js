@@ -129,12 +129,11 @@ var jade = (function() {
         });
 
         // starting module?
-        if (configuration.edit) {
-            // mname = library:module.aspect
-            var mname = configuration.edit.split('.');
-            this.edit(mname[0]);  // select module
-            if (mname.length > 1) this.show(mname[1]);
-        } else this.refresh();
+        if (configuration.edit === undefined) configuration.edit = "user:untitled";
+        // mname = library:module.aspect
+        var mname = configuration.edit.split('.');
+        this.edit(mname[0]);  // select module
+        if (mname.length > 1) this.show(mname[1]);
     };
 
     Jade.prototype.get_state = function() {
@@ -142,6 +141,8 @@ var jade = (function() {
 
         if (jade.model.libraries.user) {
             state.state = {user: jade.model.libraries.user.json()};
+            // request for state means user library is being saved
+            jade.model.libraries.user.clear_modified();
         }
 
         return state;
@@ -375,6 +376,7 @@ var jade = (function() {
         });
         this.dragging = false;
         this.aspect.end_action();
+        this.editor.diagram_changed(this);
         this.redraw_background();
     };
 
@@ -450,6 +452,7 @@ var jade = (function() {
             }
         });
         diagram.aspect.end_action();
+        diagram.editor.diagram_changed(diagram);
 
         // update diagram view
         diagram.redraw();
@@ -500,6 +503,7 @@ var jade = (function() {
             new_c.add(diagram.aspect);
         }
         diagram.aspect.end_action();
+        diagram.editor.diagram_changed(diagram);
 
         // see what we've wrought
         diagram.redraw();
@@ -549,6 +553,7 @@ var jade = (function() {
             }
         });
         this.aspect.end_action();
+        this.editor.diagram_changed(this);
         this.redraw();
     };
 
@@ -640,7 +645,7 @@ var jade = (function() {
             c.textAlign = 'left';
             c.textBaseline = 'bottom';
             c.font = this.annotationFont;
-            c.style = this.normal_style;
+            c.fillStyle = this.normal_style;
             c.fillText(this.aspect.module.get_name(), 2, this.canvas.height - 2);
         }
 
@@ -863,6 +868,7 @@ var jade = (function() {
                 if (c.selected) c.remove();
             });
             this.aspect.end_action();
+            this.editor.diagram_changed(this);
             this.redraw_background();
         }
 

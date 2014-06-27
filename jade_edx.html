@@ -25,11 +25,11 @@ jade.load_from_server = function (lib) {
     // otherwise load library from edX static resources
     var args = {
         async: false, // hang until load completes
-        url: lname,
+        url: lib.name,
         type: 'GET',
         dataType: 'json',
         error: function(jqXHR, textStatus, errorThrown) {
-            alert('Error while loading library '+lname+': '+errorThrown);
+            alert('Error while loading library '+lib.name+': '+errorThrown);
         },
         success: function(json) {
             lib.load(json);
@@ -67,7 +67,12 @@ jade.setup = (function () {
     function setState() {
         var stateStr = arguments.length === 1 ? arguments[0] : arguments[1];
         var div = $('.jade').get(0);
-        if (div.jade) div.jade.initialize(JSON.parse(stateStr));
+        if (div.jade) {
+            // jsinput gets anxious if we don't respond quickly, so come back to
+            // initialization after we've returned and made jsinput happy.  Initialization
+            // may involve load remote libraries, which may take awhile.
+            setTimeout(function () { div.jade.initialize(JSON.parse(stateStr)); },1);
+        }
     }
 
     // set up editor inside of div's with class "jade"

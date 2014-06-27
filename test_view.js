@@ -156,7 +156,7 @@ jade.test_view = (function() {
 
     function run_tests(source,diagram,module) {
         var test_results = diagram.editor.jade.configuration.tests;
-        test_results[module.get_name()] = 'Error detect: test did yield a result.';
+        test_results[module.get_name()] = 'Error detected: test did not yield a result.';
         var msg;
 
         // remove multiline comments, in-line comments
