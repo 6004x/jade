@@ -77,22 +77,32 @@ jade.setup = (function () {
 
     // set up editor inside of div's with class "jade"
     function setup() {
-        // if we're inside an iframe, try to reach into parent frame to get
-        // configuration attributes
-        if (window.parent != window) {
-            // Establish a channel only if this application is embedded in an iframe.
-            // This will let the parent window communicate with this application using
-            // RPC and bypass SOP restrictions.
-            if (window.parent !== window) {
-                channel = Channel.build({
-                    window: window.parent,
-                    origin: "*",
-                    scope: "JSInput"
-                });
+        // Establish a channel only if this application is embedded in an iframe.
+        // This will let the parent window communicate with this application using
+        // RPC and bypass SOP restrictions.
+        if (window.parent !== window) {
+            channel = Channel.build({
+                window: window.parent,
+                origin: "*",
+                scope: "JSInput"
+            });
 
-                channel.bind("getGrade", getGrade);
-                channel.bind("getState", getState);
-                channel.bind("setState", setState);
+            channel.bind("getGrade", getGrade);
+            channel.bind("getState", getState);
+            channel.bind("setState", setState);
+
+            // make iframe resizable if we can.  This may fail if we don't have
+            // access to our parent...
+            try {
+                // look through all our parent's iframes
+                $('iframe',window.parent.document).each(function () {
+                    // is this iframe us?
+                    if (this.contentWindow == window) {
+                        // yes! so add css to enable resizing
+                        $(this).css({resize:'both', overflow:'auto'});
+                    }
+                });
+            } catch (e) {
             }
         }
 
