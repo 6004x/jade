@@ -1,6 +1,4 @@
 edX
-node_modules
-package.json
 *.pyc
 *~
 
