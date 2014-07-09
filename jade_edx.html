@@ -75,6 +75,34 @@ jade.setup = (function () {
         }
     }
 
+    function initial_state() {
+        var state = {};
+
+        if (window.parent !== window) {
+            // try rummaging through parent window's DOM for a div with class
+            // jade-initial-state.  May fail due to CORS restrictions...
+            try {
+                // look through parent's iframes until we find ourselves
+                $('iframe',window.parent.document).each(function (index,element) {
+                    if (element.contentWindow == window) {
+                        while (true) {
+                            element = $(element).parent();
+                            var state_div = $('.jade-initial-state',element);
+                            if (state_div.length > 0) {
+                                state = JSON.parse(state_div.html());
+                                break;
+                            }
+                            if (element.is('span')) break;
+                        }
+                    }
+                });
+            } catch (e) {
+            }
+        }
+
+        return state;
+    }
+
     // set up editor inside of div's with class "jade"
     function setup() {
         // Establish a channel only if this application is embedded in an iframe.
@@ -118,6 +146,7 @@ jade.setup = (function () {
                 $.each(div.attributes,function () {
                     if (this.name != 'class') config[this.name] = this.value;
                 });
+                $.extend(config,initial_state());
 
                 // other configuration will happen when jsinput calls setState()
                 j.initialize(config);
