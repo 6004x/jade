@@ -43,7 +43,7 @@ jade.icons.port_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
                        '</svg>';
 
 jade.icons.jumper_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
-                         '<path d="M 4 12 C 4 4, 12 4, 12 12" stroke="black" fill="transparent"/>' +
+                         '<path d="M 4 12 C 4 6, 12 6, 12 12" stroke="black" fill="transparent"/>' +
                          '<circle cx="4" cy="12" r="1" stroke="black"/>' +
                          '<circle cx="12" cy="12" r="1" stroke="black"/>' +
                          '</svg>';

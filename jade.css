@@ -90,6 +90,8 @@
     border: 1px solid #EEEEEE;
     vertical-align: middle;
     font: small-caps small sans-serif;
+    min-width: 16px;
+    min-height: 16px;
 }
 .jade-tool-spacer {
     display: inline;

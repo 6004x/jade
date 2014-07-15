@@ -313,6 +313,7 @@ jade.schematic_view = (function() {
 
             // make a clone of the component in the parts bin
             diagram.set_cursor_grid(part.component.required_grid);
+            diagram.event_coords(event);  // set up cursor coords based on new grid
             part = part.component.clone(diagram.cursor_x, diagram.cursor_y);
             part.add(diagram.aspect); // add it to aspect
             part.set_select(true);
