@@ -644,7 +644,7 @@ var jade = (function() {
         if (this.aspect && this.aspect.module) {
             c.textAlign = 'left';
             c.textBaseline = 'bottom';
-            c.font = this.annotationFont;
+            c.font = '12pt sans-serif';
             c.fillStyle = this.normal_style;
             c.fillText(this.aspect.module.get_name(), 2, this.canvas.height - 2);
         }
@@ -1187,7 +1187,7 @@ var jade = (function() {
     function jade_window(title, content, offset) {
         // create the div for the top level of the window
         var win = $('<div class="jade-window">'+
-                    ' <div class="jade-window-title">' + title + '<img style="float: right"></img></div>' +
+                    ' <div class="jade-window-title">' + title + '<span style="float:right">'+jade.icons.close_icon + '</span></div>' + //'<img style="float: right"></img></div>' +
                     '</div>');
         win[0].content = content;
         win[0].drag_x = undefined;
@@ -1197,17 +1197,18 @@ var jade = (function() {
         head[0].win = win[0];
         win[0].head = head[0];
 
-        var close_button = win.find('img').click(window_close_button).attr('src',jade.icons.close_icon);
-        close_button[0].win = win[0];
+        var close_button = win.find('span').click(function () {
+            window_close(win[0]);
+        });
 
         win.append($(content));
         content.win = win[0]; // so content can contact us
         $(content).toggleClass('jade-window-contents');
 
         if (content.resize) {
-            var resize = $('<img class="jade-window-resize"></img>');
-            resize.attr('src',jade.icons.resize_icon);
-            resize[0].win = win;
+            var resize = $('<div class="jade-window-resize"></div>');
+            resize.append($(jade.icons.resize_icon).css('pointer-events','none'));
+            resize[0].win = win[0];
             win[0].resize = function(dx, dy) {
                 // change size of window and content
                 var e = win;
@@ -1243,7 +1244,7 @@ var jade = (function() {
 
         // adjust all zIndex values
         for (i = 0; i < window_list.length; i += 1) {
-            window_list[i].style.zIndex = 100 + i;
+            $(window_list[i]).css('z-index',100 + i);
         }
     }
 
@@ -1308,7 +1309,7 @@ var jade = (function() {
 
         function move(e) {
             var event = window.event || e;
-            win[0].resize(event.pageX - lastX, event.pageY - lastY);
+            win.resize(event.pageX - lastX, event.pageY - lastY);
             lastX = event.pageX;
             lastY = event.pageY;
             return false;

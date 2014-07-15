@@ -43,11 +43,13 @@ jade.schematic_view = (function() {
             .keydown(schematic_key_down);
 
         this.toolbar = new jade.Toolbar(this.diagram);
-        this.toolbar.add_tool('undo', jade.icons.undo_icon, 'Undo: undo effect of previous action', jade.diagram_undo,
+        this.toolbar.add_tool('undo', jade.icons.undo_icon,
+                              'Undo: undo effect of previous action', jade.diagram_undo,
                               function(diagram) {
                                   return diagram.aspect.can_undo();
                               });
-        this.toolbar.add_tool('redo', jade.icons.redo_icon, 'redo: redo effect of next action', jade.diagram_redo,
+        this.toolbar.add_tool('redo', jade.icons.redo_icon,
+                              'redo: redo effect of next action', jade.diagram_redo,
                               function(diagram) {
                                   return diagram.aspect.can_redo();
                               });
@@ -1176,7 +1178,7 @@ jade.schematic_view = (function() {
 
     function part_dblclick(event) {
         var part = event.target.part;
-        part.editor.set_aspect(part.component.module);
+        part.editor.jade.edit(part.component.module.get_name());
     }
 
     ///////////////////////////////////////////////////////////////////////////////

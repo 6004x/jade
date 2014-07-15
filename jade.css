@@ -107,6 +107,9 @@
 .jade-tool-enabled:active {
     background-color: #CCCCCC;
 }
+.jade-tool * {
+    pointer-events: none;
+}
 .jade-dialog-content {
     margin-bottom: 5px;
     padding: 5px;
