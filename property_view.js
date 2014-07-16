@@ -37,6 +37,8 @@ jade.property_view = (function() {
         var editor = this; // for closures
         var tr, td, field;
 
+        var read_only = this.module && this.module.read_only();
+
         // remove old rows from table
         $(this.table).empty();
 
@@ -64,6 +66,7 @@ jade.property_view = (function() {
                 editor.module.remove_property(event.target.pname);
                 editor.build_table();
             });
+            if (read_only) $(field).attr('disabled','true');
             field.pname = p; // so callback knows what to delete
             td.appendChild(field);
 
@@ -165,6 +168,7 @@ jade.property_view = (function() {
                 editor.build_table();
             }
         });
+        if (read_only) $(fields.action).attr('disabled','true');
         fields.name = jade.build_input('text', 10, '');
         fields.label = jade.build_input('text', 10, '');
         fields.type = jade.build_select(['string', 'menu'], 'string');

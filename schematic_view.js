@@ -43,19 +43,24 @@ jade.schematic_view = (function() {
             .keydown(schematic_key_down);
 
         this.toolbar = new jade.Toolbar(this.diagram);
+
+        this.toolbar.add_tool('settings', jade.icons.cog_icon,
+                              'Settings: click for settings, module actions', jade.jade_settings);
+        this.toolbar.add_spacer();
+
         this.toolbar.add_tool('undo', jade.icons.undo_icon,
                               'Undo: undo effect of previous action', jade.diagram_undo,
                               function(diagram) {
-                                  return diagram.aspect.can_undo();
+                                  return diagram.aspect && diagram.aspect.can_undo();
                               });
         this.toolbar.add_tool('redo', jade.icons.redo_icon,
                               'redo: redo effect of next action', jade.diagram_redo,
                               function(diagram) {
-                                  return diagram.aspect.can_redo();
+                                  return diagram.aspect && diagram.aspect.can_redo();
                               });
 
         function has_selections(diagram) {
-            return diagram.aspect.selections();
+            return diagram.aspect && !diagram.aspect.read_only() && diagram.aspect.selections();
         }
         
         this.toolbar.add_tool('cut', jade.icons.cut_icon,
@@ -67,7 +72,8 @@ jade.schematic_view = (function() {
         this.toolbar.add_tool('paste', jade.icons.paste_icon,
                               'Paste: copy clipboard into the diagram', jade.diagram_paste,
                               function(diagram) {
-                                  return jade.clipboards[diagram.editor.editor_name].length > 0;
+                                  return diagram.aspect && !diagram.aspect.read_only() &&
+                                         jade.clipboards[diagram.editor.editor_name].length > 0;
                               });
         this.toolbar.add_tool('fliph', jade.icons.fliph_icon,
                               'Flip Horizontally: flip selection horizontally',
@@ -84,11 +90,12 @@ jade.schematic_view = (function() {
         this.toolbar.add_spacer();
 
         // are we supporting hierarchy?
-        this.hierarchy = (parent.input_field !== undefined);
+        this.hierarchy = parent.configuration.hierarchical;
         if (this.hierarchy) {
             this.toolbar.add_tool('down', jade.icons.down_icon,
                                   'Down in the hierarchy: view selected included module', schematic_down,
                                   function(diagram) {
+                                      if (!diagram.aspect) return false;
                                       var selected = diagram.aspect.selected_component();
                                       if (selected !== undefined) return selected.has_aspect(Schematic.prototype.editor_name);
                                       else return false;
@@ -96,34 +103,38 @@ jade.schematic_view = (function() {
             this.toolbar.add_tool('up', jade.icons.up_icon,
                                   'Up in the hierarchy: return to including module', schematic_up,
                                   function(diagram) {
-                                      return diagram.editor.hierarchy_stack.length > 0;
+                                      return diagram.editor && diagram.editor.hierarchy_stack.length > 0;
                                   });
             this.toolbar.add_spacer();
         }
 
+        function insert_part_allowed() {
+            return this.diagram && this.diagram.aspect && !this.diagram.aspect.read_only(); 
+        };
+
         var part = this.toolbar.add_tool('ground', jade.icons.ground_icon,
                                          'Ground connection: click and drag to insert', null,
-                                         function() { return true; });
+                                         insert_part_allowed);
         part_tool(part,this,'ground');
 
         part = this.toolbar.add_tool('vdd', jade.icons.vdd_icon,
                                      'Power supply connection: click and drag to insert', null,
-                                     function() { return true; });
+                                     insert_part_allowed);
         part_tool(part,this,'vdd');
 
         part = this.toolbar.add_tool('port', jade.icons.port_icon,
                                      'I/O Port: click and drag to insert', null, 
-                                     function() { return true; });
+                                     insert_part_allowed);
         part_tool(part,this,'port');
 
         part = this.toolbar.add_tool('jumper', jade.icons.jumper_icon,
                                      'Jumper for connecting wires with different names: click and drag to insert', null,
-                                     function() { return true; });
+                                     insert_part_allowed);
         part_tool(part,this,'jumper');
 
         part = this.toolbar.add_tool('text', jade.icons.text_icon,
                                      'Text: click and drag to insert', null, 
-                                     function() { return true; });
+                                     insert_part_allowed);
         part_tool(part,this,'text');
 
         this.toolbar.add_spacer();
@@ -248,6 +259,8 @@ jade.schematic_view = (function() {
     };
 
     Schematic.prototype.redraw = function(diagram) {
+        if (this.toolbar) this.toolbar.enable_tools(this.diagram);
+
         // draw new wire
         var r = diagram.wire;
         if (r) {
@@ -298,7 +311,7 @@ jade.schematic_view = (function() {
         var diagram = event.target.diagram;
 
         // see if user has selected a new part
-        if (diagram.new_part) {
+        if (!diagram.aspect.read_only() && diagram.new_part) {
             // grab incoming part, turn off selection of parts bin
             var part = diagram.new_part;
             diagram.new_part = undefined;
@@ -344,7 +357,7 @@ jade.schematic_view = (function() {
         var dx = Math.abs(diagram.aspect_x - diagram.cursor_x);
         var dy = Math.abs(diagram.aspect_y - diagram.cursor_y);
         var cplist = diagram.aspect.connection_points[diagram.cursor_x + ',' + diagram.cursor_y];
-        if (dx <= jade.model.connection_point_radius && dy <= jade.model.connection_point_radius && cplist && !event.shiftKey) {
+        if (!diagram.aspect.read_only() && dx <= jade.model.connection_point_radius && dy <= jade.model.connection_point_radius && cplist && !event.shiftKey) {
             diagram.unselect_all(-1);
             diagram.redraw_background();
             diagram.wire = [diagram.cursor_x, diagram.cursor_y, diagram.cursor_x, diagram.cursor_y];
@@ -399,11 +412,13 @@ jade.schematic_view = (function() {
         var diagram = event.target.diagram;
         diagram.event_coords(event);
 
-        // see if we double-clicked a component.  If so, edit it's properties
-        diagram.aspect.map_over_components(function(c) {
-            if (c.edit_properties(diagram, diagram.aspect_x, diagram.aspect_y)) return true;
-            return false;
-        });
+        if (diagram.aspect && !diagram.aspect.read_only()) {
+            // see if we double-clicked a component.  If so, edit it's properties
+            diagram.aspect.map_over_components(function(c) {
+                if (c.edit_properties(diagram, diagram.aspect_x, diagram.aspect_y)) return true;
+                return false;
+            });
+        }
 
         event.preventDefault();
         return false;

@@ -28,12 +28,11 @@ var jade = (function() {
         this.parent = owner;
         this.module = undefined;
 
+        // insert framework into DOM
         this.top_level = $('<div class="jade-top-level">' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-status"><span id="message"></span>' +
                            '</div>');
-
-        // insert framework into DOM
         $(owner).append(this.top_level);
 
         this.status = this.top_level.find('#message');
@@ -54,6 +53,24 @@ var jade = (function() {
             var win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 2;
             me.resize(win_w,win_h);
         });
+        
+        // set up settings pop-up
+        var settings = $('<div class="jade-settings-popup"></div>');
+        this.settings = settings;
+        settings.append($('<div class="jade-setting" id="new_module">New module</div>')
+                        .on('click',function() { new_module($('.jade-settings-popup')[0].diagram); }));
+        settings.append($('<div class="jade-setting" id="rename_module">Rename module</div>')
+                        .on('click',function() { rename_module($('.jade-settings-popup')[0].diagram); }));
+        settings.append($('<div class="jade-setting" id="delete_module")>Delete module</div>')
+                        .on('click',function() { delete_module($('.jade-settings-popup')[0].diagram); }));
+        settings.append($('<hr/>'));
+        settings.append($('<div class="jade-setting jade-setting-enabled">Toggle grid</div>')
+                        .on('click',function() {
+                            diagram_toggle_grid($('.jade-settings-popup')[0].diagram);
+                            settings.toggle();
+                        }));
+        settings.on('mouseleave',function() { settings.hide(); });
+        this.top_level.append(settings);
     }
 
     // initialize editor from configuration object
@@ -66,17 +83,6 @@ var jade = (function() {
 
         // initialize object for recording test results
         if (configuration.tests === undefined) configuration.tests = {};
-
-        // set up top-level toolbar
-        if (configuration.hierarchical) {
-            this.top_level.find('.jade-toolbar').remove();
-            this.top_level.find('.jade-tabs-div').before('<div id="jade-toolbar">'+/*'<button id="savelibs" disabled>Save changes</button>'+*/'Module: <input id="module" type="text" autocorrect="off" autocapitalize="off"></input></div>');
-            this.input_field = this.top_level.find('#module');
-            this.input_field.keypress(function(event) {
-                // when user hits ENTER, edit the specified module
-                if (event.keyCode == 13) me.edit(event.target.value);
-            });
-        }
 
         // setup editor panes
         var elist;
@@ -246,6 +252,54 @@ var jade = (function() {
             ediv.editor.resize(tw, th, tab == this.selected_tab);
         }
     };
+
+    //////////////////////////////////////////////////////////////////////
+    //
+    // Settings handlers
+    //
+    //////////////////////////////////////////////////////////////////////
+
+    function jade_settings(diagram) {
+        var jade = diagram.editor.jade;
+        var settings = jade.settings;
+
+        // determine pop-up position: below toolbar of active tab
+        var div = $('.jade-toolbar',$('.jade-tab-body-active',jade.top_level));
+        var offset = div.offset();
+        offset.top += div.outerHeight();
+        settings.css(offset);
+
+        // enable/disable settings tools
+        $('#new_module',settings).removeClass('jade-setting-enabled');
+        $('#rename_module',settings).removeClass('jade-setting-enabled');
+        $('#delete_module',settings).removeClass('jade-setting-enabled');
+        if (jade.configuration.hierarchical) {
+            $('#new_module',settings).addClass('jade-setting-enabled');
+            if (!diagram.aspect.read_only()) {
+                $('#delete_module',settings).addClass('jade-setting-enabled');
+                $('#rename_module',settings).addClass('jade-setting-enabled');
+            }
+        }
+
+        settings[0].diagram = diagram;  // remember diagram being viewed
+
+        settings.toggle();   // toggle visibility
+    }
+
+    function new_module(diagram) {
+        var jade = diagram.editor.jade;
+        jade.settings.toggle();   // all done with settings pop-up
+    }
+
+    function rename_module(diagram) {
+        var jade = diagram.editor.jade;
+        jade.settings.toggle();   // all done with settings pop-up
+    }
+
+    function delete_module(diagram) {
+        var jade = diagram.editor.jade;
+        jade.settings.toggle();   // all done with settings pop-up
+    }
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -426,6 +480,11 @@ var jade = (function() {
 
         this.redraw_background();
     };
+
+    function diagram_toggle_grid(diagram) {
+        diagram.show_grid = !diagram.show_grid;
+        diagram.redraw_background();
+    }
 
     function diagram_undo(diagram) {
         diagram.aspect.undo();
@@ -669,17 +728,13 @@ var jade = (function() {
             if (c.selected) c.draw(diagram);
         });
 
-
-        var toolbar = this.editor.toolbar;
-        if (toolbar) toolbar.enable_tools(this);
-
         // connection points: draw one at each location
         for (var location in this.aspect.connection_points) {
             var cplist = this.aspect.connection_points[location];
             cplist[0].draw(this, cplist.length);
         }
 
-        // draw editor-specific dodads
+        // draw editor-specific dodads, enable appropriate tools
         this.editor.redraw(this);
 
         // draw selection rectangle
@@ -860,8 +915,24 @@ var jade = (function() {
     Diagram.prototype.key_down = function(event) {
         var code = event.keyCode;
 
+        // cmd/ctrl a: select all
+        if ((event.ctrlKey || event.metaKey) && code == 65) {
+            this.aspect.map_over_components(function(c) {
+                c.set_select(true);
+            });
+            this.redraw_background();
+        }
+
+        // cmd/ctrl c: copy
+        else if ((event.ctrlKey || event.metaKey) && code == 67) {
+            diagram_copy(this);
+        }
+
+        // after this point commands require permission to change diagram
+        else if (this.aspect.read_only()) return true;
+
         // backspace or delete: delete selected components
-        if (code == 8 || code == 46) {
+        else if (code == 8 || code == 46) {
             // delete selected components
             this.aspect.start_action();
             this.aspect.map_over_components(function(c) {
@@ -869,14 +940,6 @@ var jade = (function() {
             });
             this.aspect.end_action();
             this.editor.diagram_changed(this);
-            this.redraw_background();
-        }
-
-        // cmd/ctrl a: select all
-        else if ((event.ctrlKey || event.metaKey) && code == 65) {
-            this.aspect.map_over_components(function(c) {
-                c.set_select(true);
-            });
             this.redraw_background();
         }
 
@@ -941,9 +1004,11 @@ var jade = (function() {
             else if (zy < 32) this.zoomout();
             else this.zoomall();
         }
+        /*
         else if (sx >= -20 && sx <= -12 && sy >= -20 && sy <= -12) {   // "secret" grid toggle
             this.show_grid = !this.show_grid;
         }
+         */
         else return false;
 
         this.redraw_background();
@@ -958,8 +1023,10 @@ var jade = (function() {
         this.aspect.map_over_components(function(c, i) {
             if (c.select(diagram.aspect_x, diagram.aspect_y, shiftKey)) {
                 if (c.selected) {
-                    diagram.aspect.start_action();
-                    diagram.drag_begin();
+                    if (!diagram.aspect.read_only()) {
+                        diagram.aspect.start_action();
+                        diagram.drag_begin();
+                    }
                     which = i; // keep track of component we found
                 }
                 return true;
@@ -1372,9 +1439,11 @@ var jade = (function() {
         for (var t in this.tools) {
             var tool = this.tools[t];
             var which = tool[0].enable_check ? tool[0].enable_check(diagram) : true;
-            tool[0].enabled = which;
-            tool.toggleClass('jade-tool-disabled', !which);
-            tool.toggleClass('jade-tool-enabled', which);
+            if (which != tool[0].enabled) {
+                tool[0].enabled = which;
+                tool.toggleClass('jade-tool-disabled', !which);
+                tool.toggleClass('jade-tool-enabled', which);
+            }
         }
     };
 
@@ -1426,6 +1495,7 @@ var jade = (function() {
 
         Toolbar: Toolbar,
         Jade: Jade,
+        jade_settings: jade_settings,
 
         editors: editors,
         clipboards: clipboards,

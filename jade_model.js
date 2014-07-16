@@ -162,6 +162,14 @@ jade.model = (function () {
         return this.library.name + ':' + this.name;
     };
 
+    Module.prototype.read_only = function() {
+        // is this module read only?
+        if (this.properties['readonly'] == 'true') return true;
+
+        // is this library read only?
+        return this.library.read_only;
+    };
+
     Module.prototype.add_listener = function(callback) {
         // if we're already loaded, do callback now
         if (this.loaded) callback('load');
@@ -308,14 +316,12 @@ jade.model = (function () {
     };
 
     Aspect.prototype.read_only = function() {
+        if (!this.module) return false;
+
         // is this aspect read only?
         if (this.module.properties[this.name + '-readonly'] == 'true') return true;
 
-        // is this module read only?
-        if (this.module.properties['readonly'] == 'true') return true;
-
-        // is this library read only?
-        return this.module.library.read_only;
+        return this.module.read_only();
     };
 
     Aspect.prototype.empty = function() {

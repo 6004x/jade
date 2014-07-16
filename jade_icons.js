@@ -16,7 +16,7 @@ jade.icons.copy_icon = '<span class="fa fa-copy"></span>';
 
 jade.icons.paste_icon = '<span class="fa fa-paste"></span>';
 
-jade.icons.grid_icon = '<span class="fa fa-th"></span>';
+jade.icons.cog_icon = '<span class="fa fa-cog"></span>';
 
 jade.icons.fliph_icon = '<span class="fa fa-arrows-h"></span>';
 

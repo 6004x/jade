@@ -16,6 +16,29 @@
 #savelibs {
     margin-right: 10px;
 }
+.jade-settings-popup {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid black;
+    padding: 3px;
+    z-index: 1;
+    box-shadow: 5px 5px 5px grey;
+    font: 14px sans-serif;
+}
+.jade-setting {
+    color: grey;
+    padding: 3px 1px 3px 1px;
+    pointer-events: none;
+}
+.jade-setting-enabled {
+    color: black;
+    pointer-events: auto;
+    cursor: pointer;
+}
+.jade-setting-enabled:hover {
+    background-color: #E0E0FF;
+}
 .jade-tabs-div {
 /* margin-top: 4px; */
 }

@@ -33,24 +33,30 @@ jade.icon_view = (function() {
         $(this.diagram.canvas).mouseover(icon_mouse_enter).mouseout(icon_mouse_leave).mousemove(icon_mouse_move).mousedown(icon_mouse_down).mouseup(icon_mouse_up).dblclick(icon_double_click).keydown(icon_key_down);
 
         this.toolbar = new jade.Toolbar(this.diagram);
+
+        this.toolbar.add_tool('settings', jade.icons.cog_icon,
+                              'Settings: click for settings, module actions', jade.jade_settings);
+        this.toolbar.add_spacer();
+
         this.toolbar.add_tool('undo', jade.icons.undo_icon, 'Undo: undo effect of previous action', jade.diagram_undo,
                               function(diagram) {
-                                  return diagram.aspect.can_undo();
+                                  return diagram.aspect && diagram.aspect.can_undo();
                               });
         this.toolbar.add_tool('redo', jade.icons.redo_icon, 'redo: redo effect of next action', jade.diagram_redo,
                               function(diagram) {
-                                  return diagram.aspect.can_redo();
+                                  return diagram.aspect && diagram.aspect.can_redo();
                               });
 
         function has_selections(diagram) {
-            return diagram.aspect.selections();
+            return diagram.aspect && !diagram.aspect.read_only() && diagram.aspect.selections();
         }
         
         this.toolbar.add_tool('cut', jade.icons.cut_icon, 'Cut: move selected components from diagram to the clipboard', jade.diagram_cut, has_selections);
         this.toolbar.add_tool('copy', jade.icons.copy_icon, 'Copy: copy selected components into the clipboard', jade.diagram_copy, has_selections);
         this.toolbar.add_tool('paste', jade.icons.paste_icon, 'Paste: copy clipboard into the diagram', jade.diagram_paste,
                               function(diagram) {
-                                  return jade.clipboards[diagram.editor.editor_name].length > 0;
+                                  return diagram.aspect && !diagram.aspect.read_only() &&
+                                         jade.clipboards[diagram.editor.editor_name].length > 0;
                               });
         this.toolbar.add_tool('fliph', jade.icons.fliph_icon, 'Flip Horizontally: flip selection horizontally', jade.diagram_fliph, has_selections);
         this.toolbar.add_tool('flipv', jade.icons.flipv_icon, 'Flip Vertically: flip selection vertically', jade.diagram_flipv, has_selections);
@@ -60,15 +66,19 @@ jade.icon_view = (function() {
         this.toolbar.add_spacer();
 
         // add tools for creating icon components
+        function insert_part_allowed() {
+            return this.diagram && this.diagram.aspect && !this.diagram.aspect.read_only(); 
+        };
+
         this.modes = {};
-        this.modes.select = this.toolbar.add_tool('select', jade.icons.select_icon, 'Select mode', icon_select);
+        this.modes.select = this.toolbar.add_tool('select', jade.icons.select_icon, 'Select mode', icon_select,insert_part_allowed);
         this.set_mode('select');
-        this.modes.line = this.toolbar.add_tool('line', jade.icons.line_icon, 'Icon line mode', icon_line);
-        this.modes.arc = this.toolbar.add_tool('arc', jade.icons.arc_icon, 'Icon arc mode', icon_arc);
-        this.modes.circle = this.toolbar.add_tool('circle', jade.icons.circle_icon, 'Icon circle mode', icon_circle);
-        this.modes.text = this.toolbar.add_tool('text', jade.icons.text_icon, 'Icon text mode', icon_text);
-        this.modes.terminal = this.toolbar.add_tool('terminal', jade.icons.terminal_icon, 'Icon terminal mode', icon_terminal);
-        this.modes.property = this.toolbar.add_tool('property', jade.icons.property_icon, 'Icon property mode', icon_property);
+        this.modes.line = this.toolbar.add_tool('line', jade.icons.line_icon, 'Icon line mode', icon_line,insert_part_allowed);
+        this.modes.arc = this.toolbar.add_tool('arc', jade.icons.arc_icon, 'Icon arc mode', icon_arc,insert_part_allowed);
+        this.modes.circle = this.toolbar.add_tool('circle', jade.icons.circle_icon, 'Icon circle mode', icon_circle,insert_part_allowed);
+        this.modes.text = this.toolbar.add_tool('text', jade.icons.text_icon, 'Icon text mode', icon_text,insert_part_allowed);
+        this.modes.terminal = this.toolbar.add_tool('terminal', jade.icons.terminal_icon, 'Icon terminal mode', icon_terminal,insert_part_allowed);
+        this.modes.property = this.toolbar.add_tool('property', jade.icons.property_icon, 'Icon property mode', icon_property,insert_part_allowed);
 
         this.toolbar.add_spacer();
 
@@ -126,6 +136,8 @@ jade.icon_view = (function() {
     jade.editors.push(Icon);
 
     Icon.prototype.redraw = function(diagram) {
+        if (this.toolbar) this.toolbar.enable_tools(this.diagram);
+
         // draw our own grid-quantized cursor
         var editor = diagram.editor;
         if (editor.mode != 'select') {
