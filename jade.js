@@ -1247,7 +1247,7 @@ var jade = (function() {
     function jade_window(title, content, offset) {
         // create the div for the top level of the window
         var win = $('<div class="jade-window">'+
-                    ' <div class="jade-window-title">' + title + '<span style="float:right">'+jade.icons.close_icon + '</span></div>' + //'<img style="float: right"></img></div>' +
+                    ' <div class="jade-window-title">' + title + '<span style="float:right;cursor: pointer">'+jade.icons.close_icon + '</span></div>' + //'<img style="float: right"></img></div>' +
                     '</div>');
         win[0].content = content;
         win[0].drag_x = undefined;

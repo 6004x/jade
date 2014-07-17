@@ -1040,7 +1040,7 @@ jade.schematic_view = (function() {
         this.selected = false;
 
         // set up canvas
-        this.canvas = $('<canvas class="jade-xpart jade-tool jade-tool-enabled"></div>').css('cursor','default');
+        this.canvas = $('<canvas class="jade-xpart jade-tool jade-tool-enabled"></div>'); //.css('cursor','default');
         this.canvas[0].part = this;
 
         // handle retina devices properly

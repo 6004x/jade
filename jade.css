@@ -162,6 +162,7 @@
 }
 .jade-tool-enabled {
     opacity: 1.0;
+    cursor: pointer;
 }
 .jade-tool-enabled:hover {
     border-color: #000;
