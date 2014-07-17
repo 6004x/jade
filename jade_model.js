@@ -73,17 +73,18 @@ jade.model = (function () {
             this.modified = which;
             if (which) {
                 $('body').attr('data-dirty','yes');
-                $('#savelibs').prop('disabled',false);
             } else {
                 // if all libraries are now unmodified, clear data-dirty attr
                 var dirty = false;
                 $.each(libraries,function (lname,lib) { if (lib.modified) dirty = true; });
                 if (!dirty) {
                     $('body').removeAttr('data-dirty');
-                    $('#savelibs').prop('disabled',true);
                 }
             }
         }
+
+        // if library has just changed, save it to the server (a la Google Docs)
+        if (which) jade.save_to_server(this);
     };
 
     // If all modules are clean, library is too
@@ -183,11 +184,9 @@ jade.model = (function () {
     };
 
     Module.prototype.set_modified = function(which) {
-        if (this.modified != which) {
-            this.modified = which;
-            if (which) this.library.set_modified(true);
-            else this.library.check_modified();
-        }
+        this.modified = which;
+        if (which) this.library.set_modified(true);
+        else this.library.check_modified();
     };
 
     // if all aspects are clean, module is too
@@ -300,12 +299,10 @@ jade.model = (function () {
     };
 
     Aspect.prototype.set_modified = function(which) {
-        if (which != this.modified) {
-            this.modified = which;
-            if (this.module) {
-                if (which) this.module.set_modified(which);
-                else this.module.check_modified();
-            }
+        this.modified = which;
+        if (this.module) {
+            if (which) this.module.set_modified(true);
+            else this.module.check_modified();
         }
     };
 
@@ -337,16 +334,13 @@ jade.model = (function () {
     Aspect.prototype.end_action = function() {
         if (this.change_list !== undefined && this.change_list.length > 0) {
             this.clean_up_wires(true); // canonicalize diagram's wires
-            this.set_modified(true);
             this.current_action += 1;
 
             // truncate action list at current entry
             if (this.actions.length > this.current_action) this.actions = this.actions.slice(0, this.current_action);
-
             this.actions.push(this.change_list);
 
-            // experiment: try writing lib to server after every action
-            jade.save_to_server(this.module.library);
+            this.set_modified(true);
         }
         this.change_list = undefined; // stop recording changes
     };
@@ -368,12 +362,8 @@ jade.model = (function () {
                 changes[i](this, 'undo');
             }
             this.clean_up_wires(false); // canonicalize diagram's wires
-
-            // experiment: try writing lib to server after every action
-            jade.save_to_server(this.module.library);
+            this.set_modified(this.current_action != -1);
         }
-
-        this.set_modified(this.current_action != -1);
     };
 
     Aspect.prototype.can_redo = function() {
@@ -389,9 +379,7 @@ jade.model = (function () {
                 changes[i](this, 'redo');
             }
             this.clean_up_wires(false); // canonicalize diagram's wires
-
-            // experiment: try writing lib to server after every action
-            jade.save_to_server(this.module.library);
+            this.set_modified(true);
         }
     };
 
