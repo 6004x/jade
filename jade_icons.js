@@ -1,4 +1,6 @@
-jade.icons = {}
+jade.icons = {};
+
+jade.icons.actions_icon = '<span class="fa fa-file-o"></span>';
 
 jade.icons.close_icon = '<span class="fa fa-times-circle-o"></span>';
 
@@ -6,29 +8,27 @@ jade.icons.resize_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
                          '<path d="M 10 13.5 l 3 -3 m 0 -3 l -6 6 m -3 0 l 9 -9" stroke="black" stroke-width="0.5"/>' +
                          '</svg>';
 
-jade.icons.undo_icon = '<span class="fa fa-reply"></span>';
+jade.icons.undo_icon = '<span class="fa fw fa-reply"></span>';
 
-jade.icons.redo_icon = '<span class="fa fa-share"></span>';
+jade.icons.redo_icon = '<span class="fa fw fa-share"></span>';
 
-jade.icons.cut_icon = '<span class="fa fa-cut"></span>';
+jade.icons.cut_icon = '<span class="fa fw fa-cut"></span>';
 
-jade.icons.copy_icon = '<span class="fa fa-copy"></span>';
+jade.icons.copy_icon = '<span class="fa fw fa-copy"></span>';
 
-jade.icons.paste_icon = '<span class="fa fa-paste"></span>';
+jade.icons.paste_icon = '<span class="fa fw fa-paste"></span>';
 
-jade.icons.cog_icon = '<span class="fa fa-cog"></span>';
+jade.icons.fliph_icon = '<span class="fa fw fa-arrows-h"></span>';
 
-jade.icons.fliph_icon = '<span class="fa fa-arrows-h"></span>';
+jade.icons.flipv_icon = '<span class="fa fw fa-arrows-v"></span>';
 
-jade.icons.flipv_icon = '<span class="fa fa-arrows-v"></span>';
+jade.icons.rotcw_icon = '<span class="fa fw fa-rotate-right"></span>';
 
-jade.icons.rotcw_icon = '<span class="fa fa-rotate-right"></span>';
+jade.icons.rotccw_icon = '<span class="fa fw fa-rotate-left"></span>';
 
-jade.icons.rotccw_icon = '<span class="fa fa-rotate-left"></span>';
+jade.icons.up_icon = '<span class="fa fw fa-level-up"></span>';
 
-jade.icons.up_icon = '<span class="fa fa-level-up"></span>';
-
-jade.icons.down_icon = '<span class="fa fa-level-down"></span>';
+jade.icons.down_icon = '<span class="fa fw fa-level-down"></span>';
 
 jade.icons.ground_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
                          '<path d="M 8.5 3.5 v 7 h -5 l 5 5 l 5 -5 h -5" stroke="black" fill="transparent"/>' +
@@ -48,9 +48,9 @@ jade.icons.jumper_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
                          '<circle cx="12" cy="12" r="1" stroke="black"/>' +
                          '</svg>';
 
-jade.icons.text_icon = '<span class="fa fa-font"></span>';
+jade.icons.text_icon = '<span class="fa fw fa-font"></span>';
 
-jade.icons.check_icon = '<span class="fa fa-check" style="color:green;"></span>';
+jade.icons.check_icon = '<span class="fa fw fa-check" style="color:green;"></span>';
 
 //jade.icons.select_icon = 'data:image/gif;base64,R0lGODlhEAAQALMAAAAAAIAAAACAAICAAAAAgIAAgACAgMDAwICAgP8AAAD/AP//AAAA//8A/wD//////yH5BAEAAAcALAAAAAAQABAAAAQw8MgDpr0TVMzB25zlfaH4nGA4oiV1vum1wur7abE0ermpsaoNrwTatTKkI6WnlEQAADs=';
 jade.icons.select_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +

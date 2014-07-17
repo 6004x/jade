@@ -44,8 +44,8 @@ jade.schematic_view = (function() {
 
         this.toolbar = new jade.Toolbar(this.diagram);
 
-        this.toolbar.add_tool('settings', jade.icons.cog_icon,
-                              'Settings: click for settings, module actions', jade.jade_settings);
+        this.toolbar.add_tool('actions', jade.icons.actions_icon,
+                              'Create/rename/delete modules; change settings', jade.jade_settings);
         this.toolbar.add_spacer();
 
         this.toolbar.add_tool('undo', jade.icons.undo_icon,

@@ -79,6 +79,7 @@ jade.property_view = (function() {
             td = document.createElement('td');
             tr.appendChild(td);
             field = jade.build_input('text', 10, props.label || props.name);
+            if (read_only) $(field).attr('disabled','true');
             field.pname = p;
             field.props = props;
             $(field).change(function(event) {
@@ -96,6 +97,7 @@ jade.property_view = (function() {
             td = document.createElement('td');
             tr.appendChild(td);
             field = jade.build_select(['string', 'menu'], props.type || 'string');
+            if (read_only) $(field).attr('disabled','true');
             field.props = props;
             $(field).change(function(event) {
                 event.target.props.type = event.target.value;
@@ -107,6 +109,7 @@ jade.property_view = (function() {
             td = document.createElement('td');
             tr.appendChild(td);
             field = jade.build_input('text', 10, props.value || '');
+            if (read_only) $(field).attr('disabled','true');
             field.props = props;
             $(field).change(function(event) {
                 event.target.props.value = event.target.value.trim();
@@ -118,6 +121,7 @@ jade.property_view = (function() {
             td = document.createElement('td');
             tr.appendChild(td);
             field = jade.build_select(['yes', 'no'], props.edit || 'yes');
+            if (read_only) $(field).attr('disabled','true');
             field.props = props;
             $(field).change(function(event) {
                 event.target.props.edit = event.target.value;
@@ -129,6 +133,7 @@ jade.property_view = (function() {
             td = document.createElement('td');
             tr.appendChild(td);
             field = jade.build_input('text', 15, props.choices ? props.choices.join() : '');
+            if (read_only) $(field).attr('disabled','true');
             field.props = props;
             $(field).change(function(event) {
                 var vlist = event.target.value.split(',');
@@ -142,44 +147,46 @@ jade.property_view = (function() {
             td.appendChild(field);
         }
 
-        // last row for adding properties
-        tr = document.createElement('tr');
-        this.table.appendChild(tr);
+        if (!read_only) {
 
-        var fields = {};
-        fields.action = jade.build_button('add', function(event) {
-            // validate then add new property
-            var name = fields.name.value.trim();
-            if (name === '') alert('Please enter a name for the new property');
-            else if (name in editor.module.properties) alert('Oops, duplicate property name!');
-            else {
-                var p = {};
-                p.label = fields.label.value.trim() || name;
-                p.type = fields.type.value;
-                p.value = fields.value.value.trim();
-                p.edit = fields.edit.value;
-                var vlist = fields.choices.value.split(',');
-                for (var i = 0; i < vlist.length; i += 1) {
-                    vlist[i] = vlist[i].trim();
+            // last row for adding properties
+            tr = document.createElement('tr');
+            this.table.appendChild(tr);
+
+            var fields = {};
+            fields.action = jade.build_button('add', function(event) {
+                // validate then add new property
+                var name = fields.name.value.trim();
+                if (name === '') alert('Please enter a name for the new property');
+                else if (name in editor.module.properties) alert('Oops, duplicate property name!');
+                else {
+                    var p = {};
+                    p.label = fields.label.value.trim() || name;
+                    p.type = fields.type.value;
+                    p.value = fields.value.value.trim();
+                    p.edit = fields.edit.value;
+                    var vlist = fields.choices.value.split(',');
+                    for (var i = 0; i < vlist.length; i += 1) {
+                        vlist[i] = vlist[i].trim();
+                    }
+                    p.choices = vlist;
+                    editor.module.set_property(name, p);
+
+                    editor.build_table();
                 }
-                p.choices = vlist;
-                editor.module.set_property(name, p);
+            });
+            fields.name = jade.build_input('text', 10, '');
+            fields.label = jade.build_input('text', 10, '');
+            fields.type = jade.build_select(['string', 'menu'], 'string');
+            fields.value = jade.build_input('text', 10, '');
+            fields.edit = jade.build_select(['yes', 'no'], 'yes');
+            fields.choices = jade.build_input('text', 15, '');
 
-                editor.build_table();
+            for (var f in fields) {
+                td = document.createElement('td');
+                tr.appendChild(td);
+                td.appendChild(fields[f]);
             }
-        });
-        if (read_only) $(fields.action).attr('disabled','true');
-        fields.name = jade.build_input('text', 10, '');
-        fields.label = jade.build_input('text', 10, '');
-        fields.type = jade.build_select(['string', 'menu'], 'string');
-        fields.value = jade.build_input('text', 10, '');
-        fields.edit = jade.build_select(['yes', 'no'], 'yes');
-        fields.choices = jade.build_input('text', 15, '');
-
-        for (var f in fields) {
-            td = document.createElement('td');
-            tr.appendChild(td);
-            td.appendChild(fields[f]);
         }
     };
 

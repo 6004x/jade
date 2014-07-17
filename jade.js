@@ -49,8 +49,8 @@ var jade = (function() {
         var me = this;
         $(window).on('resize',function() {
             var body = $('body');
-            var win_w = $(window).width() - (body.outerWidth(true) - body.width()) - 2;
-            var win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 2;
+            var win_w = $(window).width() - (body.outerWidth(true) - body.width()) - 8;
+            var win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 8;
             me.resize(win_w,win_h);
         });
         
