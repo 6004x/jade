@@ -365,15 +365,8 @@ var jade = (function() {
     }
 
     Diagram.prototype.netlist = function(mlist) {
-        try {
-            var netlist = this.aspect.netlist(mlist, '', {}, []);
-            return netlist;
-        }
-        catch (e) {
-            //throw e;  // for debugging
-            alert("Error extracting netlist:\n\n" + e);
-            return [];
-        }
+        var netlist = this.aspect.netlist(mlist, '', {}, []);
+        return netlist;
     };
 
     // fetch attributes from the tag that created us

@@ -326,7 +326,7 @@ jade.test_view = (function() {
         var mlist = ['ground','jumper'];
         $.each(jade.model.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
         try {
-            netlist = module.aspect('schematic').netlist(mlist, '', {});
+            netlist = module.aspect('schematic').netlist(mlist, '', {}, []);
             netlist = jade.schematic_view.cktsim_netlist(netlist);
         }
         catch (e) {

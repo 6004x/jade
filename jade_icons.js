@@ -2,7 +2,7 @@ jade.icons = {};
 
 jade.icons.actions_icon = '<span class="fa fa-file-o"></span>';
 
-jade.icons.close_icon = '<span class="fa fa-times-circle-o"></span>';
+jade.icons.close_icon = '<span class="fa fa-times fa-inverse"></span>';
 
 jade.icons.resize_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
                          '<path d="M 10 13.5 l 3 -3 m 0 -3 l -6 6 m -3 0 l 9 -9" stroke="black" stroke-width="0.5"/>' +
