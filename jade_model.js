@@ -345,7 +345,7 @@ jade.model = (function () {
 
             this.actions.push(this.change_list);
 
-            // experiment: try writing lib to server after every undoable action
+            // experiment: try writing lib to server after every action
             jade.save_to_server(this.module.library);
         }
         this.change_list = undefined; // stop recording changes
@@ -368,6 +368,9 @@ jade.model = (function () {
                 changes[i](this, 'undo');
             }
             this.clean_up_wires(false); // canonicalize diagram's wires
+
+            // experiment: try writing lib to server after every action
+            jade.save_to_server(this.module.library);
         }
 
         this.set_modified(this.current_action != -1);
@@ -386,7 +389,9 @@ jade.model = (function () {
                 changes[i](this, 'redo');
             }
             this.clean_up_wires(false); // canonicalize diagram's wires
-            this.changed = true;
+
+            // experiment: try writing lib to server after every action
+            jade.save_to_server(this.module.library);
         }
     };
 

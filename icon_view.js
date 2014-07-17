@@ -30,7 +30,14 @@ jade.icon_view = (function() {
         this.diagram.origin_max = 64;
 
         // register event handlers
-        $(this.diagram.canvas).mouseover(icon_mouse_enter).mouseout(icon_mouse_leave).mousemove(icon_mouse_move).mousedown(icon_mouse_down).mouseup(icon_mouse_up).dblclick(icon_double_click).keydown(icon_key_down);
+        $(this.diagram.canvas)
+            .mouseover(icon_mouse_enter)
+            .mouseout(icon_mouse_leave)
+            .mousemove(icon_mouse_move)
+            .mousedown(icon_mouse_down)
+            .mouseup(icon_mouse_up)
+            .dblclick(icon_double_click)
+            .keydown(icon_key_down);
 
         this.toolbar = new jade.Toolbar(this.diagram);
 
@@ -291,7 +298,7 @@ jade.icon_view = (function() {
         diagram.redraw_background();
 
         diagram.aspect.start_action();
-        var c = jade.make_component([editor.mode, [editor.start_x, editor.start_y, 0]]);
+        var c = jade.model.make_component([editor.mode, [editor.start_x, editor.start_y, 0]]);
         c.add(diagram.aspect);
         c.selected = true;
 
