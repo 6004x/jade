@@ -42,7 +42,7 @@ jade.save_to_server = function (lib) {
         type: 'POST',
         data: {
             file: lib.name,
-            json: JSON.stringify(this.json())
+            json: JSON.stringify(lib.json())
         },
         error: function(jqXHR, textStatus, errorThrown) {
             alert(errorThrown);

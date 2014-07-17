@@ -344,6 +344,9 @@ jade.model = (function () {
             if (this.actions.length > this.current_action) this.actions = this.actions.slice(0, this.current_action);
 
             this.actions.push(this.change_list);
+
+            // experiment: try writing lib to server after every undoable action
+            jade.save_to_server(this.module.library);
         }
         this.change_list = undefined; // stop recording changes
     };

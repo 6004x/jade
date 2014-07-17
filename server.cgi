@@ -17,6 +17,7 @@ auth_user = [
  'cjt@MIT.EDU',
  'ward@MIT.EDU',
  'white@MIT.EDU',
+ 'silvina@MIT.EDU',
 ]
 
 
