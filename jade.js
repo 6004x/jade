@@ -366,7 +366,7 @@ var jade = (function() {
 
     Diagram.prototype.netlist = function(mlist) {
         try {
-            var netlist = this.aspect.netlist(mlist, '', {});
+            var netlist = this.aspect.netlist(mlist, '', {}, []);
             return netlist;
         }
         catch (e) {

@@ -674,7 +674,16 @@ jade.model = (function () {
     // mlist is a list of module names "lib:module" that are the leaves
     // of the extraction tree.
     // port_map is an associative array: local_sig => external_sig
-    Aspect.prototype.netlist = function(mlist, prefix, port_map) {
+    // mstack is an array of parent module names so we can detect recursion
+    Aspect.prototype.netlist = function(mlist, prefix, port_map,mstack) {
+        var n = this.module.get_name();
+        if (mstack.indexOf(n) != -1) {
+            // oops, recursive use of module.  complain!
+            mstack.push(n);  // just to make the message easy to construct
+            throw 'Recursive inclusion of module:\n'+mstack.join(' \u2192 ');
+        }
+        mstack.push(n);  // remember that we're extracting this module
+
         // figure out signal names for all connections
         this.label_connection_points(prefix, port_map);
 
@@ -684,9 +693,11 @@ jade.model = (function () {
         // extract netlist from each component
         var netlist = [];
         for (var i = 0; i < this.components.length; i += 1) {
-            var n = this.components[i].netlist(mlist, prefix);
+            var n = this.components[i].netlist(mlist, prefix, mstack);
             if (n !== undefined) netlist.push.apply(netlist, n);
         }
+
+        mstack.pop();   // all done with extraction, remove module name
         return netlist;
     };
 
@@ -1130,8 +1141,16 @@ jade.model = (function () {
             this.icon.map_over_components(function(c) {
                 c.draw_icon(component, diagram);
             });
+        } else {
+            // user didn't supply an icon, so fake a stand-in
+            var n = this.type.split(':');  // separate lib from module name
+            this.draw_text_important(diagram, n[0]+':', 0, 0, 7, diagram.annotation_font);
+            this.draw_text_important(diagram, n[1], 0, 0, 1, diagram.annotation_font);
+            this.draw_line(diagram,-16,-16,16,-16,1);
+            this.draw_line(diagram,16,-16,16,16,1);
+            this.draw_line(diagram,16,16,-16,16,1);
+            this.draw_line(diagram,-16,16,-16,-16,1);
         }
-        else this.draw_text_important(diagram, this.type, 0, 0, 4, diagram.annotation_font);
     };
 
     // does mouse click fall on this component?
@@ -1211,7 +1230,7 @@ jade.model = (function () {
     };
 
     // netlist entry: ["type", {terminal:signal, ...}, {property: value, ...}]
-    Component.prototype.netlist = function(mlist, prefix) {
+    Component.prototype.netlist = function(mlist, prefix, mstack) {
         var i;
         
         // match up connections to the component's terminals, determine
@@ -1264,7 +1283,7 @@ jade.model = (function () {
                 var p = prefix + this.name;
                 if (ninstances > 1) p += '[' + i.toString() + ']';
                 p += '.'; // hierarchical name separator
-                var result = sch.netlist(mlist, p, port_map);
+                var result = sch.netlist(mlist, p, port_map, mstack);
                 netlist.push.apply(netlist, result);
             }
             else {
