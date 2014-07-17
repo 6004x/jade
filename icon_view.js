@@ -674,6 +674,7 @@ jade.icon_view = (function() {
             var v = c.properties[p] || '';
             s = s.replace(new RegExp("\\{" + p + "\\}", "gm"), v);
         }
+        s = s.replace(new RegExp("\\{module\\}", "gm"), c.module.get_name());
 
         // need to adjust alignment accounting for our rotation
         var align =  jade.schematic_view.text_alignments.indexOf(this.properties.align);

@@ -290,6 +290,8 @@ jade.model = (function () {
 
     // initialize aspect from JSON object
     Aspect.prototype.load = function(json) {
+        this.components = [];  // start with a clean slate
+
         for (var i = 0; i < json.length; i += 1) {
             var c = make_component(json[i]);
             c.add(this);
@@ -563,6 +565,8 @@ jade.model = (function () {
     };
 
     Aspect.prototype.compute_bbox = function(initial_bbox, selected, unselected) {
+        if (this.components.length == 0) return [-16,-16,16,16];
+
         // compute bounding box for selection
         var min_x = (initial_bbox === undefined) ? Infinity : initial_bbox[0];
         var max_x = (initial_bbox === undefined) ? -Infinity : initial_bbox[2];
