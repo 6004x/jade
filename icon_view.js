@@ -385,6 +385,7 @@ jade.icon_view = (function() {
     Line.prototype = new jade.model.Component();
     Line.prototype.constructor = Line;
     Line.prototype.required_grid = 1;
+    Line.prototype.type = function () { return 'line'; };
     jade.model.built_in_components.line = Line;
     var line_module = {
         properties: {}
@@ -393,7 +394,6 @@ jade.icon_view = (function() {
     var line_distance = 2; // how close to line counts as "near by"
 
     Line.prototype.load = function(json) {
-        this.type = json[0];
         this.coords = json[1];
         this.properties = json[2] || {};
 
@@ -479,13 +479,13 @@ jade.icon_view = (function() {
     Arc.prototype = new jade.model.Component();
     Arc.prototype.constructor = Arc;
     Arc.prototype.required_grid = 1;
+    Arc.prototype.type = function () { return 'arc'; };
     jade.model.built_in_components.arc = Arc;
     var arc_module = {
         properties: {}
     };
 
     Arc.prototype.load = function(json) {
-        this.type = json[0];
         this.coords = json[1];
         this.properties = json[2] || {};
 
@@ -577,13 +577,13 @@ jade.icon_view = (function() {
     Circle.prototype = new jade.model.Component();
     Circle.prototype.constructor = Circle;
     Circle.prototype.required_grid = 1;
+    Circle.prototype.type = function () { return 'circle'; };
     jade.model.built_in_components.circle = Circle;
     var circle_module = {
         properties: {}
     };
 
     Circle.prototype.load = function(json) {
-        this.type = json[0];
         this.coords = json[1];
         this.properties = json[2] || {};
 
@@ -627,6 +627,7 @@ jade.icon_view = (function() {
     Property.prototype = new jade.model.Component();
     Property.prototype.constructor = Property;
     Property.prototype.required_grid = 1;
+    Property.prototype.type = function () { return 'property'; };
     jade.model.built_in_components.property = Property;
     var property_module = {
         properties: {
@@ -647,7 +648,6 @@ jade.icon_view = (function() {
     };
 
     Property.prototype.load = function(json) {
-        this.type = json[0];
         this.coords = json[1];
         this.properties = json[2] || {};
 
@@ -706,6 +706,7 @@ jade.icon_view = (function() {
     Terminal.prototype = new jade.model.Component();
     Terminal.prototype.constructor = Terminal;
     Terminal.prototype.required_grid = 8;
+    Terminal.prototype.type = function () { return 'terminal'; };
     jade.model.built_in_components.terminal = Terminal;
     var terminal_module = {
         properties: {
@@ -726,7 +727,6 @@ jade.icon_view = (function() {
     };
 
     Terminal.prototype.load = function(json) {
-        this.type = json[0];
         this.coords = json[1];
         this.properties = json[2] || {};
 

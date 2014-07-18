@@ -31,7 +31,7 @@ var jade = (function() {
         // insert framework into DOM
         this.top_level = $('<div class="jade-top-level">' +
                            ' <div class="jade-tabs-div"></div>' +
-                           ' <div class="jade-status"><span id="message"></span>' +
+                           ' <div class="jade-status"><span id="message"></span><div style="float:right">Jade 2.0.10</div></div>' +
                            '</div>');
         $(owner).append(this.top_level);
 
@@ -59,8 +59,8 @@ var jade = (function() {
         this.settings = settings;
         settings.append($('<div class="jade-setting" id="new_module">New module</div>')
                         .on('click',function() { new_module($('.jade-settings-popup')[0].diagram); }));
-        settings.append($('<div class="jade-setting" id="rename_module">Rename module</div>')
-                        .on('click',function() { rename_module($('.jade-settings-popup')[0].diagram); }));
+        settings.append($('<div class="jade-setting" id="copy_module">Copy module</div>')
+                        .on('click',function() { copy_module($('.jade-settings-popup')[0].diagram); }));
         settings.append($('<div class="jade-setting" id="delete_module")>Delete module</div>')
                         .on('click',function() { delete_module($('.jade-settings-popup')[0].diagram); }));
         settings.append($('<hr/>'));
@@ -271,13 +271,13 @@ var jade = (function() {
 
         // enable/disable settings tools
         $('#new_module',settings).removeClass('jade-setting-enabled');
-        $('#rename_module',settings).removeClass('jade-setting-enabled');
+        $('#copy_module',settings).removeClass('jade-setting-enabled');
         $('#delete_module',settings).removeClass('jade-setting-enabled');
         if (jade.configuration.hierarchical) {
             $('#new_module',settings).addClass('jade-setting-enabled');
+            $('#copy_module',settings).addClass('jade-setting-enabled');
             if (!diagram.aspect.read_only()) {
                 $('#delete_module',settings).addClass('jade-setting-enabled');
-                $('#rename_module',settings).addClass('jade-setting-enabled');
             }
         }
 
@@ -287,18 +287,128 @@ var jade = (function() {
     }
 
     function new_module(diagram) {
-        var jade = diagram.editor.jade;
-        jade.settings.toggle();   // all done with settings pop-up
+        var j = diagram.editor.jade;
+        var offset = j.settings.offset();
+        j.settings.toggle();   // all done with settings pop-up
+
+        var content = $('<div style="margin:10px;"><div id="msg" style="display:none;color:red;margin-bottom:10px;"></div></div>');
+        content.append('Module name:');
+        var input = build_input('text',10,'library:module');
+        $(input).css('vertical-align','middle');
+        content.append(input);
+
+        function create() {
+            var lib,module;
+            var name = $(input).val().split(':');
+
+            function try_again(msg) {
+                $('#msg',content).text(msg);
+                $('#msg',content).show();
+                dialog('New Module',content,create,offset);
+            }
+
+            // determine requested library and module
+            if (name.length == 1) {
+                // if no library specified, use current one; default to user
+                lib = diagram.aspect.module ? diagram.aspect.module.library.name : 'user';
+                module = name[0];
+            } else if (name.length == 2) {
+                lib = name[0];
+                module = name[1];
+            } else {
+                try_again('Invalid module name: '+$(input).val());
+                return;
+            }
+
+            lib = jade.model.load_library(lib);
+            if (lib.read_only) {
+                try_again('Library is read-only: '+lib.name);
+                return;
+            }
+            if (module in lib.modules) {
+                try_again('Module already exists: '+lib.modules[module].get_name());
+                return;
+            }
+
+            module = lib.module(module);
+            j.edit(module.get_name());
+        }
+
+        dialog('New Module',content,create,offset);
     }
 
-    function rename_module(diagram) {
-        var jade = diagram.editor.jade;
-        jade.settings.toggle();   // all done with settings pop-up
+    function copy_module(diagram) {
+        var j = diagram.editor.jade;
+        var offset = j.settings.offset();
+        j.settings.toggle();   // all done with settings pop-up
+        
+        var content = $('<div style="margin:10px;"><div id="msg" style="display:none;color:red;margin-bottom:10px;"></div></div>');
+        content.append('New module name:');
+        var input = build_input('text',10,'library:module');
+        $(input).css('vertical-align','middle');
+        content.append(input);
+
+        function copy() {
+            var lib,module;
+            var name = $(input).val().split(':');
+
+            function try_again(msg) {
+                $('#msg',content).text(msg);
+                $('#msg',content).show();
+                dialog('New Module',content,copy,offset);
+            }
+
+            // determine requested library and module
+            if (name.length == 1) {
+                // if no library specified, use current one; default to user
+                lib = diagram.aspect.module ? diagram.aspect.module.library.name : 'user';
+                module = name[0];
+            } else if (name.length == 2) {
+                lib = name[0];
+                module = name[1];
+            } else {
+                try_again('Invalid module name: '+$(input).val());
+                return;
+            }
+
+            lib = jade.model.load_library(lib);
+            if (lib.read_only) {
+                try_again('Library is read-only: '+lib.name);
+                return;
+            }
+            if (module in lib.modules) {
+                try_again('Module already exists: '+lib.modules[module].get_name());
+                return;
+            }
+
+            module = lib.module(module,diagram.aspect.module.json());
+            j.edit(module.get_name());
+        }
+
+        dialog('Copy Module',content,copy,offset);
     }
 
     function delete_module(diagram) {
-        var jade = diagram.editor.jade;
-        jade.settings.toggle();   // all done with settings pop-up
+        var j = diagram.editor.jade;
+        var offset = j.settings.offset();
+        j.settings.toggle();   // all done with settings pop-up
+
+        var content = $('<div style="margin:10px;width:300px;">Click OK to confirm the deletion of module <span id="mname"></span>.  Note that this action cannot be undone.</div>');
+        $('#mname',content).text(diagram.aspect.module.get_name());
+
+        function del() {
+            var module = diagram.aspect.module;
+            var lib = module.library;
+            lib.remove_module(module.name);
+
+            // choose something else to edit
+            module = Object.keys(lib.modules)[0];
+            if (module) module = lib.modules[module].get_name();
+            else module = 'user:untitled';
+            j.edit(module);
+        }
+
+        dialog('Delete Module',content,del,offset);
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -997,11 +1107,6 @@ var jade = (function() {
             else if (zy < 32) this.zoomout();
             else this.zoomall();
         }
-        /*
-        else if (sx >= -20 && sx <= -12 && sy >= -20 && sy <= -12) {   // "secret" grid toggle
-            this.show_grid = !this.show_grid;
-        }
-         */
         else return false;
 
         this.redraw_background();
@@ -1170,7 +1275,7 @@ var jade = (function() {
             });
             // select entire contents of <input> when it gets focus
             f.focus(function () {
-                this.select();
+                f.select();
             });
         });
 
@@ -1287,7 +1392,7 @@ var jade = (function() {
 
         // position top,left of window where mouse is.  mouse_x and mouse_y
         // are relative to the canvas, so use its offset to figure things out
-        win.offset(offset);
+        if (offset) win.offset(offset);
         bring_to_front(win[0], true);
         return win;
     };

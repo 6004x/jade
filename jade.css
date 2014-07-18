@@ -118,6 +118,8 @@
     background-color: black;
     color: white;
     padding: 3px;
+    margin-bottom: 3px;
+    cursor: pointer;
 }
 .jade-xparts-list {
     margin-bottom: 3px;
@@ -180,10 +182,10 @@
 .jade-dialog-button {
     background-color: #FFF;
     display: inline;
-    border: 1px solid #CCC;
+    border: 1px solid #AAA;
     padding: 5px;
     margin: 10px;
-    cursor: default;
+    cursor: pointer;
 }
 .jade-dialog-button:hover {
     border-color: #000;

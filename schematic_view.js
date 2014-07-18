@@ -437,6 +437,7 @@ jade.schematic_view = (function() {
     }
     Wire.prototype = new jade.model.Component();
     Wire.prototype.constructor = Wire;
+    Wire.prototype.type = function () { return 'wire'; };
     jade.model.built_in_components.wire = Wire;
     var wire_module = {
         has_aspect: function () {return false;},
@@ -453,7 +454,6 @@ jade.schematic_view = (function() {
     var wire_distance = 2; // how close to wire counts as "near by"
 
     Wire.prototype.load = function(json) {
-        this.type = json[0];
         this.coords = json[1];
         this.properties = json[2] || {};
 
@@ -519,7 +519,7 @@ jade.schematic_view = (function() {
         var cplist = this.aspect.find_connections(cp1);
         for (var i = 0; i < cplist.length; i += 1) {
             var w = cplist[i].parent;
-            if (w.type == 'wire' && w.other_end(cp1).coincident(cp2.x, cp2.y)) {
+            if (w.type() == 'wire' && w.other_end(cp1).coincident(cp2.x, cp2.y)) {
                 jade.model.Component.prototype.remove.call(w);
                 break;
             }
@@ -662,6 +662,7 @@ jade.schematic_view = (function() {
     }
     Ground.prototype = new jade.model.Component();
     Ground.prototype.constructor = Ground;
+    Ground.prototype.type = function () { return 'ground'; };
     jade.model.built_in_components.ground = Ground;
     var ground_module = {
         has_aspect: function () {return false;},
@@ -669,7 +670,6 @@ jade.schematic_view = (function() {
     };
 
     Ground.prototype.load = function(json) {
-        this.type = json[0];
         this.coords = json[1];
         this.properties = {};
         this.default_properties(); // add any missing properties
@@ -701,6 +701,7 @@ jade.schematic_view = (function() {
     }
     Vdd.prototype = new jade.model.Component();
     Vdd.prototype.constructor = Vdd;
+    Vdd.prototype.type = function () { return 'vdd'; };
     jade.model.built_in_components.vdd = Vdd;
     var vdd_module = {
         has_aspect: function () {return false;},
@@ -708,7 +709,6 @@ jade.schematic_view = (function() {
     };
 
     Vdd.prototype.load = function(json) {
-        this.type = json[0];
         this.coords = json[1];
         this.properties = json[2] || {};
         this.default_properties(); // add any missing properties
@@ -739,13 +739,13 @@ jade.schematic_view = (function() {
     }
     Jumper.prototype = new jade.model.Component();
     Jumper.prototype.constructor = Jumper;
+    Jumper.prototype.type = function () { return 'jumper'; };
     jade.model.built_in_components.jumper = Jumper;
     var jumper_module = {
         has_aspect: function () {return false;}
     };
 
     Jumper.prototype.load = function(json) {
-        this.type = json[0];
         this.coords = json[1];
         this.properties = json[2] || {};   // not expecting any properties...
         this.default_properties(); // add any missing properties
@@ -771,6 +771,7 @@ jade.schematic_view = (function() {
     }
     Port.prototype = new jade.model.Component();
     Port.prototype.constructor = Port;
+    Port.prototype.type = function () { return 'port'; };
     jade.model.built_in_components.port = Port;
     var port_module = {
         has_aspect: function () {return false;},
@@ -778,7 +779,6 @@ jade.schematic_view = (function() {
     };
 
     Port.prototype.load = function(json) {
-        this.type = json[0];
         this.coords = json[1];
         this.properties = json[2] || {};
         this.default_properties(); // add any missing properties
@@ -870,6 +870,7 @@ jade.schematic_view = (function() {
     Text.prototype = new jade.model.Component();
     Text.prototype.constructor = Text;
     Text.prototype.required_grid = 1;
+    Text.prototype.type = function () { return 'text'; };
     jade.model.built_in_components.text = Text;
     var text_module = {
         has_aspect: function () {return false;},
@@ -897,7 +898,6 @@ jade.schematic_view = (function() {
     };
 
     Text.prototype.load = function(json) {
-        this.type = json[0];
         this.coords = json[1];
         this.properties = json[2] || {};
 
@@ -1017,8 +1017,22 @@ jade.schematic_view = (function() {
                 // add icon to parts bin along with new header if needed
                 var lname = part.component.module.library.name;
                 if (current != lname) {
-                    header = $('<div class="jade-xparts-header"></div>').text(lname).attr('id',lname);
-                    parts_list =  $('<div class="jade-xparts-list"></div>').attr('id',lname+'-parts');
+                    header = $('<div class="jade-xparts-header"></div>');
+                    header.append('<span class="fa fa-caret-down fa-fw"></span>');
+                    header.append(lname);
+                    parts_list =  $('<div class="jade-xparts-list"></div>');
+
+                    // allow user to open/close a particular parts bin
+                    var local_parts_list = parts_list; // for closure
+                    var arrow = $('span',header);
+                    header.on('click',function () {
+                        if (arrow.hasClass('fa-caret-down'))
+                            arrow.removeClass('fa-caret-down').addClass('fa-caret-right');
+                        else
+                            arrow.removeClass('fa-caret-right').addClass('fa-caret-down');
+                        local_parts_list.animate({height: 'toggle'});
+                    });
+
                     current = lname;
                     bin.append(header,parts_list);
                 }
@@ -1026,7 +1040,7 @@ jade.schematic_view = (function() {
             });
         }
 
-        // bug?  nudge DOM's redraw so it will actually dispaly the newly added part
+        // bug?  nudge DOM's redraw so it will actually display the newly added part
         // without this, sometimes the parts contents aren't shown ?!
         bin.width(bin.width()-1);
         bin.width(bin.width()+1);
@@ -1040,7 +1054,7 @@ jade.schematic_view = (function() {
         this.selected = false;
 
         // set up canvas
-        this.canvas = $('<canvas class="jade-xpart jade-tool jade-tool-enabled"></div>'); //.css('cursor','default');
+        this.canvas = $('<canvas class="jade-xpart jade-tool jade-tool-enabled"></div>');
         this.canvas[0].part = this;
 
         // handle retina devices properly
@@ -1162,7 +1176,7 @@ jade.schematic_view = (function() {
 
         var tip = part.component.module.properties.tool_tip;
         if (tip !== undefined) tip = tip.value;
-        else tip = part.component.type;
+        else tip = part.component.type();
         tip += ': drag onto diagram to insert, double click to edit';
 
         part.diagram.message(tip);
@@ -1317,7 +1331,7 @@ jade.schematic_view = (function() {
     function extract_nodes(netlist) {
         var nodes = {};
         $.each(netlist,function(index,device){
-            if (device.type != 'ground')
+            if (device.type() != 'ground')
                 for (var c in device.connections)
                     nodes[device.connections[c]] = null;  // add to dictionary
             else
@@ -1331,7 +1345,7 @@ jade.schematic_view = (function() {
         if (netlist.length > 0) {
             var clist = [];
             $.each(netlist,function (item,device) {
-                clist.push(device.type + " (" + device.properties.name + "): " + JSON.stringify(device.connections) + " " + JSON.stringify(device.properties));
+                clist.push(device.type() + " (" + device.properties.name + "): " + JSON.stringify(device.connections) + " " + JSON.stringify(device.properties));
             });
             console.log(clist.join('\n'));
             console.log(clist.length.toString() + ' devices');
@@ -1368,7 +1382,7 @@ jade.schematic_view = (function() {
     // extend components to display operating point branch currents
     // default behavior: nothing to display for DC analysis
     jade.model.Component.prototype.display_current = function(diagram, vmap) {
-        if (this.type == "analog:a") {
+        if (this.type() == "analog:a") {
             // current probe
             var label = 'I(' + this.name + ')';
             var v = vmap[label];
@@ -1465,7 +1479,7 @@ jade.schematic_view = (function() {
         var result = [];
         for (var i = netlist.length - 1; i >= 0; i -= 1) {
             var component = netlist[i];
-            var type = component.type;
+            var type = component.type();
             var connections = component.connections;
             var properties = component.properties;
             var offset = properties.offset;

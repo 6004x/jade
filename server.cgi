@@ -20,7 +20,6 @@ auth_user = [
  'silvina@MIT.EDU',
 ]
 
-
 # respond with specified status
 def http_status(status):
     print 'Status:',status
@@ -65,7 +64,7 @@ if not os.path.exists(filename):
     filename = os.path.join(lib_path,'shared',file)
     source = 'shared'
 if not os.path.exists(filename):
-    json = '[[],"%s"]' % requester    # empty library
+    json = '[{},"%s"]' % requester    # empty library
 else:
     try:
         f = open(filename,'r')

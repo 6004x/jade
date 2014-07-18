@@ -1,13 +1,12 @@
 // JADE: JAvascript Design Environment
 
 // Model:
-//  libraries: object with Library attributes
-//  Library: object with Module attributes
-//  Module: [ object with Aspect attributes, object with Propery attributes ]
-//  Property: object with the following attributes: type, label, value, edit, choices
-//  Aspect: list of Components, support for ConnectionPoints, undo/reo
-//  Component: list of [type coords { property: value... }]
-//  coords: list of position/dimension params (x, y, rotation)...
+//  libraries := {lname: Library, ...}
+//  Library := {mname: Module, ...}
+//  Module := [{aname: Aspect, ...}, {pname: Property, ...}]
+//  Property := {type: ..., label: ..., value: ..., edit: ..., choices: ...}
+//  Aspect :=  [Component, ...]
+//  Component := [type [x, y, rotation, ...] {property: value, ... }]
 
 jade.model = (function () {
 
@@ -24,6 +23,7 @@ jade.model = (function () {
         this.modules = {}; // attributes are Module objects
         this.modified = false;
         this.read_only = false;
+        this.loading = false;
 
         libraries[name] = this;
 
@@ -32,23 +32,35 @@ jade.model = (function () {
 
     // initialize library from JSON object
     Library.prototype.load = function(json) {
+        this.loading = true;
+
         // note that modules may have already been created because they've
         // been referenced as a component is some other library.
         for (var m in json) {
             this.module(m).load(json[m]);
         }
         this.set_modified(false); // newly loaded libraries are unmodified
+
+        this.loading = false;
     };
 
     // return specified Module, newly created if necessary
-    Library.prototype.module = function(name) {
+    Library.prototype.module = function(name,json) {
         var module = this.modules[name];
         if (module === undefined) {
-            module = new Module(name, this);
+            module = new Module(name, this, json);
             this.modules[name] = module;
             this.set_modified(true);
         }
         return module;
+    };
+
+    // remove module from library
+    Library.prototype.remove_module = function(name) {
+        if (name in this.modules) {
+            delete this.modules[name];
+            this.set_modified(true);
+        }
     };
 
     // produce JSON representation of a library
@@ -84,7 +96,7 @@ jade.model = (function () {
         }
 
         // if library has just changed, save it to the server (a la Google Docs)
-        if (which) jade.save_to_server(this);
+        if (!this.loading && which) jade.save_to_server(this);
     };
 
     // If all modules are clean, library is too
@@ -108,14 +120,16 @@ jade.model = (function () {
         }
     }
 
+    // return library, loading it if necessary
     function load_library(lname,read_only) {
-        if (libraries[lname] !== undefined) return;
-
-        // allocate new library, add to list so we know we're loading it
-        var lib = new Library(lname);
-        if (read_only) lib.read_only = true;
-
-        jade.load_from_server(lib);
+        var lib = libraries[lname];
+        if (!lib) {
+            // allocate new library, add to list so we know we're loading it
+            lib = new Library(lname);
+            if (read_only) lib.read_only = true;
+            jade.load_from_server(lib);
+        }
+        return lib;
     }
 
     // return specified Module, newly created if necessary. Module names have
@@ -244,22 +258,16 @@ jade.model = (function () {
         return aspect;
     };
 
-    // produce JSON representation of a module, undefined if module is empty
+    // produce JSON representation of a module
     Module.prototype.json = function() {
-        // weed out empty aspects
-        var aspects;
+        var aspects = {};
         for (var a in this.aspects) {
             var json = this.aspects[a].json();
-            if (json.length > 0) {
-                if (aspects === undefined) aspects = {};
-                aspects[a] = json;
-            }
+            // weed out empty aspects
+            if (json.length > 0) aspects[a] = json;
         }
 
-        // if module is empty, returned undefined
-        if (aspects === undefined && Object.keys(this.properties).length === 0) return undefined;
-
-        return [aspects || {}, this.properties];
+        return [aspects, this.properties];
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -510,7 +518,7 @@ jade.model = (function () {
                 // found a connection with just two connections, see if they're wires
                 var c1 = cplist[0].parent;
                 var c2 = cplist[1].parent;
-                if (c1.type == 'wire' && c2.type == 'wire') {
+                if (c1.type() == 'wire' && c2.type() == 'wire') {
                     var e1 = c1.other_end(cplist[0]);
                     var e2 = c2.other_end(cplist[1]);
                     var e3 = cplist[0]; // point shared by the two wires
@@ -534,11 +542,11 @@ jade.model = (function () {
             for (var i = 0; i < cplist.length; i += 1) {
                 var cp1 = cplist[i];
                 var w1 = cp1.parent;
-                if (w1.type == 'wire') {
+                if (w1.type() == 'wire') {
                     var cp2 = w1.other_end(cp1);
                     for (var j = i + 1; j < cplist.length; j += 1) {
                         var w2 = cplist[j].parent;
-                        if (w2.type == 'wire' && w2.other_end(cp1).coincident(cp2.x, cp2.y)) {
+                        if (w2.type() == 'wire' && w2.other_end(cp1).coincident(cp2.x, cp2.y)) {
                             // circumvent unnecessary wire removal search
                             Component.prototype.remove.call(w2);
                             // we've modified lists we're iterating over, so to avoid
@@ -572,7 +580,7 @@ jade.model = (function () {
             var component = this.components[i];
             if (selected && !component.selected) continue;
             if (unselected && component.selected) continue;
-            if (component.type == 'property') continue;
+            if (component.type() == 'property') continue;
 
             min_x = Math.min(component.bbox[0], min_x);
             max_x = Math.max(component.bbox[2], max_x);
@@ -786,7 +794,6 @@ jade.model = (function () {
         this.module = undefined;
         this.icon = undefined;
 
-        this.type = undefined;
         this.coords = [0, 0, 0];
         this.properties = {};
 
@@ -798,6 +805,11 @@ jade.model = (function () {
         if (json) this.load(json);
     }
     Component.prototype.required_grid = 8;
+
+    Component.prototype.type = function() {
+        // always ask module for name... simplifies renaming modules
+        return this.module.get_name();
+    };
 
     Component.prototype.clone_properties = function(remove_default_values) {
         // weed out empty properties or those that match default value
@@ -811,13 +823,12 @@ jade.model = (function () {
     };
 
     Component.prototype.load = function(json) {
-        this.type = json[0];
+        this.module = find_module(json[0]);
         this.coords = json[1];
         this.properties = json[2] || {};
 
         // track down icon and set up bounding box and connections
         var component = this; // for closure
-        this.module = find_module(this.type);
         this.module.add_listener(function() {
             Component.prototype.compute_bbox.call(component);
         });
@@ -857,8 +868,8 @@ jade.model = (function () {
 
     Component.prototype.json = function() {
         var p = this.clone_properties(true);
-        if (Object.keys(p).length > 0) return [this.type, this.coords.slice(0), p];
-        else return [this.type, this.coords.slice(0)];
+        if (Object.keys(p).length > 0) return [this.type(), this.coords.slice(0), p];
+        else return [this.type(), this.coords.slice(0)];
     };
 
     Component.prototype.clone = function(x, y) {
@@ -1033,7 +1044,7 @@ jade.model = (function () {
     };
 
     Component.prototype.draw_line = function(diagram, x1, y1, x2, y2, width) {
-        diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : diagram.normal_style));
+        diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type() == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : diagram.normal_style));
         var nx1 = this.transform_x(x1, y1) + this.coords[0];
         var ny1 = this.transform_y(x1, y1) + this.coords[1];
         var nx2 = this.transform_x(x2, y2) + this.coords[0];
@@ -1043,7 +1054,7 @@ jade.model = (function () {
 
     Component.prototype.draw_circle = function(diagram, x, y, radius, filled) {
         if (filled) diagram.c.fillStyle = this.selected ? diagram.selected_style : diagram.normal_style;
-        else diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : diagram.normal_style));
+        else diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type() == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : diagram.normal_style));
         var nx = this.transform_x(x, y) + this.coords[0];
         var ny = this.transform_y(x, y) + this.coords[1];
 
@@ -1052,7 +1063,7 @@ jade.model = (function () {
 
     // draw arc from [x1,y1] to [x2,y2] passing through [x3,y3]
     Component.prototype.draw_arc = function(diagram, x1, y1, x2, y2, x3, y3) {
-        diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : diagram.normal_style));
+        diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type() == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : diagram.normal_style));
 
         // transform coords, make second two points relative to x,y
         var x = this.transform_x(x1, y1) + this.coords[0];
@@ -1143,7 +1154,7 @@ jade.model = (function () {
             });
         } else {
             // user didn't supply an icon, so fake a stand-in
-            var n = this.type.split(':');  // separate lib from module name
+            var n = this.type().split(':');  // separate lib from module name
             this.draw_text_important(diagram, n[0]+':', 0, 0, 7, diagram.annotation_font);
             this.draw_text_important(diagram, n[1], 0, 0, 1, diagram.annotation_font);
             this.draw_line(diagram,-16,-16,16,-16,1);
@@ -1268,12 +1279,12 @@ jade.model = (function () {
                     port_map[nlist[k]] = slist[(sindex + k) % slist.length];
             }
 
-            if (mlist.indexOf(this.type) != -1) {
+            if (mlist.indexOf(this.type()) != -1) {
                 // if leaf, create netlist entry
                 var props = this.clone_properties(false);
                 props.name = prefix + this.name;
                 if (ninstances > 1) props.name += '[' + i.toString() + ']';
-                netlist.push([this.type, port_map, props]);
+                netlist.push([this.type(), port_map, props]);
                 continue;
             }
 
@@ -1288,7 +1299,7 @@ jade.model = (function () {
             }
             else {
                 // if no schematic, complain
-                throw "No schematic for " + prefix + this.properties.name + " an instance of " + this.type;
+                throw "No schematic for " + prefix + this.properties.name + " an instance of " + this.type();
             }
 
         }

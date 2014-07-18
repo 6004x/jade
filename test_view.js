@@ -143,15 +143,15 @@ jade.test_view = (function() {
     }
     Test.prototype = new jade.model.Component();
     Test.prototype.constructor = Test;
+    Test.prototype.type = function () { return 'test'; };
     jade.model.built_in_components.test = Test;
 
     Test.prototype.load = function(json) {
-        this.type = json[0];
         this.test = json[1];
     };
 
     Test.prototype.json = function() {
-        return [this.type, this.test];
+        return [this.type(), this.test];
     };
 
     function run_tests(source,diagram,module) {
