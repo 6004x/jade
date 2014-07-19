@@ -59,10 +59,10 @@ var jade = (function() {
         this.settings = settings;
         settings.append($('<div class="jade-setting" id="new_module">New module</div>')
                         .on('click',function() { new_module($('.jade-settings-popup')[0].diagram); }));
-        settings.append($('<div class="jade-setting" id="copy_module">Copy module</div>')
-                        .on('click',function() { copy_module($('.jade-settings-popup')[0].diagram); }));
         settings.append($('<div class="jade-setting" id="delete_module")>Delete module</div>')
                         .on('click',function() { delete_module($('.jade-settings-popup')[0].diagram); }));
+        settings.append($('<div class="jade-setting" id="copy_module">Copy module</div>')
+                        .on('click',function() { copy_module($('.jade-settings-popup')[0].diagram); }));
         settings.append($('<hr/>'));
         settings.append($('<div class="jade-setting jade-setting-enabled">Toggle grid</div>')
                         .on('click',function() {
@@ -167,6 +167,7 @@ var jade = (function() {
         }
     };
 
+    /*
     Jade.prototype.load_library = function(json) {
         if (this.id === undefined) return;
 
@@ -189,6 +190,7 @@ var jade = (function() {
         if (this.id === undefined || libraries[this.id] === undefined) return '{}';
         return JSON.stringify(libraries[this.id].json());
     };
+     */
 
     Jade.prototype.edit = function(module) {
         if (typeof module == 'string') module = jade.model.find_module(module);

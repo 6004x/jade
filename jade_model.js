@@ -3,7 +3,7 @@
 // Model:
 //  libraries := {lname: Library, ...}
 //  Library := {mname: Module, ...}
-//  Module := [{aname: Aspect, ...}, {pname: Property, ...}]
+//  Module := {aname: Aspect, ...}
 //  Property := {type: ..., label: ..., value: ..., edit: ..., choices: ...}
 //  Aspect :=  [Component, ...]
 //  Component := [type [x, y, rotation, ...] {property: value, ... }]
@@ -227,12 +227,12 @@ jade.model = (function () {
     // initialize module from JSON object
     Module.prototype.load = function(json) {
         // load aspects
-        for (var a in json[0]) {
-            this.aspects[a] = new Aspect(a, this, json[0][a]);
+        for (var a in json) {
+            if (a == 'properties')
+                this.properties = json[a];
+            else
+                this.aspects[a] = new Aspect(a, this, json[a]);
         }
-
-        // load properties
-        this.properties = json[1] || {};
 
         // a newly loaded module starts as unmodified
         this.set_modified(false);
@@ -260,14 +260,15 @@ jade.model = (function () {
 
     // produce JSON representation of a module
     Module.prototype.json = function() {
-        var aspects = {};
+        var aspects = {properties: this.properties};
         for (var a in this.aspects) {
             var json = this.aspects[a].json();
             // weed out empty aspects
             if (json.length > 0) aspects[a] = json;
         }
 
-        return [aspects, this.properties];
+        //return [aspects, this.properties];
+        return aspects;
     };
 
     //////////////////////////////////////////////////////////////////////
