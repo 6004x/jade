@@ -45,7 +45,7 @@ jade.schematic_view = (function() {
         this.toolbar = new jade.Toolbar(this.diagram);
 
         this.toolbar.add_tool('actions', jade.icons.actions_icon,
-                              'Create/rename/delete modules; change settings', jade.jade_settings);
+                              'Edit/copy/delete modules; change settings', jade.jade_settings);
         this.toolbar.add_spacer();
 
         this.toolbar.add_tool('undo', jade.icons.undo_icon,
@@ -981,12 +981,25 @@ jade.schematic_view = (function() {
                 var part = p.split(':');   // split into lib and module
                 var lib = part[0];
                 var mpattern = new RegExp(part[1] ? '^'+part[1]+'$' : '^.+$');
-                jade.model.load_library(lib);   // load reference library
+                lib = jade.model.load_library(lib);   // load reference library
                 // add all matching modules in library to parts list
-                $.each(jade.model.libraries[lib].modules,function (mname, m) {
-                    if (mpattern.test(mname)) plist.push(m.get_name());
+                $.each(lib.modules,function (mname, m) {
+                    if (mpattern.test(mname))
+                        plist.push(m.get_name());
                 });
             });
+
+            // in hierarchical mode, include all modules for all loaded libraries
+            if (this.editor.hierarchy) {
+                $.each(jade.model.libraries,function (lname,lib) {
+                    $.each(lib.modules,function (mname,m) {
+                        var name = m.get_name();  // lib:module
+                        // only include each module once!
+                        if (plist.indexOf(name) == -1) plist.push(name);
+                    });
+                });
+            }
+
             plist.sort();   // arrange alphabetically
 
             var current = '';

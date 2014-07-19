@@ -31,7 +31,7 @@ var jade = (function() {
         // insert framework into DOM
         this.top_level = $('<div class="jade-top-level">' +
                            ' <div class="jade-tabs-div"></div>' +
-                           ' <div class="jade-status"><span id="message"></span><div style="float:right">Jade 2.0.10</div></div>' +
+                           ' <div class="jade-status"><span id="message"></span><div style="float:right">Jade 2.0.11</div></div>' +
                            '</div>');
         $(owner).append(this.top_level);
 
@@ -57,13 +57,20 @@ var jade = (function() {
         // set up settings pop-up
         var settings = $('<div class="jade-settings-popup"></div>');
         this.settings = settings;
-        settings.append($('<div class="jade-setting" id="new_module">New module</div>')
-                        .on('click',function() { new_module($('.jade-settings-popup')[0].diagram); }));
+        settings.append($('<div class="jade-setting" id="edit_module">Edit module</div>')
+                        .on('click',function() { edit_module($('.jade-settings-popup')[0].diagram); }));
         settings.append($('<div class="jade-setting" id="delete_module")>Delete module</div>')
                         .on('click',function() { delete_module($('.jade-settings-popup')[0].diagram); }));
         settings.append($('<div class="jade-setting" id="copy_module">Copy module</div>')
                         .on('click',function() { copy_module($('.jade-settings-popup')[0].diagram); }));
+
         settings.append($('<hr/>'));
+
+        settings.append($('<div class="jade-setting" id="copy_library">Copy library</div>')
+                        .on('click',function() { copy_library($('.jade-settings-popup')[0].diagram); }));
+
+        settings.append($('<hr/>'));
+
         settings.append($('<div class="jade-setting jade-setting-enabled">Toggle grid</div>')
                         .on('click',function() {
                             diagram_toggle_grid($('.jade-settings-popup')[0].diagram);
@@ -272,12 +279,14 @@ var jade = (function() {
         settings.css(offset);
 
         // enable/disable settings tools
-        $('#new_module',settings).removeClass('jade-setting-enabled');
-        $('#copy_module',settings).removeClass('jade-setting-enabled');
+        $('#edit_module',settings).removeClass('jade-setting-enabled');
         $('#delete_module',settings).removeClass('jade-setting-enabled');
+        $('#copy_module',settings).removeClass('jade-setting-enabled');
+        $('#copy_library',settings).removeClass('jade-setting-enabled');
         if (jade.configuration.hierarchical) {
-            $('#new_module',settings).addClass('jade-setting-enabled');
+            $('#edit_module',settings).addClass('jade-setting-enabled');
             $('#copy_module',settings).addClass('jade-setting-enabled');
+            $('#copy_library',settings).addClass('jade-setting-enabled');
             if (!diagram.aspect.read_only()) {
                 $('#delete_module',settings).addClass('jade-setting-enabled');
             }
@@ -288,7 +297,7 @@ var jade = (function() {
         settings.toggle();   // toggle visibility
     }
 
-    function new_module(diagram) {
+    function edit_module(diagram) {
         var j = diagram.editor.jade;
         var offset = j.settings.offset();
         j.settings.toggle();   // all done with settings pop-up
@@ -299,14 +308,14 @@ var jade = (function() {
         $(input).css('vertical-align','middle');
         content.append(input);
 
-        function create() {
+        function edit() {
             var lib,module;
             var name = $(input).val().split(':');
 
             function try_again(msg) {
                 $('#msg',content).text(msg);
                 $('#msg',content).show();
-                dialog('New Module',content,create,offset);
+                dialog('Edit Module',content,edit,offset);
             }
 
             // determine requested library and module
@@ -323,20 +332,38 @@ var jade = (function() {
             }
 
             lib = jade.model.load_library(lib);
-            if (lib.read_only) {
+            if (lib.read_only && !(module in lib.modules)) {
                 try_again('Library is read-only: '+lib.name);
                 return;
             }
-            if (module in lib.modules) {
-                try_again('Module already exists: '+lib.modules[module].get_name());
-                return;
-            }
-
             module = lib.module(module);
             j.edit(module.get_name());
         }
 
-        dialog('New Module',content,create,offset);
+        dialog('Edit Module',content,edit,offset);
+    }
+
+    function delete_module(diagram) {
+        var j = diagram.editor.jade;
+        var offset = j.settings.offset();
+        j.settings.toggle();   // all done with settings pop-up
+
+        var content = $('<div style="margin:10px;width:300px;">Click OK to confirm the deletion of module <span id="mname"></span>.  Note that this action cannot be undone.</div>');
+        $('#mname',content).text(diagram.aspect.module.get_name());
+
+        function del() {
+            var module = diagram.aspect.module;
+            var lib = module.library;
+            lib.remove_module(module.name);
+
+            // choose something else to edit
+            module = Object.keys(lib.modules)[0];
+            if (module) module = lib.modules[module].get_name();
+            else module = 'user:untitled';
+            j.edit(module);
+        }
+
+        dialog('Delete Module',content,del,offset);
     }
 
     function copy_module(diagram) {
@@ -357,7 +384,7 @@ var jade = (function() {
             function try_again(msg) {
                 $('#msg',content).text(msg);
                 $('#msg',content).show();
-                dialog('New Module',content,copy,offset);
+                dialog('Copy Module',content,copy,offset);
             }
 
             // determine requested library and module
@@ -390,27 +417,67 @@ var jade = (function() {
         dialog('Copy Module',content,copy,offset);
     }
 
-    function delete_module(diagram) {
+    function copy_library(diagram) {
         var j = diagram.editor.jade;
         var offset = j.settings.offset();
         j.settings.toggle();   // all done with settings pop-up
+        
+        var content = $('<div style="margin:10px;"><div id="msg" style="display:none;color:red;margin-bottom:10px;"></div></div>');
+        content.append('New library name:');
+        var input = build_input('text',10,'library');
+        $(input).css('vertical-align','middle');
+        content.append(input);
 
-        var content = $('<div style="margin:10px;width:300px;">Click OK to confirm the deletion of module <span id="mname"></span>.  Note that this action cannot be undone.</div>');
-        $('#mname',content).text(diagram.aspect.module.get_name());
+        function copy() {
+            var lib = $(input).val();
 
-        function del() {
+            function try_again(msg) {
+                $('#msg',content).text(msg);
+                $('#msg',content).show();
+                dialog('Copy Library',content,copy,offset);
+            }
+
+            // load/make the requested library
+            lib = jade.model.load_library(lib);
+
+            if (Object.keys(lib.modules).length != 0 || lib.read_only) {
+                try_again('Library already exists: '+lib.name);
+                return;
+            }
+
+            // grab json representation of current library
             var module = diagram.aspect.module;
-            var lib = module.library;
-            lib.remove_module(module.name);
+            var json = module.library.json();
 
-            // choose something else to edit
-            module = Object.keys(lib.modules)[0];
-            if (module) module = lib.modules[module].get_name();
-            else module = 'user:untitled';
-            j.edit(module);
+            // update instances of lib's modules to instances
+            // of the module in the new library.
+            // iterate through each module in library
+            var cur_lib_name = module.library.name;
+            var new_lib_name = lib.name;
+            $.each(json,function (mname,mod) {
+                if (mod.schematic) {
+                    // iterate through each schematic component
+                    $.each(mod.schematic,function (index,component) {
+                        // if component is an instance of a module in the current
+                        // library, update it to be an instance of the same
+                        // module in the new library
+                        var type = component[0].split(':');
+                        if (type.length == 2 && type[0] == cur_lib_name)
+                            component[0] = new_lib_name + ':' + type[1];
+                    });
+                }
+            });
+
+            // now load updated json into new library
+            lib.load(json);
+            jade.save_to_server(lib);   // save new library to server
+
+            // find current module in new library and edit that!
+            module = lib.module(module.name);
+            j.edit(module.get_name());
         }
 
-        dialog('Delete Module',content,del,offset);
+        dialog('Copy Library',content,copy,offset);
     }
 
     //////////////////////////////////////////////////////////////////////

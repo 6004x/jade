@@ -1,4 +1,5 @@
 edX
+libraries/*@*
 *.pyc
 *~
 
