@@ -127,6 +127,9 @@ var jade = (function() {
             body[0].editor = new editor(body[0], me);
 
             me.tabs[ename] = [tab[0], body[0]];
+
+            // save changes to server if we're leaving this particular editor
+            body.on('mouseleave',function () { jade.model.save_libraries(); });
         });
         // select first aspect as the one to be displayed
         if (elist.length > 0) {
@@ -209,6 +212,9 @@ var jade = (function() {
 
         this.bookmark();    // remember current module for next visit
         this.refresh();  // tell each tab which module we're editing
+
+        // save any changes to the server when we change what we're editing
+        jade.model.save_libraries();
     };
 
     // if underlying library/module is reloaded, refresh each tab

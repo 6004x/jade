@@ -1,4 +1,4 @@
-edX
+build
 libraries/*@*
 *.pyc
 *~

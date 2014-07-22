@@ -4,13 +4,25 @@
 <link type="text/css" href="jade.css" rel="Stylesheet"/>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
-<script src="jade_min.js"></script>
+<!-- build:js jade_min.js -->
+<script type="text/javascript" src="jade.js"></script>
+<script type="text/javascript" src="jade_model.js"></script>
+<script type="text/javascript" src="jade_icons.js"></script>
+<script type="text/javascript" src="schematic_view.js"></script>
+<script type="text/javascript" src="icon_view.js"></script>
+<script type="text/javascript" src="property_view.js"></script>
+<script type="text/javascript" src="test_view.js"></script>
+<script type="text/javascript" src="jade_utils.js"></script>
+<script type="text/javascript" src="plot.js"></script>
+<script type="text/javascript" src="cktsim.js"></script>
+<script type="text/javascript" src="jade_libraries.js"></script>
+<!-- endbuild -->
 
 <script type="text/javascript">
 jade.load_from_server = function (lib) {
     var args = {
         async: false, // hang until load completes
-        url: 'server.cgi',
+        url: '/jade-server',
         type: 'POST',
         data: { file: lib.name },
         dataType: 'json',
@@ -27,7 +39,7 @@ jade.load_from_server = function (lib) {
 
 jade.save_to_server = function (lib) {
     var args = {
-        url: 'server.cgi',
+        url: '/jade-server',
         type: 'POST',
         data: {
             file: lib.name,

@@ -18,12 +18,15 @@ jade.model = (function () {
 
     var libraries = {}; // attributes are Library objects
 
+    var AUTOSAVE_TRIGGER = 25;  // number edits that triggers an autosave
+
     function Library(name, json) {
         this.name = name;
         this.modules = {}; // attributes are Module objects
         this.modified = false;
         this.read_only = false;
         this.loading = false;
+        this.nchanges = 0;   // for autosave logic
 
         libraries[name] = this;
 
@@ -39,7 +42,6 @@ jade.model = (function () {
         for (var m in json) {
             this.module(m).load(json[m]);
         }
-        this.set_modified(false); // newly loaded libraries are unmodified
 
         this.loading = false;
     };
@@ -50,7 +52,7 @@ jade.model = (function () {
         if (module === undefined) {
             module = new Module(name, this, json);
             this.modules[name] = module;
-            this.set_modified(true);
+            this.set_modified();
         }
         return module;
     };
@@ -59,7 +61,7 @@ jade.model = (function () {
     Library.prototype.remove_module = function(name) {
         if (name in this.modules) {
             delete this.modules[name];
-            this.set_modified(true);
+            this.set_modified();
         }
     };
 
@@ -75,41 +77,37 @@ jade.model = (function () {
     };
 
     Library.prototype.clear_modified = function() {
-        // this will clear the library's modified flag when
-        // all modules are unmodified
         for (m in this.modules) this.modules[m].clear_modified();
+        this.modified = false;
+        this.nchanges = 0;
+
+        // if all libraries are now unmodified, clear data-dirty attr
+        var dirty = false;
+        $.each(libraries,function (lname,lib) { if (lib.modified) dirty = true; });
+        if (!dirty) {
+            $('body').removeAttr('data-dirty');
+        }
     };
 
-    Library.prototype.set_modified = function(which) {
-        if (which != this.modified) {
-            this.modified = which;
-            if (which) {
-                $('body').attr('data-dirty','yes');
-            } else {
-                // if all libraries are now unmodified, clear data-dirty attr
-                var dirty = false;
-                $.each(libraries,function (lname,lib) { if (lib.modified) dirty = true; });
-                if (!dirty) {
-                    $('body').removeAttr('data-dirty');
-                }
-            }
+    Library.prototype.set_modified = function() {
+        if (this.loading) return;   // ignore changes while loading
+
+        if (!this.modified) {
+            this.modified = true;
+            // triggers alert if user tries to leave webpage without saving
+            $('body').attr('data-dirty','yes');
         }
 
-        // if library has just changed, save it to the server (a la Google Docs)
-        if (!this.loading && which) jade.save_to_server(this);
-    };
-
-    // If all modules are clean, library is too
-    Library.prototype.check_modified = function() {
-        var dirty = false;
-        $.each(this.modules,function (mname,module) { if (module.modified) dirty = true; });
-        if (!dirty) this.set_modified(false);
+        // see if it's time to autosave the changes
+        this.nchanges += 1;
+        if (this.nchanges >= AUTOSAVE_TRIGGER)
+            jade.save_to_server(this);
     };
 
     // if necessary save library to server
     Library.prototype.save = function() {
         if (!this.read_only && this.modified) {
-            jade.save_to_server(lib);
+            jade.save_to_server(this);
         }
     };
 
@@ -191,36 +189,34 @@ jade.model = (function () {
         else this.listeners.push(callback);
     };
 
+    Module.prototype.set_modified = function() {
+        this.modified = true;
+        this.library.set_modified();
+    };
+
     Module.prototype.clear_modified = function() {
-        // this will clear the module's modified flag when
-        // all aspects are unmodified
-        for (a in this.aspects) this.aspects[a].set_modified(false);
-    };
-
-    Module.prototype.set_modified = function(which) {
-        this.modified = which;
-        if (which) this.library.set_modified(true);
-        else this.library.check_modified();
-    };
-
-    // if all aspects are clean, module is too
-    Module.prototype.check_modified = function() {
-        var dirty = false;
-        $.each(this.aspects,function (aname,aspect) { if (aspect.modified) dirty = true; });
-        if (!dirty) this.set_modified(false);
+        for (a in this.aspects) this.aspects[a].clear_modified();
     };
 
     Module.prototype.set_property = function(prop, v) {
         if (v != this.properties[prop]) {
             this.properties[prop] = v;
-            this.set_modified(true);
+            this.set_modified();
+        }
+    };
+
+    Module.prototype.set_property_attribute = function(pname, attr, v) {
+        var prop = this.properties[pname];
+        if (v != prop[attr]) {
+            prop[attr] = v;
+            this.set_modified();
         }
     };
 
     Module.prototype.remove_property = function(prop) {
         if (prop in this.properties) {
             delete this.properties[prop];
-            this.set_modified(true);
+            this.set_modified();
         }
     };
 
@@ -235,7 +231,7 @@ jade.model = (function () {
         }
 
         // a newly loaded module starts as unmodified
-        this.set_modified(false);
+        this.clear_modified();
 
         this.loaded = true;
         for (var i = this.listeners.length - 1; i >= 0; i -= 1) {
@@ -304,15 +300,17 @@ jade.model = (function () {
             var c = make_component(json[i]);
             c.add(this);
         }
-        this.set_modified(false);
+        this.clear_modified();
     };
 
-    Aspect.prototype.set_modified = function(which) {
-        this.modified = which;
-        if (this.module) {
-            if (which) this.module.set_modified(true);
-            else this.module.check_modified();
-        }
+    Aspect.prototype.set_modified = function() {
+        this.modified = true;
+        if (this.module)
+            this.module.set_modified();
+    };
+
+    Aspect.prototype.clear_modified = function() {
+        this.modified = false;
     };
 
     Aspect.prototype.json = function() {
@@ -349,7 +347,7 @@ jade.model = (function () {
             if (this.actions.length > this.current_action) this.actions = this.actions.slice(0, this.current_action);
             this.actions.push(this.change_list);
 
-            this.set_modified(true);
+            this.set_modified();
         }
         this.change_list = undefined; // stop recording changes
     };
@@ -371,7 +369,7 @@ jade.model = (function () {
                 changes[i](this, 'undo');
             }
             this.clean_up_wires(false); // canonicalize diagram's wires
-            this.set_modified(this.current_action != -1);
+            this.set_modified();
         }
     };
 
@@ -388,7 +386,7 @@ jade.model = (function () {
                 changes[i](this, 'redo');
             }
             this.clean_up_wires(false); // canonicalize diagram's wires
-            this.set_modified(true);
+            this.set_modified();
         }
     };
 
@@ -1460,6 +1458,7 @@ jade.model = (function () {
         find_module: find_module,
         Library: Library,
         load_library: load_library,
+        save_libraries: save_libraries,
         Aspect: Aspect,
         Component: Component,
         make_component: make_component,

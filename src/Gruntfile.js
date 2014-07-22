@@ -9,9 +9,14 @@ module.exports = function(grunt) {
         copy: {
             jade_edx: {expand: true,
                        flatten: true,
-                       src: ['jade_edx.html', 'jade.css', 'libraries/shared/analog', 'libraries/shared/gates'],
-                       dest: 'edX/'
-                       }
+                       src: ['jade_edx.html', 'jade.css', '../libraries/shared/analog', '../libraries/shared/gates'],
+                       dest: 'build/'
+                       },
+            jade: {expand: true,
+                   flatten: true,
+                   src: ['jade.html', 'jade.css'],
+                   dest: 'build/'
+                  }
         },
         uglify: {
             options: {
@@ -23,17 +28,22 @@ module.exports = function(grunt) {
         },
         useminPrepare: {
             jade_edx: 'jade_edx.html',
+            jade: 'jade.html',
             options: {
-                dest: 'edX'
+                dest: 'build'
             }
         },
         usemin: {
             jade_edx: {
-                src: 'edX/jade_edx.html',
+                src: 'build/jade_edx.html',
+                options: {type: 'html'}
+            },
+            jade: {
+                src: 'build/jade.html',
                 options: {type: 'html'}
             },
             options: {
-                dirs: ['edX']
+                dirs: ['build']
             }
         },
     });
@@ -46,8 +56,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
 
     //grunt.registerTask('jade_edx', ['copy:jade_edx', 'useminPrepare:jade_edx', 'concat', 'uglify', 'usemin:jade_edx']);
-    grunt.registerTask('jade_edx', ['copy:jade_edx', 'useminPrepare:jade_edx', 'concat', 'usemin:jade_edx']);
+    grunt.registerTask('jade_edx', ['copy:jade_edx', 'useminPrepare:jade_edx', 'concat', 'uglify', 'usemin:jade_edx']);
+    grunt.registerTask('jade', ['copy:jade', 'useminPrepare:jade', 'concat', 'uglify', 'usemin:jade']);
 
     // Builds everything if just called as 'grunt'
-    grunt.registerTask('default', ['jade_edx']);
+    grunt.registerTask('default', ['jade']);
 }
