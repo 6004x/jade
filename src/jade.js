@@ -76,6 +76,13 @@ var jade = (function() {
                             diagram_toggle_grid($('.jade-settings-popup')[0].diagram);
                             settings.toggle();
                         }));
+        if (jade.request_zip_url) {
+            var link = $('<a></a>').attr('href',jade.request_zip_url).text('Download zip archive');
+            link.css({'color':'black','text-decoration': 'none'});
+            settings.append($('<div class="jade-setting jade-setting-enabled"></div>').append(link)
+                           .on('click',function () { settings.toggle(); }));
+        }
+
         settings.on('mouseleave',function() { settings.hide(); });
         this.top_level.append(settings);
     }

@@ -13,6 +13,32 @@ for lname in glob.glob(os.path.join(lib_path,'shared','*')):
     shared_libs[os.path.basename(lname)] = f.read()
     f.close()
 
+# make a zip archive of the user's files
+import zipfile,io,time
+def zip_archive(user_dir):
+    result = io.BytesIO()
+    zip = zipfile.ZipFile(result,'a')   # append new archive to empty file
+    # include each user file in the archive, skip backups and autosaves
+    for root, dirnames, filenames in os.walk(user_dir):
+        for filename in filenames:
+            fname = os.path.join(root, filename)  # full path to file
+            # set up correct info for archive member
+            info = zipfile.ZipInfo(filename=fname[len(user_dir)+1:])
+            mtime = time.localtime(os.stat(fname).st_mtime)
+            info.date_time = (mtime.tm_year,
+                              mtime.tm_mon,
+                              mtime.tm_mday,
+                              mtime.tm_hour,
+                              mtime.tm_min,
+                              mtime.tm_sec)
+            info.create_system = 0   # fix for Linux zip files read in windows
+
+            f = open(fname,'r')
+            zip.writestr(info,bytes(f.read()))
+            f.close()
+    zip.close()
+    return result.getvalue()
+
 def application(environ, start_response):
     """
     # simple request printout
@@ -29,6 +55,7 @@ def application(environ, start_response):
 
     status = '200 OK'
     response = '{}'
+    response_headers = [('Content-type', 'application/json')]
 
     once = True;
     while (once):       # just to have something to break out of
@@ -47,6 +74,16 @@ def application(environ, start_response):
                 break
 
         args = cgi.FieldStorage(fp=environ['wsgi.input'],environ=environ,keep_blank_values=True)
+
+        # see if user wants zip archive
+        if args.getfirst('zip') is not None:
+            response = zip_archive(user_dir)
+            # return archive as an attachment
+            response_headers = [('Content-type', 'application/x-zip-compressed'),
+                                ('Content-Disposition','attachment; filename=jade.zip')]
+            break;
+
+        # otherwise it's a library request
         file = args.getfirst('file')
         if file is None:
             status = '400 No file name specified'
@@ -81,7 +118,6 @@ def application(environ, start_response):
                 break
 
     # send response to user
-    response_headers = [('Content-type', 'application/json'),
-                        ('Content-Length', str(len(response)))]
+    response_headers.append(('Content-Length', str(len(response))))
     start_response(status, response_headers)
     return [response]
