@@ -1264,6 +1264,16 @@ jade.model = (function () {
             connections.push([c.nlist, c.label]);
         }
 
+        // ensure (ninstances mod W) is zero for all terminals (W = width of terminal)
+        // ie, we'll cycle through each signal list an integral number of times
+        for (i = 0; i < this.connections.length; i += 1) {
+            var c = this.connections[i];
+            var w = c.label.length;
+            if ((ninstances % w) !== 0) {
+                throw "Number of connections for terminal " + c.name + "of " + this.prefix + this.properties.name + " not a multiple of " + ninstances.toString();
+            }
+        }
+
         // now create the appropriate number of instances
         var netlist = [];
         for (i = 0; i < ninstances; i += 1) {

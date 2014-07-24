@@ -23,9 +23,9 @@ tt {
 </style>
 </head>
 <body style="width:650px;">
-<h3>Jade &mdash; JAvascript Design Environment</h3>
+<h2>Jade &mdash; JAvascript Design Environment</h2>
 
-<p><b>Quick start</b>
+<p><h3>Quick start</h3>
 
 <ul>
 <li>Browse to <A href="https://6004.mit.edu/jade">https://6004.mit.edu/jade</A> (need MIT certificate)
@@ -50,7 +50,7 @@ the browser window).  The server knows who you are from your MIT certificate.
 <li>To toggle the diagram grid for screen shots of schematics: Click on <i class="fa fa-fw fa-file-o"></i>, select "Toggle grid"
 </ul>
 
-<p><b>Overview</b>
+<p><h3>Overview</h3>
 
 <p>Jade provides a framework for editing and simulating hierarchical
 block diagrams.  The editing and simulation tools are provided by
@@ -92,7 +92,7 @@ provides the information needed to run the test.
 </ul>
 
 
-<p><b>Extracting a netlist</b>
+<p><h3>Extracting a netlist</h3>
 
 <p>To run the simulation tools on a module's schematic, Jade converts
 the (possibly hierarchical) schematic into a flattened netlist that
@@ -169,17 +169,26 @@ XOR gate
 
 <p><img src="help_2.png" height="75">
 
-
-<p><b>Device-level simulation</b>
-
+<p>Note that it is an error if (N mod W) is nonzero for any terminal.
 
 
+<p><h3>Device-level simulation</h3>
 
-<p><b>Gate-level simulation</b>
+<p>When simulating digital circuits, the easiest way to run device-level simulations is
+to create a <span class="aspect">test</span> aspect and then use the
+<span class="fa fa-fw fa-check" style="color:green;"></span> tool to run the test.
+This tool will create the appropriate voltage sources to generate the specified
+input waveforms, run the simulation long enough to process all the test vectors,
+then examine the simulation results to ensure the outputs have the specified values
+as the specified time.
+
+<p>more here about DC, AC, TRAN...
+
+<p><h3>Gate-level simulation</h3>
 
 <p>to be supplied...
 
-<p><b>Testing</b>
+<p><h3>Testing</h3>
 
 <p>The <span class="aspect">test</span> aspect makes it easy to test the functionality
 of a module.  Here's a test for an XOR circuit with inputs A and B, and output Z:
@@ -226,6 +235,10 @@ actions are
 </div>
 
 <p>The tests for a module can be run by clicking <span class="fa fa-fw fa-check" style="color:green;"></span> in the <span class="aspect">schematic</span> toolbar.
+
+<p>If you'd like to see more examples, each module in the gates
+library has a test aspect that verifies its functionality at the
+device level.
 
 </body>
 </html>
