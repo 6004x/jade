@@ -1270,36 +1270,37 @@ jade.schematic_view = (function() {
                                                    W: jade.utils.parse_number(props.W),
                                                    L: jade.utils.parse_number(props.L)}
                                      });
-            else if (type == 'analog:r')
+            else if (type == 'analog:resistor')
                 revised_netlist.push({type: 'resistor',
                                       connections: c,
                                       properties: {name: props.name, value: jade.utils.parse_number(props.r)}
                                      });
-            else if (type == 'analog:l')
+            else if (type == 'analog:inductor')
                 revised_netlist.push({type: 'inductor',
                                       connections: c,
                                       properties: {name: props.name, value: jade.utils.parse_number(props.l)}
                                      });
-            if (type == 'analog:c')                revised_netlist.push({type: 'capacitor',
+            if (type == 'analog:capacitor')
+                revised_netlist.push({type: 'capacitor',
                                       connections: c,
                                       properties: {name: props.name, value: jade.utils.parse_number(props.c)}
                                      });
-            else if (type == 'analog:v')
+            else if (type == 'analog:v-source')
                 revised_netlist.push({type: 'voltage source',
                                       connections: c,
                                       properties: {name: props.name, value: parse_source(props.value)}
                                      });
-            else if (type == 'analog:i')
+            else if (type == 'analog:i-source')
                 revised_netlist.push({type: 'current source',
                                       connections: c,
                                       properties: {name: props.name, value: parse_source(props.value)}
                                      });
-            else if (type == 'analog:o')
+            else if (type == 'analog:opamp')
                 revised_netlist.push({type: 'opamp',
                                       connections: c,
                                       properties: {name: props.name, A: jade.utils.parse_number(props.A)}
                                      });
-            else if (type == 'analog:d')
+            else if (type == 'analog:diode')
                 revised_netlist.push({type: 'diode',
                                       connections: c,
                                       properties: {name: props.name, area: jade.utils.parse_number(props.area)}
@@ -1317,17 +1318,17 @@ jade.schematic_view = (function() {
                                       properties: {}
                                      });
             }
-            else if (type == 'analog:s')   // ground connection
+            else if (type == 'analog:v-probe')   // ground connection
                 revised_netlist.push({type: 'voltage probe',
                                       connections: c,
                                       properties: {name: props.name, color: props.color, offset: jade.utils.parse_number(props.offset)}
                                      });
-            else if (type == 'analog:a')   // current probe
+            else if (type == 'analog:i-probe')   // current probe
                 revised_netlist.push({type: 'voltage source',
                                       connections: c,
                                       properties: {name: props.name, value: {type: 'dc', args: [0]}}
                                      });
-            else if (type == 'analog:iv') // initial voltage
+            else if (type == 'analog:initial_voltage') // initial voltage
                 revised_netlist.push({type: 'initial voltage',
                                       connections: c,
                                       properties: {name: props.name, IV: jade.utils.parse_number(props.IV)}
@@ -1344,7 +1345,7 @@ jade.schematic_view = (function() {
     function extract_nodes(netlist) {
         var nodes = {};
         $.each(netlist,function(index,device){
-            if (device.type() != 'ground')
+            if (device.type != 'ground')
                 for (var c in device.connections)
                     nodes[device.connections[c]] = null;  // add to dictionary
             else
@@ -1358,7 +1359,7 @@ jade.schematic_view = (function() {
         if (netlist.length > 0) {
             var clist = [];
             $.each(netlist,function (item,device) {
-                clist.push(device.type() + " (" + device.properties.name + "): " + JSON.stringify(device.connections) + " " + JSON.stringify(device.properties));
+                clist.push(device.type + " (" + device.properties.name + "): " + JSON.stringify(device.connections) + " " + JSON.stringify(device.properties));
             });
             console.log(clist.join('\n'));
             console.log(clist.length.toString() + ' devices');
@@ -1395,7 +1396,7 @@ jade.schematic_view = (function() {
     // extend components to display operating point branch currents
     // default behavior: nothing to display for DC analysis
     jade.model.Component.prototype.display_current = function(diagram, vmap) {
-        if (this.type() == "analog:a") {
+        if (this.type() == "analog:i-probe") {
             // current probe
             var label = 'I(' + this.name + ')';
             var v = vmap[label];

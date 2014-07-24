@@ -31,7 +31,7 @@ var jade = (function() {
         // insert framework into DOM
         this.top_level = $('<div class="jade-top-level">' +
                            ' <div class="jade-tabs-div"></div>' +
-                           ' <div class="jade-status"><span id="message"></span><div style="float:right">Jade 2.0.11</div></div>' +
+                           ' <div class="jade-status"><span id="message"></span><div style="float:right">Jade 2.0.12</div></div>' +
                            '</div>');
         $(owner).append(this.top_level);
 
@@ -145,9 +145,11 @@ var jade = (function() {
         });
 
         // starting module?
-        if (configuration.edit === undefined) configuration.edit = "user:untitled";
-        // mname = library:module.aspect
-        var mname = configuration.edit.split('.');
+        if (configuration.edit === undefined) {
+            configuration.edit = localStorage.getItem('jade-module');
+            if (configuration.edit == null) configuration.edit = "gates:and2";
+        }
+        var mname = configuration.edit.split('.');          // library:module.aspect
         this.edit(mname[0]);  // select module
         if (mname.length > 1) this.show(mname[1]);
     };

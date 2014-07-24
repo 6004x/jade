@@ -10,7 +10,7 @@
 jade.load_from_server = function (lib) {
     var args = {
         async: false, // hang until load completes
-        url: 'server.cgi',
+        url: '/jade-server',
         type: 'POST',
         data: { file: lib.name },
         dataType: 'json',
@@ -27,7 +27,7 @@ jade.load_from_server = function (lib) {
 
 jade.save_to_server = function (lib) {
     var args = {
-        url: 'server.cgi',
+        url: '/jade-server',
         type: 'POST',
         data: {
             file: lib.name,

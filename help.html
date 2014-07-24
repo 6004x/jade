@@ -1,0 +1,82 @@
+<html>
+<head>
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+<title>Jade &mdash; JAvascript Design Environment</title>
+<style>
+body {
+  width: 650px;
+  font: 16/1.5 Georgia,serif;
+}
+</style>
+</head>
+<body style="width:650px;">
+<h3>Jade &mdash; JAvascript Design Environment</h3>
+
+<p><b>Quick start</b>
+
+<ul>
+<li>Browse to <A href="https://6004.mit.edu/jade">https://6004.mit.edu/jade</A> (need MIT certificate)
+<li>Tool tips, etc., appear in status bar below the diagram
+<li>Click on <i class="fa fa-fw fa-file-o"></i>, select "Edit module". Type
+"user:foo" followed by Enter.  Modules names have the form <i>library</i>:<i>module</i>.
+<li>Click and drag a couple of components from the parts bin.  You can move components
+by clicking and dragging them to a new location.  You can select multiple components by
+clicking on the background and dragging out a selection rectangle.
+<li>Delete selected components by typing DEL
+<li>There's a clipboard, accessible via <i class="fa fa-fw fa-cut"></i>, <i class="fa fa-fw fa-copy"></i>, <i class="fa fa-fw fa-paste"></i>
+<li>Rotate/flip selected components using <i class="fa fa-fw fa-arrows-h"></i>, <i class="fa fa-fw fa-arrows-v"></i>, <i class="fa fa-fw fa-rotate-right"></i>, <i class="fa fa-fw fa-rotate-left"></i>
+<li>Double click a component to edit its properties
+<li>Add wires by clicking on the open circle at component terminals or
+ends of wires, drag to create a wire
+<li>You can associate a signal name with a wire either by connecting it to a named
+port component or by double-clicking the wire.  Wires with the same signal name are
+considered electrically connected.
+<li>There is undo/redo support using <i class="fa fa-fw fa-reply"></i>, <i class="fa fa-fw fa-share"></i>
+<li>Saves are automatic (every 25 edits, when changing modules or when leaving
+the browser window).  The server knows who you are from your MIT certificate.
+<li>To toggle the diagram grid for screen shots of schematics: Click on <i class="fa fa-fw fa-file-o"></i>, select "Toggle grid"
+</ul>
+
+<p><b>Overview</b>
+
+<p>Jade provides a framework for editing and simulating hierarchical
+block diagrams.  The editing and simulation tools are provided by
+plug-ins, so it's easy extend the framework to support different
+types of diagrams.
+
+<p>The basic building block is a <i>module</i>, which are organized
+into <i>libraries</i>.  Each module has one or more <i>aspects</i>,
+which can be edited using one of the supplied editing tools.
+Currently Jade has editors for the following aspects:
+
+<ul>
+<p><b>Electrical schematics</b>.  A circuit diagram incorporating
+components (instances of other modules) with wires that run between
+the component terminals.  Basic components (ground, vdd, ports,
+jumpers, text) are available on the toolbar; other components from
+the loaded libraries are available in the parts bin.  The toolbar
+also has icons for the simulation tools (dc analysis, ac analysis,
+transient analysis and module test).  It's possible
+to specify that the parts bin show only particular parts and the
+toolbar show only a subset of the tools.
+
+<p><b>Icons</b>.  When a schematic contains an instance of a module as
+a component, what appears in the diagram is the module's icon, usually
+a simple shape representing the component's functionality along with
+terminals that allow connections to be made to the component's ports.
+
+<p><b>Properties</b>.  Modules have properties (key:value pairs) that
+further specify the behavior of a module, e.g., the resistor module
+has a "resistance" property specifying the component's resistance.
+Properties have default values, which can be overriden for each
+instance of the module.
+
+<p><b>Test</b>.  The test tool runs a simulation, providing a
+sequence of values for module's inputs and verifying that the
+expected values appear on the module's outputs.  The test aspect
+provides the information needed to run the test.
+
+</ul>
+
+</body>
+</html>
