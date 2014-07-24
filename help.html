@@ -7,6 +7,19 @@ body {
   width: 650px;
   font: 16/1.5 Georgia,serif;
 }
+.aspect {
+  font-variant: small-caps;
+}
+.test {
+  white-space: pre;
+  font: 12/1.25 "Lucida Console",Monaco,monospace;
+  margin-left: 10px;
+  padding: 3px;
+  background-color: #EEEEEE;
+}
+tt {
+  font: 12/1.25 "Lucida Console",Monaco,monospace;
+}
 </style>
 </head>
 <body style="width:650px;">
@@ -50,7 +63,7 @@ which can be edited using one of the supplied editing tools.
 Currently Jade has editors for the following aspects:
 
 <ul>
-<p><b>Electrical schematics</b>.  A circuit diagram incorporating
+<p><b class="aspect">schematic</b>.  A circuit diagram incorporating
 components (instances of other modules) with wires that run between
 the component terminals.  Basic components (ground, vdd, ports,
 jumpers, text) are available on the toolbar; other components from
@@ -60,23 +73,159 @@ transient analysis and module test).  It's possible
 to specify that the parts bin show only particular parts and the
 toolbar show only a subset of the tools.
 
-<p><b>Icons</b>.  When a schematic contains an instance of a module as
+<p><b class="aspect">icon</b>.  When a schematic contains an instance of a module as
 a component, what appears in the diagram is the module's icon, usually
 a simple shape representing the component's functionality along with
 terminals that allow connections to be made to the component's ports.
 
-<p><b>Properties</b>.  Modules have properties (key:value pairs) that
+<p><b class="aspect">properties</b>.  Modules have properties (key:value pairs) that
 further specify the behavior of a module, e.g., the resistor module
 has a "resistance" property specifying the component's resistance.
 Properties have default values, which can be overriden for each
 instance of the module.
 
-<p><b>Test</b>.  The test tool runs a simulation, providing a
+<p><b class="aspect">test</b>.  The test tool runs a simulation, providing a
 sequence of values for module's inputs and verifying that the
 expected values appear on the module's outputs.  The test aspect
 provides the information needed to run the test.
 
 </ul>
+
+
+<p><b>Extracting a netlist</b>
+
+<p>To run the simulation tools on a module's schematic, Jade converts
+the (possibly hierarchical) schematic into a flattened netlist that
+has one entry for each primitive component listing its properties and
+the signals connected to its terminals.  The extraction process has
+several steps:
+
+<ol>
+<p><li>Label each connection with its associated list of signal
+names.  Signal names are determined by port components or the signal
+name property, if any, given to a wire.  Signal names can include
+lists of names and/or iterators (see below).
+
+<p><li>Ensure each component in the diagram has a unique name, generating
+a name for components whose name properties have not been set by the user.
+
+<p><li>Generate a netlist entry for each primitive component (instances
+from the analog library for device-level simulation, instances from the 
+gate library for gate-level simulation).  Depending on the signal lists
+associated with the component's terminals, more than one netlist entry
+may be generated; see below.
+
+<p><li>Recursively generate a netlist entry for each hierarchical component,
+where the signal names connected to the component's terminals become the
+signal names for wires connected to the corresponding ports in the
+component's schematic.  The component's internal signals will be prefixed
+with the component's name.  When the hierarchy is several levels deep,
+the prefix reflects the pathname created by concatenating the names of
+the components as extractor descended the hierarchy, e.g., <tt>alu.adder.cin</tt>.
+
+</ol>
+
+<p>Signal names should consist of letters, numbers and _.  For compound
+signals (e.g., a bus) one can specify a comma-separated list of names
+
+<div class="test">a[3],a[2],a[1],a[0]</div>
+
+<p>You can use an iterator suffix of the form "[<i>start</i>:<i>end</i>]" or
+"[<i>start</i>:<i>end</i>:<i>step</i>]" which Jade expands into the
+appropriate comma-separated list.  Examples:
+
+<div class="test">a[3:0] &rarr; a[3],a[2],a[1],a[0]
+b[7:0:3] &rarr; b[7],b[4],b[1]
+c[30:0],gnd &rarr; c[30],c[29],&hellip;,c[1],c[0],gnd
+d[3:2][1:0] &rarr; d[3][1],d[2][1],d[3][0],d[2][0]
+</div>
+
+<p>Finally, you can use a replicator suffix of the form "#<i>count</i>" which
+will cause Jade to replicate the prefix the specified number of times.
+Examples:
+
+<div class="test">gnd#2 &rarr; gnd,gnd
+a[1:0]#2 &rarr; a[1:0],a[1:0] &rarr; a[1],a[0],a[1],a[0]
+</div>
+
+<p>Note that multiple suffixes are processed right-to-left.
+
+<p>A single component instance may generate several netlist entries. The width W
+of each terminal in a component is determined from its label, e.g., a terminal
+with a label of "foo" has W=1, a label of "sel[2:0]" has W=3.  When the
+netlist for a component is generated, each of its terminals consumes W entries
+from its associated signal list.  Jade will generate N components where 
+
+<p>N = max over all terminals(length_of_terminal's_signal_list / terminal's_W)
+
+<p>If N*W is longer than a terminal's associated signal list, the list gets reused
+in a cyclic fashion.  It's a bit hard to explain in words but the results tend
+to match your expectations.  For example, the following schematic using a 2-input
+XOR gate
+
+<p><img src="help_1.png" height="75">
+
+<p>will expand into the following 32 2-input XOR gates:
+
+<p><img src="help_2.png" height="75">
+
+
+<p><b>Device-level simulation</b>
+
+
+
+
+<p><b>Gate-level simulation</b>
+
+<p>to be supplied...
+
+<p><b>Testing</b>
+
+<p>The <span class="aspect">test</span> aspect makes it easy to test the functionality
+of a module.  Here's a test for an XOR circuit with inputs A and B, and output Z:
+
+<div class="test">// set up Vdd, establish signaling voltages
+.power Vdd=1
+// Vol, Voh set voltages generated for input signals
+// Vil, Vih set voltage thresholds for determining logic values
+.thresholds Vol=0 Vil=0.1 Vih=0.9 Voh=1
+
+// test actions are applied to named groups of signals.
+// A signal can appear in more than one group.  Order
+// of groups and signals within each group determine 
+// order of values on each line of test values
+.group inputs A B
+.group outputs Z
+
+/*
+Tests are sequences of lines supplying test values; .cycle specifies
+the sequence of actions that will be performed for each test.  Available
+actions are
+   assert <i>group</i> -- set values for signals in <i>group</i> with H,L test values
+   deassert <i>group</i> -- stop setting values for signals in <i>group</i> with H,L test values
+   sample <i>group</i> -- check values of signals in <i>group</i> with 0,1 test values
+   tran <i>time</i> -- run device-level transient simulation for specified time interval
+   <i>signal</i>=<i>val</i> -- set signal to specified value
+*/
+.cycle assert inputs tran 9n sample outputs tran 1n
+
+// the tests themselves -- one test per line
+//   to assert signal this cycle use 0,1,Z
+//   to sample signal this cycle use L,H
+//   use a dash (-) if signal shouldn't be asserted/sampled
+// whitespace can be used to improve readability, non-blank characters
+// are associated, in order, with signals listed in .group above.
+00 L
+01 H
+10 H 
+11 L
+
+// (optional) produce plots showing the test inputs and/or outputs
+.plot A B
+.plot Z
+</div>
+
+<p>The tests for a module can be run by clicking <span class="fa fa-fw fa-check" style="color:green;"></span> in the <span class="aspect">schematic</span> toolbar.
 
 </body>
 </html>
