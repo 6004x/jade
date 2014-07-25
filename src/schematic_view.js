@@ -301,7 +301,7 @@ jade.schematic_view = (function() {
 
         if (code == 38) schematic_up(diagram); // up arrow
         else if (code == 40) schematic_down(diagram); // down arrow
-        else diagram.key_down(event);
+        else if (diagram.key_down(event)) return true;
 
         event.preventDefault();
         return false;
@@ -1285,12 +1285,12 @@ jade.schematic_view = (function() {
                                       connections: c,
                                       properties: {name: props.name, value: jade.utils.parse_number(props.c)}
                                      });
-            else if (type == 'analog:v-source')
+            else if (type == 'analog:v_source')
                 revised_netlist.push({type: 'voltage source',
                                       connections: c,
                                       properties: {name: props.name, value: parse_source(props.value)}
                                      });
-            else if (type == 'analog:i-source')
+            else if (type == 'analog:i_source')
                 revised_netlist.push({type: 'current source',
                                       connections: c,
                                       properties: {name: props.name, value: parse_source(props.value)}
@@ -1318,12 +1318,12 @@ jade.schematic_view = (function() {
                                       properties: {}
                                      });
             }
-            else if (type == 'analog:v-probe')   // ground connection
+            else if (type == 'analog:v_probe')   // ground connection
                 revised_netlist.push({type: 'voltage probe',
                                       connections: c,
                                       properties: {name: props.name, color: props.color, offset: jade.utils.parse_number(props.offset)}
                                      });
-            else if (type == 'analog:i-probe')   // current probe
+            else if (type == 'analog:i_probe')   // current probe
                 revised_netlist.push({type: 'voltage source',
                                       connections: c,
                                       properties: {name: props.name, value: {type: 'dc', args: [0]}}
@@ -1396,12 +1396,12 @@ jade.schematic_view = (function() {
     // extend components to display operating point branch currents
     // default behavior: nothing to display for DC analysis
     jade.model.Component.prototype.display_current = function(diagram, vmap) {
-        if (this.type() == "analog:i-probe") {
+        if (this.type() == "analog:i_probe") {
             // current probe
             var label = 'I(' + this.name + ')';
             var v = vmap[label];
             if (v !== undefined) {
-                var i = engineering_notation(v, 2) + 'A';
+                var i = jade.utils.engineering_notation(v, 2) + 'A';
                 this.draw_text(diagram, i, 8, 5, 1, diagram.annotation_font, diagram.annotation_style);
 
                 // only display each current once
@@ -1493,7 +1493,7 @@ jade.schematic_view = (function() {
         var result = [];
         for (var i = netlist.length - 1; i >= 0; i -= 1) {
             var component = netlist[i];
-            var type = component.type();
+            var type = component.type;
             var connections = component.connections;
             var properties = component.properties;
             var offset = properties.offset;

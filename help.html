@@ -14,7 +14,7 @@ body {
   white-space: pre;
   font: 12/1.25 "Lucida Console",Monaco,monospace;
   margin-left: 10px;
-  padding: 3px;
+  padding: 5px;
   background-color: #EEEEEE;
 }
 tt {
@@ -32,6 +32,7 @@ tt {
 <li>Tool tips, etc., appear in status bar below the diagram
 <li>Click on <i class="fa fa-fw fa-file-o"></i>, select "Edit module". Type
 "user:foo" followed by Enter.  Modules names have the form <i>library</i>:<i>module</i>.
+The "analog" and "gates" libraries are built in.
 <li>Click and drag a couple of components from the parts bin.  You can move components
 by clicking and dragging them to a new location.  You can select multiple components by
 clicking on the background and dragging out a selection rectangle.
@@ -104,7 +105,8 @@ several steps:
 <p><li>Label each connection with its associated list of signal
 names.  Signal names are determined by port components or the signal
 name property, if any, given to a wire.  Signal names can include
-lists of names and/or iterators (see below).
+lists of names and/or iterators (see below).  If a wire is unnamed,
+Jade will generate a name to use for the netlist.
 
 <p><li>Ensure each component in the diagram has a unique name, generating
 a name for components whose name properties have not been set by the user.
@@ -174,15 +176,47 @@ XOR gate
 
 <p><h3>Device-level simulation</h3>
 
-<p>When simulating digital circuits, the easiest way to run device-level simulations is
-to create a <span class="aspect">test</span> aspect and then use the
+<p>When simulating digital circuits, the easiest way to run
+device-level simulations is to create
+a <span class="aspect">test</span> aspect and then use the
 <span class="fa fa-fw fa-check" style="color:green;"></span> tool to run the test.
 This tool will create the appropriate voltage sources to generate the specified
 input waveforms, run the simulation long enough to process all the test vectors,
 then examine the simulation results to ensure the outputs have the specified values
 as the specified time.
 
-<p>more here about DC, AC, TRAN...
+<p>One can also use primitive components to generate input waveforms
+(using voltage and current sources) and examine output waveforms
+(using voltage and current probes).  After including the appropriate
+sources and probes, the following types of circuit analysis can be
+performed.
+
+<ul>
+<tt>DC</tt>: Using the t=0 value for all sources, iteratively
+determine the operating point of the circuit.  Note that on some
+circuits, the iteration may not converge on stable values for node
+voltages and branch currents; you may find adding initial-voltage
+components (usually on feedback nodes) will allow the analysis to
+coverge.  The operating voltage for each node and current through each
+voltage probe will be displayed on the schematic.
+
+<p><tt>AC</tt>: Determine the small signal response at the probed
+nodes with respect to source specified in the AC setup dialog.  The
+response is calculated at different frequencies over the range
+specified in the setup dialog.  The phase (in degrees) and magnitude
+(in dB) of the response is plotted as a function of log(Hz).
+
+<p><tt>TRAN</tt>: Determine the transient response of the circuit from
+t=0 to the end time specified in the TRAN setup dialog.  The resulting
+waveforms are plotted as function of time for the voltage and current
+probes.  Note that the time to complete the simulation grows quickly
+with increasing circuit size -- there's a practical limit of a few
+tens of circuit nodes.  The simulation proceeds by using a sequence
+of linear approximations of circuit operation over a small time step.
+The size of each time step is made small enough to ensure that
+the error introduced by the linear approximation at that step is small.
+
+</ul>
 
 <p><h3>Gate-level simulation</h3>
 

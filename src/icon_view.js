@@ -256,7 +256,7 @@ jade.icon_view = (function() {
         var code = event.keyCode;
 
         if (code == 32) diagram.editor.set_mode('select');
-        else diagram.key_down(event);
+        else if (diagram.key_down(event)) return true;
 
         event.preventDefault();
         return false;
