@@ -1565,7 +1565,8 @@ jade.schematic_view = (function() {
                 return;
             }
 
-            if (typeof results == 'string') this.message(results);
+            if (typeof results == 'string') diagram.message(results);
+            else if (results instanceof Error) diagram.message(results.stack.split('\n').join('<br>'));
             else {
                 var x_values = results._frequencies_;
                 var i,j,v;
