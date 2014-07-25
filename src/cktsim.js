@@ -660,7 +660,13 @@ var cktsim = (function() {
         this.progress = progress;
         this.step_index = -3; // Start with two pseudo-Euler steps
 
-        this.tran_steps(new Date().getTime() + progress.update_interval);
+        //this.tran_steps(new Date().getTime() + progress.update_interval);
+        try {
+            this.tran_steps(new Date().getTime() + progress.update_interval);
+        }
+        catch (e) {
+            progress.finish(e);
+        }
     };
 
     Circuit.prototype.pick_step = function() {
@@ -856,7 +862,8 @@ var cktsim = (function() {
             };
         }
 
-        this.progress.finish(result);
+        //this.progress.finish(result);
+        throw result;
     };
 
     // AC analysis: npts/decade for freqs in range [fstart,fstop]

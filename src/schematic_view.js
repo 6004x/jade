@@ -1575,6 +1575,7 @@ jade.schematic_view = (function() {
                     x_values[i] = Math.log(x_values[i]) / Math.LN10;
                 }
 
+                /*
                 // see what we need to submit.  Expecting attribute of the form
                 // submit_analyses="{'tran':[[node_name,t1,t2,t3],...],
                 //                   'ac':[[node_name,f1,f2,...],...]}"
@@ -1605,6 +1606,7 @@ jade.schematic_view = (function() {
 
                     diagram.aspect.module.set_property('ac_result', ac_results);
                 }
+                 */
 
                 // set up plot values for each node with a probe
                 var y_values = []; // list of [color, result_array]
@@ -1653,29 +1655,29 @@ jade.schematic_view = (function() {
                         v[j] = 20.0 * Math.log(v[j] / v_max) / Math.LN10;
                     }
                     // magnitude
-                    dataseries.push({xvalues: x_values,
-                                     yvalues: v,
-                                     name: label,
-                                     color: color,
-                                     offset: offset,
+                    dataseries.push({xvalues: [x_values],
+                                     yvalues: [v],
+                                     name: [label],
+                                     color: [color],
                                      //xlabel: 'log(Frequency in Hz)',
                                      ylabel: 'Magnitude',
-                                     yunits: 'dB'
+                                     yunits: 'dB',
+                                     type: ['analog']
                                     });
                     // phase
-                    dataseries.push({xvalues: x_values,
-                                     yvalues: results[label].phase,
-                                     name: label,
-                                     color: color,
-                                     offset: offset,
+                    dataseries.push({xvalues: [x_values],
+                                     yvalues: [results[label].phase],
+                                     name: [label],
+                                     color: [color],
                                      xlabel: 'log(Frequency in Hz)',
                                      ylabel: 'Phase',
-                                     yunits: '\u00B0'    // degrees
+                                     yunits: '\u00B0',    // degrees
+                                     type: ['analog']
                                     });
                 }
 
                 // graph the result and display in a window
-                var graph = plot.graph(dataseries);
+                var graph = jade.plot.graph(dataseries);
                 diagram.window('Results of AC Analysis', graph);
             }
         }
@@ -1789,6 +1791,7 @@ jade.schematic_view = (function() {
         if (typeof results == 'string') diagram.message("Error during Transient analysis:\n\n" + results);
         else if (results === undefined) diagram.message("Sorry, no results from transient analysis to plot!");
         else {
+            /*
             // see what we need to submit.  Expecting attribute of the form
             // submit_analyses="{'tran':[[node_name,t1,t2,t3],...],
             //                   'ac':[[node_name,f1,f2,...],...]}"
@@ -1818,6 +1821,7 @@ jade.schematic_view = (function() {
 
                 diagram.aspect.module.set_property('tran_result', tran_results);
             }
+             */
 
             // set up plot values for each node with a probe
             var dataseries = [];
@@ -1828,18 +1832,19 @@ jade.schematic_view = (function() {
                 if (v === undefined) {
                     diagram.message('The ' + color + ' probe is connected to node ' + '"' + label + '"' + ' which is not an actual circuit node');
                 } else if (color != 'x-axis') {
-                    dataseries.push({xvalues: v.xvalues,
-                                     yvalues: v.yvalues,
-                                     name: label,
-                                     color: color,
+                    dataseries.push({xvalues: [v.xvalues],
+                                     yvalues: [v.yvalues],
+                                     name: [label],
+                                     color: [color],
                                      xunits: 's',
                                      yunits: (probes[i][3] == 'voltage') ? 'V' : 'A',
+                                     type: ['analog']
                                     });
                 }
             }
 
             // graph the result and display in a window
-            var graph = plot.graph(dataseries);
+            var graph = jade.plot.graph(dataseries);
             diagram.window('Results of Transient Analysis', graph);
         }
     }

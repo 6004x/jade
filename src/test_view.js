@@ -494,30 +494,23 @@ jade.test_view = (function() {
                 // construct a data set for the given signal
                 function new_dataset(signal) {
                     if (results[signal] !== undefined) {
-                        return {xvalues: results[signal].xvalues,
-                                yvalues: results[signal].yvalues,
-                                name: signal,
+                        return {xvalues: [results[signal].xvalues],
+                                yvalues: [results[signal].yvalues],
+                                name: [signal],
                                 xunits: 's',
-                                yunits: 'V'
+                                yunits: 'V',
+                                color: ['#268bd2'],
+                                type: ['analog']
                                };
                     } else return undefined;
                 }
 
                 // called by plot.graph when user wants to plot another signal
-                function add_plot(callback) {
-                    // use dialog to get new signal name
-                    var fields = {'Signal name': jade.build_input('text',10,'')};
-                    var content = jade.build_table(fields);
-                    jade.dialog('Add Plot', content, function() {
-                        var signal = fields['Signal name'].value;
-
-                        // construct data set for requested signal
-                        // if the signal was legit, use callback to plot it
-                        var dataset = new_dataset(signal);
-                        if (dataset !== undefined) {
-                            callback(dataset);
-                        }
-                    },$(diagram.canvas).offset());
+                function add_plot(signal) {
+                    // construct data set for requested signal
+                    // if the signal was legit, use callback to plot it
+                    var dataset = new_dataset(signal);
+                    if (dataset !== undefined) dataseries.push(dataset);
                 }
 
                 // produce requested plots
@@ -531,7 +524,7 @@ jade.test_view = (function() {
                     dataseries.add_plot = add_plot;  
 
                     // graph the result and display in a window
-                    var graph1 = plot.graph(dataseries);
+                    var graph1 = jade.plot.graph(dataseries);
                     var offset = $(diagram.canvas).offset();
                     var win = jade.window('Test Results',graph1,offset);
 

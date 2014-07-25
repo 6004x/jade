@@ -1,4 +1,4 @@
-jade.plot = (function() {
+var plot = (function() {
 
     ///////////////////////////////////////////////////////////////////////////////
     //
@@ -30,19 +30,16 @@ jade.plot = (function() {
     var grid_style = "rgb(220,220,220)";
     var graph_font = '8pt sans-serif';
     var graph_legend_font = '10pt sans-serif';
-    var value_font = '8pt Consolas,"Courier New",monospace';
 
-    // dataseries is an array of objects that have the following attributes:
-    //   xvalues: list of xcoord arrays
-    //   yvalues: list of ycoord arrays
-    //   name: list of signal names to use in legend (optional)
-    //   color: list of colors to use when drawing graph
+    // dataseries is an array of objects that value the following attributes:
+    //   xvalues: array of xcoords
+    //   yvalues: array of ycoords
+    //   name: signal name to use in legend (optional)
+    //   color: color to use when drawing graph
     //   xunits: string for labeling xvalues (optional)
     //   yunits: string for labeling yvalues (optional - if omitted assumed to be bits)
     //   xlabel: string for labeling x axis (optional)
     //   ylabel: string for labeling y axis (optional)
-    //   add_plot: function(string) called when user wants to add a plot
-    //   type: 'digital' or 'analog'
     function graph(dataseries) {
         // create container
         var container = $('<div class="plot-container"></div>');
@@ -58,21 +55,18 @@ jade.plot = (function() {
         toolbar.append(zoom,zoomin,zoomout,zoomsel);
 
         if (dataseries.add_plot) {
-            toolbar.append('<div class="plot-tool-spacer"></div>Add plot: ');
-            var add_plot = $('<input type="text" size="20" style="margin-bottom:0" id="add-plot">');
+            toolbar.append('<div class="jade-tool-spacer"></div>');
+            var add_plot = $('<span class="plot-tool plot-tool-enabled">add plot</span>');
             toolbar.append(add_plot);
 
-            add_plot.on('keypress',function (event) {
-                if (event.which == 13) {
-                    // call user to add plots to dataseries
-                    dataseries.add_plot(add_plot.val());
-                    // process any new datasets
-                    $.each(dataseries,function (dindex,dataset) {
-                        if (dataset.dataseries === undefined) 
-                            process_dataset(dataset);
-                    });
+            add_plot.on('click',function () {
+                // pass callback to user's add_plot function
+                // they should call it once for each new dataset
+                dataseries.add_plot(function (dataset) {
+                    process_dataset(dataset);
+                    dataseries.push(dataset);
                     do_plot(container[0], container.width(), container.height());
-                }
+                });
             });
         }
 
@@ -81,48 +75,32 @@ jade.plot = (function() {
         // set up scroll bar
         container.append('<div class="plot-scrollbar-wrapper"><div class="plot-scrollbar"><div class="plot-scrollbar-thumb"></div></div></div>');
 
+
         // handlers for zoom tools
         zoom.on('click',function () {
             if (zoom.hasClass('plot-tool-enabled')) {
-                dataseries.sel0 = undefined;   // remove selection
                 dataseries.xstart = dataseries.xmin;
                 dataseries.xend = dataseries.xmax;
                 do_plot(container[0],container.width(),container.height());
             }
         });
 
-        function do_zoom(xrange,plotx) {
-            dataseries.sel0 = undefined;   // remove selection
-
-            // if not specified, assume user wants xstart to remain unchanged
-            if (plotx === undefined) plotx = dataseries[0].left;
-
-            // choose xstart so that datax at pixel location plotx will
-            // still be at location plotx after zooming in;
-            var dataset = dataseries[0];  // any dataset will do, pick the first one
-            var datax = dataset.datax(plotx); 
-            // plotx = ((datax - xstart)/new_width)*wplot + left_margin
-            // so solve for xstart given all the other values
-            var xstart = datax - ((plotx - dataset.left)/dataset.wplot)*xrange;
-            dataseries.xstart = Math.max(dataseries.xmin,xstart);
-            dataseries.xend = dataseries.xstart + xrange;
-
-            if (dataseries.xend > dataseries.xmax) {
-                dataseries.xstart = Math.max(dataseries.xmin, dataseries.xstart-(dataseries.xend-dataseries.xmax));
-                dataseries.xend = dataseries.xmax;
-            }
-            
-            do_plot(container[0],container.width(),container.height());
-        };
-
         zoomin.on('click',function () {
-            if (zoomin.hasClass('plot-tool-enabled'))
-                do_zoom((dataseries.xend - dataseries.xstart)/2);
+            if (zoomin.hasClass('plot-tool-enabled')) {
+                dataseries.xend -= (dataseries.xend - dataseries.xstart)/2;
+                do_plot(container[0],container.width(),container.height());
+            }
         });
 
         zoomout.on('click',function () {
-            if (zoomout.hasClass('plot-tool-enabled'))
-                do_zoom((dataseries.xend - dataseries.xstart)*2);
+            if (zoomout.hasClass('plot-tool-enabled')) {
+                dataseries.xend += (dataseries.xend - dataseries.xstart);
+                if (dataseries.xend > dataseries.xmax) {
+                    dataseries.xstart = Math.max(dataseries.xmin, dataseries.xstart-(dataseries.xend-dataseries.xmax));
+                    dataseries.xend = dataseries.xmax;
+                }
+                do_plot(container[0],container.width(),container.height());
+            }
         });
 
         zoomsel.on('click',function () {
@@ -140,29 +118,22 @@ jade.plot = (function() {
         function process_dataset(dataset) {
             dataset.dataseries = dataseries;   // remember our parent
 
-            // remember min and max xvalues across all the datasets:
-            // look through xvalues for each node in the dataset
-            $.each(dataset.xvalues,function (index,xvalues) {
-                if (dataseries.xmin === undefined || xvalues[0] < dataseries.xmin)
-                    dataseries.xmin = xvalues[0];
-                if (dataseries.xmax === undefined || xvalues[xvalues.length - 1] > dataseries.xmax)
-                    dataseries.xmax = xvalues[xvalues.length - 1];
-            });
+            // remember min and max xvalues across all the datasets
+            var xvalues = dataset.xvalues;
+            if (dataseries.xmin === undefined || xvalues[0] < dataseries.xmin)
+                dataseries.xmin = xvalues[0];
+            if (dataseries.xmax === undefined || xvalues[xvalues.length - 1] > dataseries.xmax)
+                dataseries.xmax = xvalues[xvalues.length - 1];
 
             // anotate each dataset with ymin and ymax
-            var ymin,ymax;
-            // if this is a real quantity (voltage, current), find max and min:
-            // look through yvalues for each node in the dataset
-            $.each(dataset.yvalues,function (dindex,yvalues) {
-                if (dataset.type[dindex] == 'analog') {
-                    $.each(yvalues,function (yindex, y) {
-                        if (ymin === undefined || y < ymin) ymin = y;
-                        if (ymax === undefined || y > ymax) ymax = y;
-                    });
-                }
-            });
-            if (ymin === undefined) { ymin = 0; ymax = 1; }  // digital waveform?
-
+            var ymin = 0, ymax = 1;  // defaults chosen for logical (bit) values
+            if (dataset.yunits) {
+                // if this is a real quantity (voltage, current), find max and min
+                $.each(dataset.yvalues,function (dindex,y) {
+                    if (dindex == 0 || y < ymin) ymin = y;
+                    if (dindex == 0 || y > ymax) ymax = y;
+                });
+            }
             // expand y range by 10% to leave a margin above and below the waveform
             if (ymin == ymax) {
                 // deal with degenerate case...
@@ -199,43 +170,6 @@ jade.plot = (function() {
                 }
             });
 
-            // double-click zooms in, shift double-click zooms out
-            dataset.canvas.on('dblclick',function (event) {
-                var pos = dataset.canvas.offset();
-                var gx = event.pageX - pos.left;
-                var gy = event.pageY - pos.top;
-
-                if (gx >= dataset.left && gx <= dataset.left + dataset.wplot &&
-                    gy >= dataset.top && gy <= dataset.top + dataset.hplot) {
-                    var xrange = dataset.dataseries.xend - dataset.dataseries.xstart;
-                    if (event.shiftKey) do_zoom(xrange*2,gx);
-                    else do_zoom(xrange/2,gx);
-                }
-            });
-
-            // use arrow keys to pan (ie, move the scrollbar thumb)  [doesn't work?]
-            dataset.canvas.on('mouseenter',function (event) { dataset.canvas.focus(); });
-            dataset.canvas.on('mouseleave',function (event) { dataset.canvas.blur(); });
-            dataset.canvas.on('keypress',function (event) {
-                if (event.which == 37) move_thumb(1);
-                else if (event.which == 39) move_thumb(-1);
-                else return;
-                event.prevent_default();
-            });
-
-            // use mouse wheel to pan (ie, move the scrollbar thumb)
-            dataset.canvas.on('mousewheel',function (event) {
-                var pos = dataset.canvas.offset();
-                var gx = event.pageX - pos.left;
-                var gy = event.pageY - pos.top;
-
-                if (gx >= dataset.left && gx <= dataset.left + dataset.wplot &&
-                    gy >= dataset.top && gy <= dataset.top + dataset.hplot) {
-                    event.preventDefault();
-                    move_thumb(event.originalEvent.wheelDelta > 0 ? -1 : 1);
-                }
-            });
-
             // dragging in plot creates a selection region
             dataset.canvas.on('mousedown',function (event) {
                 var pos = dataset.canvas.offset();
@@ -257,7 +191,7 @@ jade.plot = (function() {
                 });
             });
 
-            // track mouse to display vertical cursor & measurements
+            // display vertical cursor for measurements on curve
             dataset.canvas.on('mousemove',function (event) {
                 var pos = dataset.canvas.offset();
                 var gx = event.pageX - pos.left;
@@ -297,47 +231,20 @@ jade.plot = (function() {
         // set up handlers for dragging scrollbar thumb
         var thumb = container.find('.plot-scrollbar-thumb');
         var scrollbar = container.find('.plot-scrollbar');
-
-        function move_thumb(dx) {
-            if (thumb.is(':hidden')) return;
-
-            var thumb_dx = (dataseries.xmax - dataseries.xmin)/scrollbar.width();
-            var width = dataseries.xend - dataseries.xstart;
-            dataseries.xstart = Math.max(dataseries.xmin,dataseries.xstart + dx*thumb_dx);
-            dataseries.xend = dataseries.xstart + width;
-
-            if (dataseries.xend > dataseries.xmax) {
-                dataseries.xend = dataseries.xmax;
-                dataseries.xstart = dataseries.xend - width;
-            }
-
-            thumb.css('margin-left',(dataseries.xstart - dataseries.xmin)/thumb_dx);
-
-            // replot after changing visible region
-            $.each(dataseries,function (index,dataset) {
-                dataset_plot(dataset);
-            });
-            graph_redraw(dataseries);
-        }
-
         thumb.on('mousedown',function (event) {
-            //var thumb_value = parseInt(thumb.css('margin-left'));
-            //var thumb_max_value = scrollbar.width() - thumb.width();
-            //var thumb_dx = (dataseries.xmax - dataseries.xmin)/scrollbar.width();
-            //var thumb_width = thumb.width() * thumb_dx;
+            var thumb_value = parseInt(thumb.css('margin-left'));
+            var thumb_max_value = scrollbar.width() - thumb.width();
+            var thumb_dx = (dataseries.xmax - dataseries.xmin)/scrollbar.width();
+            var thumb_width = thumb.width() * thumb_dx;
             var mx = event.pageX;
 
             $(document).on('mousemove',function (event) {
-                move_thumb(event.pageX - mx);
-                mx = event.pageX;
-                /*
                 var dx = event.pageX - mx;
                 var value = Math.min(thumb_max_value,Math.max(0,thumb_value + dx));
                 thumb.css('margin-left',value);
                 dataseries.xstart = dataseries.xmin + value*thumb_dx;
                 dataseries.xend = dataseries.xstart + thumb_width;
                 do_plot(container[0],container.width(),container.height());
-                 */
             });
 
             $(document).on('mouseup',function (event) {
@@ -357,21 +264,18 @@ jade.plot = (function() {
 
     function do_plot(container,w,h) {
         var dataseries = container.dataseries;
+        var plot_h = Math.floor((h - 30 - 20)/dataseries.length);  // height of each plot
+
+        $(container).width(w);
+        $(container).height(h);
 
         // set dimensions of each canvas, figure out consistent margins
         var left_margin = 55.5;
         var right_margin = 19.5;
         var top_margin = 5.5;
         var bottom_margin = 15.5;
-
-        w = Math.max(150 + left_margin + right_margin,w);
-        var plot_h = Math.max(30 + top_margin + bottom_margin,
-                              Math.floor((h - 60)/dataseries.length));  // height of each plot
-
-        $(container).width(w);
-        $(container).height(h);
-
         $.each(dataseries,function (index,dataset) {
+            //dataset.canvas.css('top',index*plot_h + 25);  // position canvas in container
             dataset.canvas.width(w);
             dataset.canvas.height(plot_h);
             dataset.canvas[0].width = w*dataset.pixelRatio;
@@ -406,11 +310,18 @@ jade.plot = (function() {
                 return (plotx - left_margin)*xscale + dataseries.xstart;
             };
 
+            // compute info for drawing grids -- shoot for a grid line every 100 pixels
+            dataset.xtick = tick_interval(dataseries.xstart,dataseries.xend,wplot/100);
+            dataset.xtick.push(dataseries.xend);  // when to stop drawing x grid
+            dataset.ytick = tick_interval(dataset.ymin,dataset.ymax,hplot/100);
+
             // save margin and size info
             dataset.left = left_margin;
             dataset.top = top_margin;
             dataset.wplot = wplot;
             dataset.hplot = hplot;
+
+            dataset.color = '#268bd2';  // fixed color for now
 
             // draw the plot
             dataset_plot(dataset);
@@ -426,9 +337,8 @@ jade.plot = (function() {
         $(container).find('.plot-scrollbar-thumb').toggle(!maxzoom);
         if (!maxzoom) {
             var thumb = $(container).find('.plot-scrollbar-thumb');
-            var scale = (dataseries.xmax - dataseries.xmin)/wplot;
-            var wthumb = (dataseries.xend - dataseries.xstart)/scale;
-            var xthumb = (dataseries.xstart - dataseries.xmin)/scale;
+            var wthumb = ((dataseries.xend - dataseries.xstart)/(dataseries.xmax - dataseries.xmin))*wplot;
+            var xthumb = ((dataseries.xstart - dataseries.xmin)/(dataseries.xmax - dataseries.xmin))*wplot;
             thumb.css('width',wthumb);
             thumb.css('margin-left',xthumb);
         }
@@ -438,16 +348,14 @@ jade.plot = (function() {
     function dataset_plot(dataset) {
         var xstart = dataset.dataseries.xstart;
         var xend = dataset.dataseries.xend;
-
-        // compute info for drawing grids -- shoot for a grid line every 100 pixels
-        var xtick = tick_interval(xstart,xend,dataset.wplot/100);
-        xtick.push(xend);  // when to stop drawing x grid
         var tick_length = 5;
 
         // start by painting an opaque background for the plot itself
         var c = dataset.bg_image[0].getContext('2d');
 
         c.clearRect(0, 0, dataset.bg_image[0].width, dataset.bg_image[0].height);
+        //c.fillStyle = background_style;
+        //c.fillRect(0, 0, dataset.bg_image[0].width, dataset.bg_image[0].height);
 
         c.fillStyle = element_style;
         c.fillRect(dataset.left, dataset.top, dataset.wplot, dataset.hplot);
@@ -460,7 +368,7 @@ jade.plot = (function() {
         c.textBaseline = 'top';
         var t,temp;
         var xunits = dataset.xunits || '';
-        for (t = xtick[0]; t < xtick[2]; t += xtick[1]) {
+        for (t = dataset.xtick[0]; t < dataset.xtick[2]; t += dataset.xtick[1]) {
             temp = Math.floor(dataset.plotx(t)) + 0.5;
 
             c.beginPath();
@@ -469,17 +377,19 @@ jade.plot = (function() {
             c.fillText(jade.utils.engineering_notation(t, 2)+xunits, temp, dataset.top + dataset.hplot);
         }
 
-        var ytick = tick_interval(dataset.ymin,dataset.ymax,dataset.hplot/100);
-        // draw ygrid and tick labels
-        c.textAlign = 'right';
-        c.textBaseline = 'middle';
-        for (t = ytick[0]; t < dataset.ymax; t += ytick[1]) {
-            temp = Math.floor(dataset.ploty(t)) + 0.5;
-            
-            c.beginPath();
-            c.moveTo(dataset.left,temp); c.lineTo(dataset.left + dataset.wplot,temp);
+        if (dataset.yunits) {
+            // draw ygrid and tick labels
+            c.textAlign = 'right';
+            c.textBaseline = 'middle';
+            for (t = dataset.ytick[0]; t < dataset.ymax; t += dataset.ytick[1]) {
+                temp = Math.floor(dataset.ploty(t)) + 0.5;
+
+                c.beginPath();
+                c.moveTo(dataset.left,temp); c.lineTo(dataset.left + dataset.wplot,temp);
+                c.stroke();
+                c.fillText(jade.utils.engineering_notation(t, 2)+dataset.yunits,dataset.left-2,temp);
+            }
             c.stroke();
-            c.fillText(jade.utils.engineering_notation(t, 2)+dataset.yunits,dataset.left-2,temp);
         }
 
         // draw axis labels
@@ -503,122 +413,35 @@ jade.plot = (function() {
         c.beginPath();
         c.rect(dataset.left,dataset.top,dataset.wplot,dataset.hplot);
         c.clip();   // clip waveform plot to waveform region of canvas
-        // we need a separate plot for each node in the dataset
-        for (var dindex = 0; dindex < dataset.xvalues.length; dindex += 1) {
-            var xvalues = dataset.xvalues[dindex];
-            var yvalues = dataset.yvalues[dindex];
-            var i = search(xvalues,xstart);  // quickly find first index
-            var xv = xvalues[i];
-            var x,y,y0,y1;
-
-            c.strokeStyle = dataset.color[dindex] || '#268bd2';
-            c.fillStyle = c.strokeStyle;
+        var i = search(dataset.xvalues,xstart);  // quickly find first index
+        if (dataset.yunits) {
+            // plot the analog waveform
+            c.strokeStyle = dataset.color;
             c.lineWidth = 2;
-
-            if (dataset.type[dindex] == 'analog') {
-                // plot the analog waveform
-                x = dataset.plotx(xv);
-                y = dataset.ploty(yvalues[i]);
-                c.beginPath();
-                c.moveTo(x, y);
-                while (xv <= xend) {
-                    i += 1;
-                    if (i > xvalues.length) break;
-                    xv = xvalues[i];
-                    if (xv === undefined) break;
-                    var nx = dataset.plotx(xv);
-                    var ny = dataset.ploty(yvalues[i]);
-                    c.lineTo(nx, ny);
-                    x = nx;
-                    y = ny;
-                    if (i % 100 == 99) {
-                        // too many lineTo's cause canvas to break
-                        c.stroke();
-                        c.beginPath();
-                        c.moveTo(x, y);
-                    }
-                }
-                c.stroke();
-            } else if (dataset.type[dindex] == 'digital') {
-                // plot the digital waveform
-                y0 = dataset.ploty(0);
-                y1 = dataset.ploty(1);
-                var yz = (y0 + y1)/2;
-
-                x = dataset.plotx(xv);
-                y = yvalues[i];
-                c.beginPath();
-                while (xv <= xend) {
-                    i += 1;
-                    if (i > xvalues.length) break;
-                    xv = xvalues[i];
-                    if (xv === undefined) break;
-                    var nx = dataset.plotx(xv);
-
-                    if (y != 2) {   // 0, 1, Z values are lines
-                        y = (y==0) ? y0 : ((y==1) ? y1 : yz);
-                        c.moveTo(x,y);
-                        c.lineTo(nx,y);
-                    } else {        // X values are filled rectangles
-                        c.rect(x,y0,nx-x,y1-y0);
-                    }
-
-                    x = nx;
-                    y = yvalues[i];
-                    if (i % 100 == 99) {
-                        // too many lineTo's cause canvas to break
-                        c.stroke();
-                        c.fill();
-                        c.beginPath();
-                    }
-                }
-
-                // draw any remaining path
-                c.stroke();
-                c.fill();
-            } else if (dataset.type[dindex] == 'string') {
-                // like digital except that value is a string
-                y0 = dataset.ploty(0);
-                y1 = dataset.ploty(1);
-                var ylabel = (y0 + y1)/2;
-                var w;
-
-                c.font = value_font;
-                c.lineWidth = 1;
-                c.textAlign = 'center';
-                c.textBaseline = 'middle';
-
-                x = dataset.plotx(xv);
-                y = yvalues[i];
-                while (xv <= xend) {  // stop at end of plot window
-                    i += 1;
-                    if (i > xvalues.length) break;  // past end of data...
-                    xv = xvalues[i];
-                    if (xv === undefined) break;
-                    var nx = dataset.plotx(xv);
-
-                    if (typeof y == 'number') {  // indicates a Z value
-                        c.beginPath();
-                        c.moveTo(x,ylabel);
-                        c.lineTo(nx,ylabel);
-                        c.stroke();
-                    } else {
-                        c.strokeRect(x,y0,nx-x,y1-y0);
-                        if (y === undefined) c.fillRect(x,y0,nx-x,y1-y0);
-                        else {
-                            // fill in value label if it fits
-                            w = c.measureText(y).width;
-                            // center in visible portion of waveform
-                            var x0 = Math.max(dataset.left,x);
-                            var x1 = Math.min(dataset.left + dataset.wplot,nx);
-                            if (w < x1 - x0) c.fillText(y,(x0 + x1)/2,ylabel);
-                        }
-                    }
-
-                    x = nx;
-                    y = yvalues[i];
+            var xv = dataset.xvalues[i];
+            var x = dataset.plotx(xv);
+            var y = dataset.ploty(dataset.yvalues[i]);
+            c.beginPath();
+            c.moveTo(x, y);
+            while (xv < xend) {
+                i += 1;
+                xv = dataset.xvalues[i];
+                if (xv === undefined) break;
+                var nx = dataset.plotx(xv);
+                var ny = dataset.ploty(dataset.yvalues[i]);
+                c.lineTo(nx, ny);
+                x = nx;
+                y = ny;
+                if (i % 100 == 99) {
+                    // too many lineTo's cause canvas to break
+                    c.stroke();
+                    c.beginPath();
+                    c.moveTo(x, y);
                 }
             }
+            c.stroke();
+        } else {
+            // plot the digital waveform
         }
         c.restore();
 
@@ -634,32 +457,27 @@ jade.plot = (function() {
         c.moveTo(13.5,7.5); c.lineTo(7.5,13.5);
         c.stroke();
 
-        // add legend: translucent background with 5px padding, 10x10 color key, signal label
-        var left = dataset.left;
-        var top = dataset.top;
-        dataset.legend_right = [];
-        dataset.legend_top = [];
-        for (var dindex = 0; dindex < dataset.xvalues.length; dindex += 1) {
-            var w = c.measureText(dataset.name[dindex]).width;
-            c.globalAlpha = 0.7;
-            c.fillStyle = element_style;
-            c.fillRect(left, top, w + 30, 20);
-            c.globalAlpha = 1.0;
+        // add legend: translucent background with 5px padding, 15x15 color key, signal label
+        var left = dataset.left + 5;
+        var top = dataset.top + 5;
+        var w = c.measureText(dataset.name).width;
+        c.globalAlpha = 0.7;
+        c.fillStyle = element_style;
+        c.fillRect(left, top, w + 30, 25);
+        c.globalAlpha = 1.0;
 
-            c.fillStyle = dataset.color[dindex];
-            c.fillRect(left+5, top+5, 10, 10);
-            c.strokeRect(left+5, top+5, 10, 10);
+        c.fillStyle = dataset.color;
+        c.fillRect(left+5, top+5, 15, 15);
+        c.strokeRect(left+5, top+5, 15, 15);
 
-            c.fillStyle = normal_style;
-            c.textAlign = 'left';
-            c.textBaseline = 'bottom';
-            c.fillText(dataset.name[dindex], left + 20, top+18);
+        c.fillStyle = normal_style;
+        c.textAlign = 'left';
+        c.textBaseline = 'bottom';
+        c.fillText(dataset.name, left + 25, top+20);
 
-            // remember where legend ends so we can add cursor readout later
-            dataset.legend_right.push(left + 20 + w);
-            dataset.legend_top.push(top);
-            top += 15;
-        }
+        // remember where legend ends so we can add cursor readout later
+        dataset.legend_right = left + 25 + w;
+        dataset.legend_top = top;
     }
 
     function graph_redraw(dataseries) {
@@ -684,15 +502,6 @@ jade.plot = (function() {
                 c.moveTo(xsel,dataset.top); c.lineTo(xsel,dataset.top+dataset.hplot);
                 c.moveTo(xsel+wsel,dataset.top); c.lineTo(xsel+wsel,dataset.top+dataset.hplot);
                 c.stroke();
-
-                if (dataseries.sel0 !== dataseries.sel1) {
-                    c.fillStyle = 'rgb(207,191,194)';
-                    c.font = graph_font;
-                    c.textAlign = 'left';
-                    c.textBaseline = 'top';
-                    var delta = Math.abs(dataset.datax(dataseries.sel0) - dataset.datax(dataseries.sel1));
-                    c.fillText('dx='+jade.utils.engineering_notation(delta,3),xsel+wsel+2,dataset.top);
-                }
             }
 
             if (dataseries.cursor !== undefined) {
@@ -704,10 +513,25 @@ jade.plot = (function() {
                 c.lineTo(dataseries.cursor,dataset.top + dataset.hplot);
                 c.stroke();
 
+                // draw fiducial at intersector of cursor and curve
                 var x = dataset.datax(dataseries.cursor);  // convert cursor coord to x value
+                var i = search(dataset.xvalues,x);  // quickly find first index
+                // interpolate cursor's intersection with curve
+                var x1 = dataset.xvalues[i];
+                var y1 = dataset.yvalues[i];
+                var x2 = dataset.xvalues[i+1] || x1;
+                var y2 = dataset.yvalues[i+1] || y1;
+                var y = y1;
+                if (x1 != x2) y = y1 + ((x - x1)/(x2-x1))*(y2 - y1);
+
+                var gx = dataset.plotx(x);
+                var gy = dataset.ploty(y);
+                c.beginPath();
+                c.arc(gx,gy,5,0,2*Math.PI);
+                c.stroke();
 
                 // add x-axis label
-                var label = jade.utils.engineering_notation(x,3);
+                var label = jade.utils.engineering_notation(x,1);
                 if (dataset.xunits) label += dataset.xunits;
                 c.font = graph_font;
                 c.textAlign = 'center';
@@ -717,46 +541,23 @@ jade.plot = (function() {
                 c.fillStyle = normal_style;
                 c.fillText(label, dataseries.cursor, dataset.top + dataset.hplot);
 
-                // draw fiducial at intersection of cursor and curve
-                if (dataset.type[0] == 'analog') {
-                    for (var dindex = 0; dindex < dataset.xvalues.length; dindex += 1) {
-                        var xvalues = dataset.xvalues[dindex];
-                        var yvalues = dataset.yvalues[dindex];
-                        var i = search(xvalues,x);  // quickly find first index
-                        // interpolate cursor's intersection with curve
-                        var x1 = xvalues[i];
-                        var y1 = yvalues[i];
-                        var x2 = xvalues[i+1] || x1;
-                        var y2 = yvalues[i+1] || y1;
-                        var y = y1;
-                        if (x1 != x2) y = y1 + ((x - x1)/(x2-x1))*(y2 - y1);
+                // now add label
+                if (dataset.yunits) {
+                    label = '='+jade.utils.engineering_notation(y,1) + dataset.yunits;
+                    c.font = graph_legend_font;
 
-                        var gx = dataset.plotx(x);
-                        var gy = dataset.ploty(y);
-                        c.strokeStyle = dataset.color[dindex] || '#268bd2';
-                        c.beginPath();
-                        c.arc(gx,gy,5,0,2*Math.PI);
-                        c.stroke();
+                    // translucent background so graph doesn't obscure label
+                    var w = c.measureText(label).width;
+                    c.fillStyle = element_style;
+                    c.globalAlpha = 0.7;
+                    c.fillRect(dataset.legend_right,dataset.legend_top,w+5,25);
 
-                        // add y value readout in legend
-                        var lx = dataset.legend_right[dindex];
-                        var ly = dataset.legend_top[dindex];
-                        label = '='+jade.utils.engineering_notation(y,2) + dataset.yunits;
-                        c.font = graph_legend_font;
-
-                        // translucent background so graph doesn't obscure label
-                        var w = c.measureText(label).width;
-                        c.fillStyle = element_style;
-                        c.globalAlpha = 0.7;
-                        c.fillRect(lx,ly,w+5,20);
-
-                        // now plot the label itself
-                        c.textAlign = 'left';
-                        c.textBaseline = 'bottom';
-                        c.fillStyle = normal_style;
-                        c.globalAlpha = 1.0;
-                        c.fillText(label,lx,ly+18);
-                    }
+                    // now plot the label itself
+                    c.textAlign = 'left';
+                    c.textBaseline = 'bottom';
+                    c.fillStyle = normal_style;
+                    c.globalAlpha = 1.0;
+                    c.fillText(label,dataset.legend_right,dataset.legend_top+20);
                 }
             }
         });
@@ -787,64 +588,6 @@ jade.plot = (function() {
 
     var zoomsel_icon = 'data:image/gif;base64,R0lGODlhEAAQAIQBAAAAAP///zAwYT09bpGRqZ6et5iYsKWlvbi40MzM5cXF3czM5OHh5tTU2fDw84uMom49DbWKcfLy8g0NDf///////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACH5BAEAAB8ALAAAAAAQABAAAAVY4CeOZFlOwCQF5pg2TDMJbIsCODBIdgMgCgSAsDMBGICgAnCgmSY+IAGQKJYkt5y1FBAMCIdqqvUJSAZebARFXvE+kwgEQCYBIHJ6XXSX710QK38jNYMkIQA7';
 
-    /*
-    function engineering_notation(n, nplaces, trim) {
-        if (n === 0) return '0';
-        if (n === undefined) return 'undefined';
-        if (trim === undefined) trim = true;
-
-        var sign = n < 0 ? -1 : 1;
-        var log10 = Math.log(sign * n) / Math.LN10;
-        var exp = Math.floor(log10 / 3); // powers of 1000
-        var mantissa = sign * Math.pow(10, log10 - 3 * exp);
-
-        // keep specified number of places following decimal point
-        //var mstring = (mantissa + sign * 0.5 * Math.pow(10, - nplaces)).toString();
-        var mstring = mantissa.toFixed(nplaces);
-        var mlen = mstring.length;
-        var endindex = mstring.indexOf('.');
-        if (endindex != -1) {
-            if (nplaces > 0) {
-                endindex += nplaces + 1;
-                if (endindex > mlen) endindex = mlen;
-                if (trim) {
-                    while (mstring.charAt(endindex - 1) == '0') endindex -= 1;
-                    if (mstring.charAt(endindex - 1) == '.') endindex -= 1;
-                }
-            }
-            if (endindex < mlen) mstring = mstring.substring(0, endindex);
-        }
-
-        switch (exp) {
-        case -5:
-            return mstring + "f";
-        case -4:
-            return mstring + "p";
-        case -3:
-            return mstring + "n";
-        case -2:
-            return mstring + "u";
-        case -1:
-            return mstring + "m";
-        case 0:
-            return mstring;
-        case 1:
-            return mstring + "K";
-        case 2:
-            return mstring + "M";
-        case 3:
-            return mstring + "G";
-        }
-
-        // don't have a good suffix, so just print the number
-        return n.toPrecision(nplaces);
-    }
-     */
-
     // module exports
-    return {
-        graph: graph,
-        tick_interval: tick_interval
-        //engineering_notation: engineering_notation
-    };
+    return {graph: graph,tick_interval: tick_interval};
 }());

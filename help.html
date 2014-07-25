@@ -177,13 +177,14 @@ XOR gate
 <p><h3>Device-level simulation</h3>
 
 <p>When simulating digital circuits, the easiest way to run
-device-level simulations is to create
+device-level transient simulations is to create
 a <span class="aspect">test</span> aspect and then use the
 <span class="fa fa-fw fa-check" style="color:green;"></span> tool to run the test.
 This tool will create the appropriate voltage sources to generate the specified
 input waveforms, run the simulation long enough to process all the test vectors,
 then examine the simulation results to ensure the outputs have the specified values
-as the specified time.
+as the specified time.  The test tool will optionally plot waveforms for the
+specified nodes.
 
 <p>One can also use primitive components to generate input waveforms
 (using voltage and current sources) and examine output waveforms
