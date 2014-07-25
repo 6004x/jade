@@ -464,11 +464,23 @@ jade.test_view = (function() {
             if (percent_complete === undefined) {
                 jade.window_close(progress[0].win);  // done with progress bar
 
+                if (typeof results == 'string') {
+                    // oops, some sort of exception: just report it
+                    diagram.message(results);
+                    test_results[module.get_name()] = 'Error detected: '+results;
+                    return;
+                } else if (results instanceof Error) {
+                    diagram.message(results.stack.split('\n').join('<br>'));
+                    test_results[module.get_name()] = 'Error detected: '+results.message;
+                    return;
+                }
+
                 // check the sampled node values for each test cycle
                 var errors = [];
                 $.each(sampled_signals,function(node,tvlist) {
-                    var times = results[node].xvalues;
-                    var observed = results[node].yvalues;
+                    var history = results._network_.history(node);
+                    var times = history.xvalues;
+                    var observed = history.yvalues;
                     $.each(tvlist,function(index,tvpair) {
                         var v = jade.schematic_view.interpolate(tvpair[0], times, observed);
                         if ((tvpair[1] == 'L' && v > thresholds.Vil) ||
@@ -477,6 +489,7 @@ jade.test_view = (function() {
                                         ' at time '+jade.utils.engineering_notation(tvpair[0],2)+'s.');
                     });
                 });
+
                 if (errors.length > 0) {
                     var postscript = '';
                     if (errors.length > 3) {
@@ -493,9 +506,10 @@ jade.test_view = (function() {
 
                 // construct a data set for the given signal
                 function new_dataset(signal) {
-                    if (results[signal] !== undefined) {
-                        return {xvalues: [results[signal].xvalues],
-                                yvalues: [results[signal].yvalues],
+                    var history = results._network_.history(signal);
+                    if (history !== undefined) {
+                        return {xvalues: [history.xvalues],
+                                yvalues: [history.yvalues],
                                 name: [signal],
                                 xunits: 's',
                                 yunits: 'V',

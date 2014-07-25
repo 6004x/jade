@@ -28,18 +28,29 @@ var cktsim = (function() {
     // signals are just strings
     // src == {type: function_name, args: [number, ...]}
 
+    // handy for debugging :)
+    function print_netlist(netlist) {
+        $.each(netlist,function(index,c) {
+            var connections = [];
+            for (var port in c.connections) connections.push(port+"="+c.connections[port]);
+            var properties = [];
+            for (var prop in c.properties) properties.push(prop+"="+JSON.stringify(c.properties[prop]));
+            console.log(c.type + ' ' + connections.join(' ') + '; ' + properties.join(' '));
+        });
+    }
+
     // DC Analysis
     //   netlist: JSON description of the circuit
     //   returns associative array mapping node names -> DC value
     //   throws a string to report errors
-    function dc_analysis(netlist, sweep1, sweep2) {
+    function dc_analysis(netlist, sweep1, sweep2, options) {
         if (netlist.length > 0) {
-            var ckt = new Circuit(netlist);
+            var ckt = new Circuit(netlist, options);
 
             var source1, start1, stop1, step1, source1_saved_src;
             var source2, start2, stop2, step2, source2_saved_src;
 
-            if (sweep1 !== undefined) {
+            if (sweep1.source !== undefined) {
                 source1 = ckt.device_map[sweep1.source];
                 if (!(source1 instanceof VSource) && !(source1 instanceof ISource)) throw "Device not independent source in DC sweep: " + sweep1.source;
                 start1 = sweep1.start;
@@ -52,7 +63,7 @@ var cktsim = (function() {
                 source1_saved_src = source1.src;
             }
 
-            if (sweep2 !== undefined) {
+            if (sweep2.source !== undefined) {
                 source2 = ckt.device_map[sweep2.source];
                 if (!(source2 instanceof VSource) && !(source2 instanceof ISource)) throw "Device not independent source in DC sweep: " + sweep2.source;
                 start2 = sweep2.start;
@@ -69,7 +80,8 @@ var cktsim = (function() {
             var val1 = start1;
             var val2 = start2;
             var results = {
-                _sweep1_: []
+                _sweep1_: [],
+                _network_: ckt
             }; // remember sweep1 values as one of the"results
             var results2 = [];
             while (true) {
@@ -80,6 +92,7 @@ var cktsim = (function() {
                 // do DC analysis, add result to accumulated results for each node and branch
                 var result = ckt.dc(true);
                 for (var n in result) {
+                    if (n == '_network_') continue;
                     if (results[n] === undefined) results[n] = [];
                     results[n].push(result[n]);
                 }
@@ -97,7 +110,8 @@ var cktsim = (function() {
                     }
                     // start first source over again
                     results = {
-                        _sweep1_: []
+                        _sweep1_: [],
+                        _network_: ckt
                     };
                     val1 = start1;
                     // increment second sweep value, make sure we stop at specified end point
@@ -129,11 +143,11 @@ var cktsim = (function() {
     //   ac_source_name: string giving name of source element where small
     //                   signal is injected
     //   returns associative array mapping <node name> -> {magnitude: val, phase: val}
-    function ac_analysis(netlist, fstart, fstop, ac_source_name) {
+    function ac_analysis(netlist, fstart, fstop, ac_source_name, options) {
         var npts = 50;
 
         if (netlist.length > 0) {
-            var ckt = new Circuit(netlist);
+            var ckt = new Circuit(netlist, options);
             return ckt.ac(npts, fstart, fstop, ac_source_name);
         }
         return undefined;
@@ -149,9 +163,9 @@ var cktsim = (function() {
     // results are associative array mapping node name -> object with attributes
     //   xvalues -> array of simulation times at which yvalues were measured
     //   yvalues -> array of voltages/currents
-    function transient_analysis(netlist, tstop, probe_names, progress_callback) {
+    function transient_analysis(netlist, tstop, probe_names, progress_callback, options) {
         if (netlist.length > 0 && tstop !== undefined) {
-            var ckt = new Circuit(netlist);
+            var ckt = new Circuit(netlist, options);
 
             var progress = {};
             progress.probe_names = probe_names, // node names for LTE check
@@ -200,7 +214,13 @@ var cktsim = (function() {
     var res_check_abs = Math.sqrt(i_abstol); // Loose Newton residue check
     var res_check_rel = Math.sqrt(reltol); // Loose Newton residue check
 
-    function Circuit(netlist) {
+    function Circuit(netlist, options) {
+        if (options) {
+            if (options.v_abstol) v_abstol = options.v_abstol;
+            if (options.i_abstol) { i_abstol = options.ia_abstol; res_check_abs = Math.sqrt(i_abstol); }
+            if (options.reltol) { reltol = options.reltol; res_check_rel = Math.sqrt(reltol); }
+        }
+
         this.node_map = {};
         this.ntypes = [];
 
@@ -218,6 +238,20 @@ var cktsim = (function() {
 
         if (netlist !== undefined) this.load_netlist(netlist);
     }
+
+    Circuit.prototype.history = function(node) {
+        if (this.result === undefined || this.result[node] === undefined)
+            return undefined;
+        return {xvalues: this.result._xvalues_, yvalues: this.result[node]};
+    };
+
+    Circuit.prototype.result_type = function() { return 'analog'; };
+
+    Circuit.prototype.node_list = function() {
+        var nlist = [];
+        for (var n in this.results) nlist.push(n);
+        return nlist;
+    };
 
     // index of ground node
     Circuit.prototype.gnd_node = function() {
@@ -336,18 +370,18 @@ var cktsim = (function() {
 
         // process each component in the JSON netlist (see schematic.js for format)
         var found_ground = false; // is some component hooked to gnd?
-        var counts = {};
+        this.counts = {};
         for (i = netlist.length - 1; i >= 0; i -= 1) {
             component = netlist[i];
             var type = component.type;
+            connections = component.connections;
             var properties = component.properties;
 
-            counts[type] = (counts[type] || 0) + 1;
+            this.counts[type] = (this.counts[type] || 0) + 1;
 
             // convert node names to circuit indicies
-            var connections = {};
-            for (c in component.connections) {
-                node = component.connections[c];
+            for (c in connections) {
+                node = connections[c];
                 while (aliases[node] !== undefined) node = aliases[node];  // follow alias chain
                 var index = this.node_map[node];
                 if (index === undefined) index = this.node(node, T_VOLTAGE);
@@ -411,13 +445,47 @@ var cktsim = (function() {
             if (i !== undefined) this.node_map[node] = i;
         }
 
+        // discover CMOS gates for later analysis
+        this.find_cmos_gates();
+
         // report circuit stats
         var msg = (this.node_index + 1).toString() + ' nodes';
-        for (var d in counts) {
-            msg += ', ' + counts[d].toString() + ' ' + d;
+        this.size = 0;
+        for (var d in this.counts) {
+            msg += ', ' + this.counts[d].toString() + ' ' + d;
+            this.size += this.counts[d];
         }
         //console.log(msg);
     };  
+
+    Circuit.prototype.find_cmos_gates = function() {
+        // for each fet, record its source/drain connectivity
+        var source_drain = {};
+        $.each(this.devices,function (index,d) {
+                if (d instanceof Fet) {
+                    if (source_drain[d.d] === undefined) source_drain[d.d] = [];
+                    source_drain[d.d].push(d);
+
+                    if (source_drain[d.s] === undefined) source_drain[d.s] = [];
+                    source_drain[d.s].push(d);
+                }
+        });
+
+        // find output nodes of CMOS gates by looking for nodes that connect
+        // to both P and N fets
+        var cmos_outputs = [];
+        $.each(source_drain,function (node,fets) {
+                var found_n = false;
+                var found_p = false;
+                $.each(fets,function (index,fet) {
+                        if (fet.type_sign == 1) found_n = true;
+                        else found_p = true;
+                });
+                if (found_n && found_p) cmos_outputs.push(node);
+        });
+
+        this.counts['cmos_gates'] = cmos_outputs.length;
+    };
 
     // if converges: updates this.solution, this.soln_max, returns iter count
     // otherwise: return undefined and set this.problem_node
@@ -532,32 +600,33 @@ var cktsim = (function() {
 
         if (typeof iterations == 'undefined') {
             // too many iterations
-            if (this.current_sources.length > 0) {
-                throw 'Unable to find circuit\'s operating point: do your current sources have a conductive path to ground?';
-            }
-            else {
-                throw 'Unable to find circuit\'s operating point: is there a loop in your circuit that\'s oscillating?';
-            }
-
-            return undefined;
+            if (report_results) {
+                if (this.current_sources.length > 0) {
+                    throw 'Unable to find circuit\'s operating point: do your current sources have a conductive path to ground?';
+                }
+                else {
+                    throw 'Unable to find circuit\'s operating point: is there a loop in your circuit that\'s oscillating?';
+                }
+            } else return false;
         }
         else {
             // Note that a dc solution was computed
             this.diddc = true;
             if (report_results) {
                 // create solution dictionary
-                var result = {};
+                this.result = {};
                 // capture node voltages
                 for (var name in this.node_map) {
                     var index = this.node_map[name];
-                    result[name] = (index == -1) ? 0 : this.solution[index];
+                    this.result[name] = (index == -1) ? 0 : this.solution[index];
                 }
                 // capture branch currents from voltage sources
                 for (var i = this.voltage_sources.length - 1; i >= 0; i -= 1) {
                     var v = this.voltage_sources[i];
-                    result['I(' + v.name + ')'] = this.solution[v.branch];
+                    this.result['I(' + v.name + ')'] = this.solution[v.branch];
                 }
-                return result;
+                this.result._network_ = this;   // for later reference
+                return this.result;
             } else return true;
         }
     };
@@ -569,14 +638,14 @@ var cktsim = (function() {
         // Standard to do a dc analysis before transient
         // Otherwise, do the setup also done in dc.
         if (this.diddc === false) {
-            if (this.dc(false) === undefined) { // DC failed, realloc mats and vects.
+            if (!this.dc(false)) { // DC failed, realloc mats and vects.
                 //throw 'DC failed, trying transient analysis from zero.';
                 this.finalized = false; // Reset the finalization.
                 if (this.finalize() === false) progress.finish(undefined); // nothing more to do
             }
         }
         else if (this.finalize() === false) // Allocate matrices and vectors.
-        progress.finish(undefined); // nothing more to do
+            progress.finish(undefined); // nothing more to do
 
         // build array to hold list of results for each variable
         // last entry is for timepoints.
@@ -660,7 +729,6 @@ var cktsim = (function() {
         this.progress = progress;
         this.step_index = -3; // Start with two pseudo-Euler steps
 
-        //this.tran_steps(new Date().getTime() + progress.update_interval);
         try {
             this.tran_steps(new Date().getTime() + progress.update_interval);
         }
@@ -845,37 +913,30 @@ var cktsim = (function() {
         }
 
         // analysis complete -- create solution dictionary
-        var result = {};
+        this.result = {};
         for (var name in this.node_map) {
             var index = this.node_map[name];
-            result[name] = {
-                xvalues: this.response[this.N],
-                yvalues: this.response[index]
-            };
-        };
+            this.result[name] = (index == -1) ? 0 : this.response[index];
+        }
         // capture branch currents from voltage sources
         for (i = this.voltage_sources.length - 1; i >= 0; i -= 1) {
             var v = this.voltage_sources[i];
-            result['I(' + v.name + ')'] = {
-                xvalues: this.response[this.N],
-                yvalues: this.response[index]
-            };
+            this.result['I(' + v.name + ')'] = this.response[v.branch];
         }
+        this.result._xvalues_ = this.response[this.N];
+        this.result._network_ = this;    // for later reference
 
         //this.progress.finish(result);
-        throw result;
+        throw this.result;
     };
 
     // AC analysis: npts/decade for freqs in range [fstart,fstop]
     // result._frequencies_ = vector of log10(sample freqs)
     // result['xxx'] = vector of dB(response for node xxx)
-    // NOTE: Normalization removed in schematic.js, jkw.
     Circuit.prototype.ac = function(npts, fstart, fstop, source_name) {
         var i;
 
-        if (this.dc(false) === undefined) { // DC failed, realloc mats and vects.
-            return undefined;
-        }
+        this.dc(true);  // make sure we can find operating point
 
         var N = this.N;
         var G = this.G;
@@ -954,16 +1015,17 @@ var cktsim = (function() {
         }
 
         // create solution dictionary
-        var result = {};
+        this.result = {};
         for (var name in this.node_map) {
             var index = this.node_map[name];
-            result[name] = {
+            this.result[name] = {
                 magnitude: (index == -1) ? 0 : response[index],
                 phase: (index == -1) ? 0 : response[index + N]
             };
         }
-        result._frequencies_ = response[2 * N];
-        return result;
+        this.result._frequencies_ = response[2 * N];
+        this.result._network_ = this;   // for later reference
+        return this.result;
     };
 
 
@@ -1453,11 +1515,6 @@ var cktsim = (function() {
     // linear models at operating point for everyone else
     Device.prototype.load_ac = function(ckt, rhs) {};
 
-    // return time of next breakpoint for the device
-    Device.prototype.breakpoint = function(time) {
-        return undefined;
-    };
-
     ///////////////////////////////////////////////////////////////////////////////
     //
     //  Sources
@@ -1492,11 +1549,6 @@ var cktsim = (function() {
     // Load time-dependent value for voltage source for tran
     VSource.prototype.load_tran = function(ckt, soln, rhs, time) {
         ckt.add_to_rhs(this.branch, this.src.value(time), rhs);
-    };
-
-    // return time of next breakpoint for the device
-    VSource.prototype.breakpoint = function(time) {
-        return this.src.inflection_point(time);
     };
 
     // small signal model ac value
@@ -1534,11 +1586,6 @@ var cktsim = (function() {
         // MNA stamp for independent current source
         ckt.add_to_rhs(this.npos, - is, rhs); // current flow into npos
         ckt.add_to_rhs(this.nneg, is, rhs); // and out of nneg
-    };
-
-    // return time of next breakpoint for the device
-    ISource.prototype.breakpoint = function(time) {
-        return this.src.inflection_point(time);
     };
 
     // small signal model: open circuit
@@ -1764,12 +1811,14 @@ var cktsim = (function() {
         this.kp = (type == 'n') ? 120e-6 : 25e-6;
         this.beta = this.kp * this.ratio;
         this.lambda = 0.05;
+        this.g_leak = 1.0e-8 * this.beta;
     }
     Fet.prototype = new Device();
     Fet.prototype.constructor = Fet;
 
     Fet.prototype.load_linear = function(ckt) {
-        // FET channels are nonlinear, just like javascript progammers
+        // a small leakage current -- helps with correct DC analysis
+        ckt.add_conductance_l(this.d, this.s, this.g_leak);
 
         // in the absence of a bulk terminal, use the ground node
 
@@ -2039,7 +2088,8 @@ var cktsim = (function() {
         Circuit: Circuit,
         dc_analysis: dc_analysis,
         ac_analysis: ac_analysis,
-        transient_analysis: transient_analysis
+        transient_analysis: transient_analysis,
+        print_netlist: print_netlist
     };
     return module;
 }());

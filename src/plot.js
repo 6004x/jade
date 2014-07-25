@@ -707,13 +707,13 @@ jade.plot = (function() {
                 var x = dataset.datax(dataseries.cursor);  // convert cursor coord to x value
 
                 // add x-axis label
-                var label = jade.utils.engineering_notation(x,3);
+                var label = jade.utils.engineering_notation(x,4);
                 if (dataset.xunits) label += dataset.xunits;
                 c.font = graph_font;
                 c.textAlign = 'center';
                 c.textBaseline = 'top';
                 c.fillStyle = background_style;
-                c.fillText('\u2588\u2588\u2588\u2588\u2588', dataseries.cursor, dataset.top + dataset.hplot);
+                c.fillText('\u2588\u2588\u2588\u2588\u2588\u2588', dataseries.cursor, dataset.top + dataset.hplot);
                 c.fillStyle = normal_style;
                 c.fillText(label, dataseries.cursor, dataset.top + dataset.hplot);
 
