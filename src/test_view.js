@@ -178,7 +178,7 @@ jade.test_view = (function() {
         // process each line in test specification
         source = source.split('\n');
         for (k = 0; k < source.length; k += 1) {
-            var line = source[k].match(/([A-Za-z0-9_.\[\]]+|=|-)/g);
+            var line = source[k].match(/([A-Za-z0-9_.:\[\]]+|=|-)/g);
             if (line === null) continue;
             if (line[0] == '.power' || line[0] == '.thresholds') {
                 // .power/.thresholds name=float name=float ...
@@ -204,17 +204,21 @@ jade.test_view = (function() {
                     // each group has an associated list of signal indicies
                     groups[line[1]] = [];
                     for (j = 2; j < line.length; j += 1) {
-                        // remember index of this signal in the signals list
-                        groups[line[1]].push(signals.length);
-                        // keep track of signal names
-                        signals.push(line[j]);
+                        $.each(jade.utils.parse_signal(line[j]),function (index,sig) {
+                            // remember index of this signal in the signals list
+                            groups[line[1]].push(signals.length);
+                            // keep track of signal names
+                            signals.push(sig);
+                        });
                     }
                 }
             }
             else if (line[0] == '.plot') {
                 for (j = 1; j < line.length; j += 1) {
-                    plots.push(line[j]);
-                    sampled_signals[line[j]] = [];
+                    $.each(jade.utils.parse_signal(line[j]), function (index,sig) {
+                        plots.push(sig);
+                        sampled_signals[sig] = [];
+                    });
                 }
             }
             else if (line[0] == '.cycle') {
