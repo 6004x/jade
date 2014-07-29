@@ -606,6 +606,7 @@ jade.model = (function () {
         return grid;
     };
 
+    /*
     // label all the nodes in the circuit
     Aspect.prototype.label_connection_points = function(prefix, port_map) {
         var i;
@@ -707,6 +708,7 @@ jade.model = (function () {
         mstack.pop();   // all done with extraction, remove module name
         return netlist;
     };
+     */
 
     ////////////////////////////////////////////////////////////////////////////////
     //
@@ -1191,6 +1193,7 @@ jade.model = (function () {
         }
     };
 
+    /*
     // default action: don't propagate label
     Component.prototype.propagate_label = function(label) {};
 
@@ -1314,7 +1317,7 @@ jade.model = (function () {
         }
         return netlist;
     };
-
+    */
     Component.prototype.update_properties = function(new_properties) {
         if (new_properties !== undefined) {
             var old_properties = this.clone_properties(false);
@@ -1402,6 +1405,7 @@ jade.model = (function () {
         return cplist.length;
     };
 
+    /*
     ConnectionPoint.prototype.propagate_label = function(label) {
         // should we check if existing label is the same?  it should be...
 
@@ -1419,6 +1423,7 @@ jade.model = (function () {
             // signal an error while generating netlist
             throw "Node has two conflicting sets of labels: [" + this.label + "], [" + label + "]";
     };
+     */
 
     ConnectionPoint.prototype.update_location = function() {
         // update location string which we use as a key to find coincident connection points

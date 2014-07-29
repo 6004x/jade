@@ -327,11 +327,8 @@ jade.test_view = (function() {
         }
 
         var netlist;
-        var mlist = ['ground','jumper'];
-        $.each(jade.model.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
         try {
-            netlist = module.aspect('schematic').netlist(mlist, '', {}, []);
-            netlist = jade.schematic_view.cktsim_netlist(netlist);
+            netlist = jade.device_level.device_netlist(module.aspect('schematic'));
         }
         catch (e) {
             diagram.message("Error extracting netlist:<p>" + e);
@@ -339,7 +336,7 @@ jade.test_view = (function() {
             return;
         }
 
-        var nodes = jade.schematic_view.extract_nodes(netlist);  // get list of nodes in netlist
+        var nodes = jade.netlist.extract_nodes(netlist);  // get list of nodes in netlist
         function check_node(node) {
             if (nodes.indexOf(node) == -1)
                 errors.push('Circuit does not have a node named "'+node+'".');
@@ -462,7 +459,7 @@ jade.test_view = (function() {
         //print_netlist(netlist);
 
         // do the simulation
-        var progress = jade.schematic_view.tran_progress_report();
+        var progress = jade.device_level.tran_progress_report();
         jade.window('Progress',progress[0],$(diagram.canvas).offset());
         cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), function(percent_complete,results) {
             if (percent_complete === undefined) {
@@ -486,7 +483,7 @@ jade.test_view = (function() {
                     var times = history.xvalues;
                     var observed = history.yvalues;
                     $.each(tvlist,function(index,tvpair) {
-                        var v = jade.schematic_view.interpolate(tvpair[0], times, observed);
+                        var v = jade.device_level.interpolate(tvpair[0], times, observed);
                         if ((tvpair[1] == 'L' && v > thresholds.Vil) ||
                             (tvpair[1] == 'H' && v < thresholds.Vih)) 
                             errors.push('Expected signal '+node+' to be a valid '+tvpair[1]+

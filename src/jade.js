@@ -558,11 +558,6 @@ var jade = (function() {
         this.bbox = [0, 0, 0, 0];
     }
 
-    Diagram.prototype.netlist = function(mlist) {
-        var netlist = this.aspect.netlist(mlist, '', {}, []);
-        return netlist;
-    };
-
     // fetch attributes from the tag that created us
     Diagram.prototype.getAttribute = function(attr) {
         return undefined;
