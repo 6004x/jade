@@ -517,7 +517,7 @@ jade.gatesim = (function() {
                 throw 'heap error 2';
             }
         }
-    }
+    };
 
     // specialized for events...
     Heap.prototype.cmplt = function(e1, e2) {

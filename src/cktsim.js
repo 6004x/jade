@@ -1947,7 +1947,7 @@ var cktsim = (function() {
             var t_change = 0.01 * per; // rise and fall time
             var t_pw = 0.01 * duty_cycle * 0.98 * per; // fraction of cycle minus rise and fall time
             pwl_source(src, [0, v1, t_change, v2, t_change + t_pw,
-            v2, t_change + t_pw + t_change, v1, per, v1], true);
+                             v2, t_change + t_pw + t_change, v1, per, v1], true);
         }
 
         // post-processing for triangle
