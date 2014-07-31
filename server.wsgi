@@ -94,6 +94,14 @@ def application(environ, start_response):
         j = args.getfirst('json')
         if j is not None:
             try:
+                # create backup if we can
+                backup = filename + '~'
+                if os.path.exists(backup):
+                    os.remove(backup)
+                if os.path.exists(filename):
+                    os.rename(filename,backup)
+                
+                # write new file contents
                 f = open(filename,'w')
                 f.write(j)
                 f.close()

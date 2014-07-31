@@ -26,7 +26,7 @@ jade.model.Aspect.prototype.netlist = function(mlist, prefix, port_map,mstack) {
     // extract netlist from each component
     var netlist = [];
     for (var i = 0; i < this.components.length; i += 1) {
-        var n = this.components[i].netlist(mlist, prefix, mstack);
+        n = this.components[i].netlist(mlist, prefix, mstack);
         if (n !== undefined) netlist.push.apply(netlist, n);
     }
 
@@ -180,7 +180,7 @@ jade.model.Component.prototype.netlist = function(mlist, prefix, mstack) {
         var got = c.label.length;
         var expected = c.nlist.length;
         if ((got % expected) !== 0) {
-            throw "Number of connections for terminal " + c.name + "of " + this.prefix + this.properties.name + " not a multiple of " + expected.toString();
+            throw "Number of connections (" + got + ") for terminal " + c.name + " of " + prefix + this.name + " not a multiple of " + expected;
         }
 
         // infer number of instances and remember the max we find.
@@ -196,9 +196,10 @@ jade.model.Component.prototype.netlist = function(mlist, prefix, mstack) {
     // ie, we'll cycle through each signal list an integral number of times
     for (i = 0; i < this.connections.length; i += 1) {
         var c = this.connections[i];
-        var w = c.label.length;
-        if ((ninstances % w) !== 0) {
-            throw "Number of connections for terminal " + c.name + "of " + this.prefix + this.properties.name + " not a multiple of " + ninstances.toString();
+        var W = c.label.length;
+        var consumed = ninstances * c.nlist.length;
+        if (consumed % W !== 0) {
+            throw "Number of signals needed (" + consumed + ") for terminal " + c.name + " of " + prefix + this.name + " not multiple of " + W;
         }
     }
 
@@ -210,10 +211,9 @@ jade.model.Component.prototype.netlist = function(mlist, prefix, mstack) {
         for (var j = 0; j < connections.length; j += 1) {
             var nlist = connections[j][0]; // list of terminal names
             var slist = connections[j][1]; // list of connected signals
-            var sindex = i * nlist.length; // where to start in slist
             for (var k = 0; k < nlist.length; k += 1)
                 // keep cycling through entries in slist as necessary
-                port_map[nlist[k]] = slist[(sindex + k) % slist.length];
+                port_map[nlist[k]] = slist[(i + k*ninstances) % slist.length];
         }
 
         if (mlist.indexOf(this.type()) != -1) {
