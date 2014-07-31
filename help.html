@@ -98,8 +98,11 @@ provides the information needed to run the test.
 <p>To run the simulation tools on a module's schematic, Jade converts
 the (possibly hierarchical) schematic into a flattened netlist that
 has one entry for each primitive component listing its properties and
-the signals connected to its terminals.  The extraction process has
-several steps:
+the signals connected to its terminals.  The netlister is given a list
+of primitive component modules and stops its hierachical descent when
+one of these components is reached.
+
+<p>The extraction process has several steps:
 
 <ol>
 <p><li>Label each connection with its associated list of signal
@@ -176,15 +179,22 @@ XOR gate
 
 <p><h3>Device-level simulation</h3>
 
+<p>The device-level simulation tool expects a flattened netlist containing
+components from the built-in analog library.
+
 <p>When simulating digital circuits, the easiest way to run
 device-level transient simulations is to create
-a <span class="aspect">test</span> aspect and then use the
-<span class="fa fa-fw fa-check" style="color:green;"></span> tool to run the test.
-This tool will create the appropriate voltage sources to generate the specified
-input waveforms, run the simulation long enough to process all the test vectors,
-then examine the simulation results to ensure the outputs have the specified values
-as the specified time.  The test tool will optionally plot waveforms for the
-specified nodes.
+a <span class="aspect">test</span> aspect specifying
+
+<p><tt>.mode device</tt>
+
+<p>and then use the <span class="fa fa-fw fa-check" style="color:green;"></span>
+tool to run the test.  This tool will create the appropriate voltage
+sources to generate the specified input waveforms, run the simulation
+long enough to process all the test vectors, then examine the
+simulation results to ensure the outputs have the specified values as
+the specified time.  The test tool will optionally plot waveforms for
+the specified nodes.
 
 <p>One can also use primitive components to generate input waveforms
 (using voltage and current sources) and examine output waveforms
@@ -221,7 +231,30 @@ the error introduced by the linear approximation at that step is small.
 
 <p><h3>Gate-level simulation</h3>
 
-<p>to be supplied...
+<p>The gate-level simulation tool expects a flattened netlist containing
+components from the built-in gates library.
+
+<p>When simulating digital circuits, the easiest way to run gate-level
+simulations is to create a <span class="aspect">test</span> aspect
+specifying
+
+<p><tt>.mode gate</tt>
+
+<p>and then use the <span class="fa fa-fw fa-check" style="color:green;"></span>
+tool to run the test.  This tool will create the appropriate voltage
+sources to generate the specified input waveforms, run the simulation
+long enough to process all the test vectors, then examine the
+simulation results to ensure the outputs have the specified values as
+the specified time.  The test tool will optionally plot waveforms for
+the specified nodes.
+
+In gate-level simulation, node values are one of the following:
+
+<ul>
+0, 1 &mdash; the two binary values<br>
+X &mdash; an unknown or illegal logic value<br>
+Z &mdash; not driven, aka "high impedance"
+</ul>
 
 <p><h3>Testing</h3>
 
@@ -241,6 +274,11 @@ of a module.  Here's a test for an XOR circuit with inputs A and B, and output Z
 .group inputs A B
 .group outputs Z
 
+// set type of simulation to be performed
+//  device -- transient simulation; components must be from from analog library
+//  gate -- gate-level simulation; components must be from gates library
+.mode device
+
 /*
 Tests are sequences of lines supplying test values; .cycle specifies
 the sequence of actions that will be performed for each test.  Available
@@ -248,15 +286,14 @@ actions are
    assert <i>group</i> -- set values for signals in <i>group</i> with H,L test values
    deassert <i>group</i> -- stop setting values for signals in <i>group</i> with H,L test values
    sample <i>group</i> -- check values of signals in <i>group</i> with 0,1 test values
-   tran <i>time</i> -- run device-level transient simulation for specified time interval
+   tran <i>time</i> -- run simulation for specified time interval
    <i>signal</i>=<i>val</i> -- set signal to specified value
 */
 .cycle assert inputs tran 9n sample outputs tran 1n
 
 // the tests themselves -- one test per line
-//   to assert signal this cycle use 0,1,Z
-//   to sample signal this cycle use L,H
-//   use a dash (-) if signal shouldn't be asserted/sampled
+//   to assert signal this cycle use 0,1; use Z or - if not to be asserted
+//   to sample signal this cycle use L,H; use - if not to be sampled
 // whitespace can be used to improve readability, non-blank characters
 // are associated, in order, with signals listed in .group above.
 00 L

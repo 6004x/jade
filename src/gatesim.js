@@ -155,8 +155,9 @@ jade.gatesim = (function() {
         this.devices = []; // list of devices
         this.device_map = {}; // name -> device
         this.event_queue = new Heap();
-        this.options = options;
-        this.debug_level = options.debug || 0;
+        this.options = options || {};
+        this.debug_level = this.options.debug || 0;
+        this._network_ = this; // self-reference for compatibility with cktsim
 
         if (netlist !== undefined) this.load_netlist(netlist, options);
     }
@@ -1081,25 +1082,25 @@ jade.gatesim = (function() {
 
     // for each logic gate provide [input-terminal-list,output-terminal,table]
     var logic_gates = {
-        'and2': [['a', 'b'], 'z', AndTable],
-        'and3': [['a', 'b', 'c'], 'z', AndTable],
-        'and4': [['a', 'b', 'c', 'd'], 'z', AndTable],
-        'buffer': [['a'], 'z', AndTable],
-        'inv': [['a'], 'z', NandTable],
-        'mux2': [['s', 'd0', 'd1'], 'z', Mux2Table],
-        'mux4': [['s0', 's1', 'd0', 'd1', 'd2', 'd3'], 'z', Mux4Table],
-        'nand2': [['a', 'b'], 'z', NandTable],
-        'nand3': [['a', 'b', 'c'], 'z', NandTable],
-        'nand4': [['a', 'b', 'c', 'd'], 'z', NandTable],
-        'nor2': [['a', 'b'], 'z', NorTable],
-        'nor3': [['a', 'b', 'c'], 'z', NorTable],
-        'nor4': [['a', 'b', 'c', 'd'], 'z', NorTable],
-        'or2': [['a', 'b'], 'z', OrTable],
-        'or3': [['a', 'b', 'c'], 'z', OrTable],
-        'or4': [['a', 'b', 'c', 'd'], 'z', OrTable],
-        'tristate': [['e', 'a'], 'z', TristateBufferTable],
-        'xor2': [['a', 'b'], 'z', XorTable],
-        'xnor2': [['a', 'b'], 'z', XnorTable]
+        'and2': [['A', 'B'], 'Z', AndTable],
+        'and3': [['A', 'B', 'C'], 'Z', AndTable],
+        'and4': [['A', 'B', 'C', 'D'], 'Z', AndTable],
+        'buffer': [['A'], 'Z', AndTable],
+        'inverter': [['A'], 'Z', NandTable],
+        'mux2': [['S', 'D0', 'D1'], 'Y', Mux2Table],
+        'mux4': [['S[0]', 'S[1]', 'D0', 'D1', 'D2', 'D3'], 'Y', Mux4Table],
+        'nand2': [['A', 'B'], 'Z', NandTable],
+        'nand3': [['A', 'B', 'C'], 'Z', NandTable],
+        'nand4': [['A', 'B', 'C', 'D'], 'Z', NandTable],
+        'nor2': [['A', 'B'], 'Z', NorTable],
+        'nor3': [['A', 'B', 'C'], 'Z', NorTable],
+        'nor4': [['A', 'B', 'C', 'D'], 'Z', NorTable],
+        'or2': [['A', 'B'], 'Z', OrTable],
+        'or3': [['A', 'B', 'C'], 'Z', OrTable],
+        'or4': [['A', 'B', 'C', 'D'], 'Z', OrTable],
+        'tristate': [['E', 'A'], 'Z', TristateBufferTable],
+        'xor2': [['A', 'B'], 'Z', XorTable],
+        'xnor2': [['A', 'B'], 'Z', XnorTable]
     };
 
     function LogicGate(network, type, name, table, inputs, output, properties) {

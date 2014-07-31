@@ -7,7 +7,7 @@
 // Copyright (C) 2011-2013 Massachusetts Institute of Technology
 // Chris Terman and Jacob White
 
-var cktsim = (function() {
+jade.cktsim = (function() {
 
     // JSON circuit description: [{type: device_type,
     //                             connections: {port_name: signal, ...},
@@ -2021,6 +2021,7 @@ var cktsim = (function() {
 
     function pwl_source(src, tv_pairs, repeat) {
         var nvals = tv_pairs.length;
+        src.tvpairs = tv_pairs;
         if (repeat) src.period = tv_pairs[nvals - 2]; // Repeat period of source
         if (nvals % 2 == 1) nvals -= 1; // make sure it's even!
 

@@ -164,6 +164,7 @@ jade.test_view = (function() {
         source = source.replace(/\/\/.*\n/g,'\n');
 
         var i,j,k,v;
+        var mode = 'device';  // which simulation to run
         var plots = [];     // list of signals to plot
         var tests = [];     // list of test lines
         var power = {};     // node name -> voltage
@@ -180,7 +181,12 @@ jade.test_view = (function() {
         for (k = 0; k < source.length; k += 1) {
             var line = source[k].match(/([A-Za-z0-9_.:\[\]]+|=|-)/g);
             if (line === null) continue;
-            if (line[0] == '.power' || line[0] == '.thresholds') {
+            if (line[0] == '.mode') {
+                if (line.length != 2) errors.push('Malformed .mode statement: '+source[k]);
+                else if (line[1] == 'device' || line[1] == 'gate') mode = line[1]
+                else errors.push('Unrecognized simulation mode: '+line[1]);
+            }
+            else if (line[0] == '.power' || line[0] == '.thresholds') {
                 // .power/.thresholds name=float name=float ...
                 for (i = 1; i < line.length; i += 3) {
                     if (i + 2 >= line.length || line[i+1] != '=') {
@@ -328,7 +334,12 @@ jade.test_view = (function() {
 
         var netlist;
         try {
-            netlist = jade.device_level.device_netlist(module.aspect('schematic'));
+            if (mode == 'device')
+                netlist = jade.device_level.device_netlist(module.aspect('schematic'));
+            else if (mode == 'gate')
+                netlist = jade.gate_level.gate_netlist(module.aspect('schematic'));
+            else
+                throw 'Unrecognized simulation mode: '+mode;
         }
         catch (e) {
             diagram.message("Error extracting netlist:<p>" + e);
@@ -351,7 +362,7 @@ jade.test_view = (function() {
             return;
         }
 
-        // ensure cktsim knows what gnd is
+        // ensure simulator knows what gnd is
         netlist.push({type: 'ground',connections:['gnd'],properties:{}});
 
         // add voltage sources for power supplies
@@ -359,22 +370,6 @@ jade.test_view = (function() {
             netlist.push({type:'voltage source',
                           connections:{nplus:node, nminus:'gnd'},
                           properties:{value:{type:'dc', args:[v]}, name:node+'_source'}});
-        });
-
-        // add pullup and pulldown FETs for driven nodes, connected to sources for Voh and Vol
-        netlist.push({type: 'voltage source',
-                      connections:{nplus: '_Voh_', nminus: 'gnd'},
-                      properties:{name: '_Voh_source', value:{type:'dc',args:[thresholds.Voh]}}});
-        netlist.push({type: 'voltage source',
-                      connections:{nplus: '_Vol_', nminus: 'gnd'},
-                      properties:{name: '_Voh_source', value:{type:'dc',args:[thresholds.Vol]}}});
-        $.each(driven_signals,function(node) {
-            netlist.push({type:'pfet',
-                          connections:{D:'_Voh_', G:node+'_pullup', S:node},
-                          properties:{W:8, L:1,name:node+'_pullup'}});
-            netlist.push({type:'nfet',
-                          connections:{D:node ,G:node+'_pulldown', S:'_Vol_'},
-                          properties:{W:8, L:1,name:node+'_pulldown'}});
         });
 
         // go through each test determining transition times for each driven node, adding
@@ -405,6 +400,152 @@ jade.test_view = (function() {
                     time += action[1];
                 }
             });
+        });
+
+        if (mode == 'device')
+            build_inputs_device(netlist,driven_signals,thresholds);
+        else if (mode == 'gate')
+            build_inputs_gate(netlist,driven_signals,thresholds);
+        else throw 'Unrecognized simulation mode: '+mode;
+        //console.log('stop time: '+time);
+        jade.netlist.print_netlist(netlist);
+
+        // handle results fromt the simulation
+        function process_results(percent_complete,results) {
+            if (percent_complete === undefined) {
+                jade.window_close(progress[0].win);  // done with progress bar
+
+                if (typeof results == 'string') {
+                    // oops, some sort of exception: just report it
+                    diagram.message(results);
+                    test_results[module.get_name()] = 'Error detected: '+results;
+                    return undefined;
+                } else if (results instanceof Error) {
+                    diagram.message(results.stack.split('\n').join('<br>'));
+                    test_results[module.get_name()] = 'Error detected: '+results.message;
+                    return undefined;
+                }
+
+                // check the sampled node values for each test cycle
+                var errors = [];
+                $.each(sampled_signals,function(node,tvlist) {
+                    var history = results._network_.history(node);
+                    var times = history.xvalues;
+                    var observed = history.yvalues;
+                    $.each(tvlist,function(index,tvpair) {
+                        var v;
+                        if (mode == 'device') {
+                            v = jade.device_level.interpolate(tvpair[0], times, observed);
+                            if ((tvpair[1] == 'L' && v > thresholds.Vil) ||
+                                (tvpair[1] == 'H' && v < thresholds.Vih)) 
+                                errors.push('Expected signal '+node+' to be a valid '+tvpair[1]+
+                                            ' at time '+jade.utils.engineering_notation(tvpair[0],2)+'s.');
+                        }
+                        else if (mode == 'gate') {
+                            v = jade.gate_level.interpolate(tvpair[0], times, observed);
+                            if ((tvpair[1] == 'L' && v != 0) ||
+                                (tvpair[1] == 'H' && v != 1)) 
+                                errors.push('Expected signal '+node+' to be a valid '+tvpair[1]+
+                                            ' at time '+jade.utils.engineering_notation(tvpair[0],2)+'s.');
+                        }
+                        else throw 'Unrecognized simulation mode: '+mode;
+                    });
+                });
+
+                if (errors.length > 0) {
+                    var postscript = '';
+                    if (errors.length > 3) {
+                        errors = errors.slice(0,5);
+                        postscript = '<br>...';
+                    }
+                    msg = '<ul><li>'+errors.join('<li>')+postscript+'</ul>';
+                    diagram.message(msg);
+                    test_results[module.get_name()] = 'Error detected: '+msg;
+                } else {
+                    diagram.message('Test succesful!');
+                    test_results[module.get_name()] = 'passed';
+                }
+
+                // construct a data set for the given signal
+                function new_dataset(signal) {
+                    var history = results._network_.history(signal);
+                    if (history !== undefined) {
+                        return {xvalues: [history.xvalues],
+                                yvalues: [history.yvalues],
+                                name: [signal],
+                                xunits: 's',
+                                yunits: mode == 'device' ? 'V' : '',
+                                color: ['#268bd2'],
+                                type: [results._network_.result_type()]
+                               };
+                    } else return undefined;
+                }
+
+                // called by plot.graph when user wants to plot another signal
+                function add_plot(signal) {
+                    // construct data set for requested signal
+                    // if the signal was legit, use callback to plot it
+                    var dataset = new_dataset(signal);
+                    if (dataset !== undefined) dataseries.push(dataset);
+                }
+
+                // produce requested plots
+                if (plots.length > 0) {
+                    var dataseries = []; // plots we want
+                    $.each(plots,function(index,signal) {
+                        dataseries.push(new_dataset(signal));
+                    });
+
+                    // callback to use if user wants to add a new plot
+                    dataseries.add_plot = add_plot;  
+
+                    // graph the result and display in a window
+                    var graph1 = jade.plot.graph(dataseries);
+                    var offset = $(diagram.canvas).offset();
+                    var win = jade.window('Test Results',graph1,offset);
+
+                    // resize window to 75% of test pane
+                    var win_w = win.width();
+                    var win_h = win.height();
+                    win[0].resize(Math.floor(0.75*$(diagram.canvas).width()) - win_w,
+                                  Math.floor(0.75*$(diagram.canvas).height()) - win_h);
+                }
+                return undefined;
+            } else {
+                progress[0].update_progress(percent_complete);
+                return progress[0].stop_requested;
+            }
+        }
+
+        // do the simulation
+        var progress = jade.progress_report();
+        jade.window('Progress',progress[0],$(diagram.canvas).offset());
+        if (mode == 'device')
+            jade.cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results);
+        else if (mode == 'gate')
+            jade.gatesim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results);
+        else 
+            throw 'Unrecognized simulation mode: '+mode;
+    };
+
+    // add netlist elements to drive input nodes
+    // for device simulation, each input node has a pullup and pulldown FET
+    // with the fet gate waveforms chosen to produce 0, 1 or Z
+    function build_inputs_device(netlist,driven_signals,thresholds) {
+        // add pullup and pulldown FETs for driven nodes, connected to sources for Voh and Vol
+        netlist.push({type: 'voltage source',
+                      connections:{nplus: '_Voh_', nminus: 'gnd'},
+                      properties:{name: '_Voh_source', value:{type:'dc',args:[thresholds.Voh]}}});
+        netlist.push({type: 'voltage source',
+                      connections:{nplus: '_Vol_', nminus: 'gnd'},
+                      properties:{name: '_Voh_source', value:{type:'dc',args:[thresholds.Vol]}}});
+        $.each(driven_signals,function(node) {
+            netlist.push({type:'pfet',
+                          connections:{D:'_Voh_', G:node+'_pullup', S:node},
+                          properties:{W:8, L:1,name:node+'_pullup'}});
+            netlist.push({type:'nfet',
+                          connections:{D:node ,G:node+'_pulldown', S:'_Vol_'},
+                          properties:{W:8, L:1,name:node+'_pulldown'}});
         });
 
         // construct PWL voltage sources to control pullups/pulldowns for driven nodes
@@ -455,106 +596,69 @@ jade.test_view = (function() {
                           connections: {nplus: node+'_pulldown', nminus: 'gnd'},
                           properties: {name: node+'_pulldown_source', value: {type: 'pwl', args: pulldown}}});
         });
-        //console.log('stop time: '+time);
-        //print_netlist(netlist);
+    }
 
-        // do the simulation
-        var progress = jade.device_level.tran_progress_report();
-        jade.window('Progress',progress[0],$(diagram.canvas).offset());
-        cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), function(percent_complete,results) {
-            if (percent_complete === undefined) {
-                jade.window_close(progress[0].win);  // done with progress bar
-
-                if (typeof results == 'string') {
-                    // oops, some sort of exception: just report it
-                    diagram.message(results);
-                    test_results[module.get_name()] = 'Error detected: '+results;
-                    return;
-                } else if (results instanceof Error) {
-                    diagram.message(results.stack.split('\n').join('<br>'));
-                    test_results[module.get_name()] = 'Error detected: '+results.message;
-                    return;
-                }
-
-                // check the sampled node values for each test cycle
-                var errors = [];
-                $.each(sampled_signals,function(node,tvlist) {
-                    var history = results._network_.history(node);
-                    var times = history.xvalues;
-                    var observed = history.yvalues;
-                    $.each(tvlist,function(index,tvpair) {
-                        var v = jade.device_level.interpolate(tvpair[0], times, observed);
-                        if ((tvpair[1] == 'L' && v > thresholds.Vil) ||
-                            (tvpair[1] == 'H' && v < thresholds.Vih)) 
-                            errors.push('Expected signal '+node+' to be a valid '+tvpair[1]+
-                                        ' at time '+jade.utils.engineering_notation(tvpair[0],2)+'s.');
-                    });
-                });
-
-                if (errors.length > 0) {
-                    var postscript = '';
-                    if (errors.length > 3) {
-                        errors = errors.slice(0,5);
-                        postscript = '<br>...';
-                    }
-                    msg = '<ul><li>'+errors.join('<li>')+postscript+'</ul>';
-                    diagram.message(msg);
-                    test_results[module.get_name()] = 'Error detected: '+msg;
-                } else {
-                    diagram.message('Test succesful!');
-                    test_results[module.get_name()] = 'passed';
-                }
-
-                // construct a data set for the given signal
-                function new_dataset(signal) {
-                    var history = results._network_.history(signal);
-                    if (history !== undefined) {
-                        return {xvalues: [history.xvalues],
-                                yvalues: [history.yvalues],
-                                name: [signal],
-                                xunits: 's',
-                                yunits: 'V',
-                                color: ['#268bd2'],
-                                type: ['analog']
-                               };
-                    } else return undefined;
-                }
-
-                // called by plot.graph when user wants to plot another signal
-                function add_plot(signal) {
-                    // construct data set for requested signal
-                    // if the signal was legit, use callback to plot it
-                    var dataset = new_dataset(signal);
-                    if (dataset !== undefined) dataseries.push(dataset);
-                }
-
-                // produce requested plots
-                if (plots.length > 0) {
-                    var dataseries = []; // plots we want
-                    $.each(plots,function(index,signal) {
-                        dataseries.push(new_dataset(signal));
-                    });
-
-                    // callback to use if user wants to add a new plot
-                    dataseries.add_plot = add_plot;  
-
-                    // graph the result and display in a window
-                    var graph1 = jade.plot.graph(dataseries);
-                    var offset = $(diagram.canvas).offset();
-                    var win = jade.window('Test Results',graph1,offset);
-
-                    // resize window to 75% of test pane
-                    var win_w = win.width();
-                    var win_h = win.height();
-                    win[0].resize(Math.floor(0.75*$(diagram.canvas).width()) - win_w,
-                                  Math.floor(0.75*$(diagram.canvas).height()) - win_h);
-                }
-            } else {
-                progress.find('.jade-progress-bar').css('width',percent_complete+'%');
-                return progress[0].stop_requested;
-            }
+    // add netlist elements to drive input nodes
+    // for gate simulation, each input node is connected to a tristate driver
+    // with the input and enable waveforms chosen to produce 0, 1 or Z
+    function build_inputs_gate(netlist,driven_signals,thresholds) {
+        // add tristate drivers for driven nodes
+        $.each(driven_signals,function(node) {
+            netlist.push({type:'tristate',
+                          connections:{E:node+'_enable', A:node+'_data', Z:node},
+                          properties:{name: node+'_input_driver', tcd: 0, tpd: 100e-12, tr: 5000, tf: 5000, cin:0, size:0}});
         });
-    };
+
+
+        // construct PWL voltage sources to control data and enable inputs for driven nodes
+        $.each(driven_signals,function(node,tvlist) {
+            var e_pwl = [0,thresholds.Vol];   // initial <t,v> for enable (off)
+            var a_pwl = [0,thresholds.Vol];     // initial <t,v> for pullup (0)
+            // run through tvlist, setting correct values for pullup and pulldown gates
+            $.each(tvlist,function(index,tvpair) {
+                var t = tvpair[0];
+                var v = tvpair[1];
+                var E,A;
+                if (v == '0') {
+                    // want enable on, data 0
+                    E = thresholds.Voh;
+                    A = thresholds.Vol;
+                }
+                else if (v == '1') {
+                    // want enable on, data 1
+                    E = thresholds.Voh;
+                    A = thresholds.Voh;
+                }
+                else if (v == 'Z' || v=='-') {
+                    // want enable off, data is don't care
+                    E = thresholds.Vol;
+                    A = thresholds.Vol;
+                }
+                else
+                    console.log('node: '+node+', tvlist: '+JSON.stringify(tvlist));
+                // ramp to next control voltage over 0.1ns
+                var last_E = e_pwl[e_pwl.length - 1];
+                if (last_E != E) {
+                    if (t != e_pwl[e_pwl.length - 2])
+                        e_pwl.push.apply(e_pwl,[t,last_E]);
+                    e_pwl.push.apply(e_pwl,[t+0.1e-9,E]);
+                }
+                var last_A = a_pwl[a_pwl.length - 1];
+                if (last_A != A) {
+                    if (t != a_pwl[a_pwl.length - 2])
+                        a_pwl.push.apply(a_pwl,[t,last_A]);
+                    a_pwl.push.apply(a_pwl,[t+0.1e-9,A]);
+                }
+            });
+            // set up voltage sources for enable and data
+            netlist.push({type: 'voltage source',
+                          connections: {nplus: node+'_enable', nminus: 'gnd'},
+                          properties: {name: node+'_enable_source', value: {type: 'pwl', args: e_pwl}}});
+            netlist.push({type: 'voltage source',
+                          connections: {nplus: node+'_data', nminus: 'gnd'},
+                          properties: {name: node+'_data_source', value: {type: 'pwl', args: a_pwl}}});
+        });
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     //

@@ -31,7 +31,7 @@ var jade = (function() {
         // insert framework into DOM
         this.top_level = $('<div class="jade-top-level">' +
                            ' <div class="jade-tabs-div"></div>' +
-                           ' <div class="jade-status"><span id="message"></span><div style="float:right">Jade 2.0.13</div></div>' +
+                           ' <div class="jade-status"><span id="message"></span><div style="float:right">Jade 2.1.2</div></div>' +
                            '</div>');
         $(owner).append(this.top_level);
 
@@ -1303,6 +1303,22 @@ var jade = (function() {
     //
     ////////////////////////////////////////////////////////////////////////////////
 
+    // build simple progress bar with stop button
+    function progress_report() {
+        var progress = $('<div class="jade-progress"><div class="jade-progress-wrapper"><div class="jade-progress-bar" style="width:0%"></div></div><button id="stop">Stop</button></div>');
+
+        // call to update progress bar
+        progress[0].update_progress = function (percent) {
+            progress.find('.jade-progress-bar').css('width',percent+'%');
+        };
+
+        var stop = progress.find('#stop');
+        stop.on('click',function(event) {
+            progress[0].stop_requested = true;
+        });
+        return progress;
+    }
+
     Diagram.prototype.dialog = function(title, content, callback) {
         // position top,left of window where mouse is.  mouse_x and mouse_y
         // are relative to the canvas, so use its offset to figure things out
@@ -1681,6 +1697,7 @@ var jade = (function() {
         build_button: build_button,
         build_input: build_input,
         build_select: build_select,
+        progress_report: progress_report,
         dialog: dialog,
         window: jade_window,
         window_close: window_close

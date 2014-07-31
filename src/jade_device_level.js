@@ -194,7 +194,7 @@ jade.device_level = (function() {
         if (netlist.length > 0) {
             var ckt;
             try {
-                ckt = new cktsim.Circuit(netlist);
+                ckt = new jade.cktsim.Circuit(netlist);
             }
             catch (e) {
                 diagram.message(e);
@@ -214,13 +214,16 @@ jade.device_level = (function() {
             //console.log('OP: '+JSON.stringify(operating_point));
 
             if (operating_point !== undefined) {
+                /*
                 // save a copy of the results for submission
                 var dc = {};
                 for (var i in operating_point) {
+                    if (i == '_network_') continue;
                     dc[i] = operating_point[i];
                 }
-                // add permanenty copy to module's properties
+                // add permanent copy to module's properties
                 diagram.aspect.module.set_property('dc_results', dc);
+                 */
 
                 // display results on diagram
                 diagram.add_annotation(function(diagram) {
@@ -307,7 +310,7 @@ jade.device_level = (function() {
         var npts = 50;
 
         if (netlist.length > 0) {
-            var ckt = new cktsim.Circuit(netlist);
+            var ckt = new jade.cktsim.Circuit(netlist);
             var results;
             try {
                 results = ckt.ac(npts, fstart, fstop, ac_source_name);
@@ -476,17 +479,6 @@ jade.device_level = (function() {
     //
     //////////////////////////////////////////////////////////////////////////////
 
-    // build simple progress bar with stop button
-    function tran_progress_report() {
-        var progress = $('<div class="jade-progress"><div class="jade-progress-wrapper"><div class="jade-progress-bar" style="width:0%"></div></div><button id="stop">Stop</button></div>');
-        var stop = progress.find('#stop');
-        stop.on('click',function(event) {
-            event.target.progress.stop_requested = true;
-        });
-        stop[0].progress = progress[0];
-        return progress;
-    }
-
     function setup_transient_analysis(diagram) {
         diagram.remove_annotations();
 
@@ -521,16 +513,17 @@ jade.device_level = (function() {
                     probe_names[i] = probes[i][1];
                 }
 
-                var progress = tran_progress_report();
+                var progress = jade.progress_report();
                 diagram.window('Progress', progress); // display progress bar
 
-                cktsim.transient_analysis(netlist,tstop,probe_names,function(percent_complete,results) {
+                jade.cktsim.transient_analysis(netlist,tstop,probe_names,function(percent_complete,results) {
                     if (results === undefined) {
-                        progress.find('.jade-progress-bar').css('width',percent_complete+'%');
+                        progress[0].update_progress(percent_complete);
                         return progress[0].stop_requested;
                     } else {
                         jade.window_close(progress.win); // all done with progress bar
                         transient_results(results,diagram,probes);
+                        return undefined;
                     }
                 });
             }
@@ -613,7 +606,6 @@ jade.device_level = (function() {
 
     return {
         device_netlist: device_netlist,
-        tran_progress_report: tran_progress_report,
         interpolate: interpolate
     };
 
