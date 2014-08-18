@@ -349,9 +349,25 @@ jade.utils = (function () {
     //  sig := symbol
     //      := sig#count         -- replicate sig specified number of times
     //      := sig[start:stop:step]   -- expands to sig[start],sig[start+step],...,sig[end]
+    //      := number'size       -- generate appropriate list of vdd, gnd to represent number
     function parse_signal(s) {
         function parse_sig(sig) {
             var m;
+            var result = [];
+
+            // numeric constant: number'size
+            // number should be acceptable to parse_number
+            // size (in decimal) gives number of bits of signals
+            // expands into appropriate list of vdd and gnd
+            m = sig.match(/(.*)'(\d+)$/);
+            if (m) {
+                var n = parse_number(m[1]);
+                var size = parseInt(m[2],10);
+                for (var i = size-1; i >= 0; i -= 1) {
+                    result.push((n & (1 << i)) !== 0 ? 'vdd' : 'gnd');
+                }
+                return result;
+            }
 
             // replicated signal: sig#number
             m = sig.match(/(.*)#\s*(\d+)$/);
@@ -359,7 +375,6 @@ jade.utils = (function () {
                 var expansion = parse_sig(m[1].trim());
                 var count = parseInt(m[2],10);
                 if (isNaN(count)) return [sig];
-                var result = [];
                 while (count > 0) {
                     result.push.apply(result, expansion);
                     count -= 1;
@@ -376,7 +391,6 @@ jade.utils = (function () {
                 var step = Math.abs(parseInt(m[5],10) || 1);
                 if (end < start) step = -step;
 
-                var result = [];
                 while (true) {
                     for (var k = 0; k < expansion.length; k += 1) {
                         result.push(expansion[k] + '[' + start.toString() + ']');
