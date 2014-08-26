@@ -1,3 +1,0 @@
-SSLRequireSSL
-AddHandler cgi-script .cgi
-Options ExecCGI
