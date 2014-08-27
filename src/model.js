@@ -161,7 +161,7 @@ jade.model = (function () {
         this.library = lib;
         this.name = name;
         this.aspects = {};
-        this.properties = {};
+        this.properties = {"iterations":{"edit":"yes","type":"string","value":"1","label":"Iterations"}};
         this.modified = false;
 
         // list of callbacks when load is complete

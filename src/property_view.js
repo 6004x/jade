@@ -64,7 +64,7 @@ jade.property_view = (function() {
                 module.remove_property(pname);
                 editor.build_table();
             });
-            if (read_only) $(field).attr('disabled','true');
+            if (read_only || pname=='iterations') $(field).attr('disabled','true');
             td.append(field);
 
             // name (not editable)
@@ -74,7 +74,7 @@ jade.property_view = (function() {
             function add_column(attr,field,filter) {
                 var td = $('<td></td>').append(field);
                 tr.append(td);
-                if (read_only) $(field).attr('disabled','true');
+                if (read_only || (pname=='iterations' && attr!='value')) $(field).attr('disabled','true');
                 $(field).on('change',function (event) {
                     var v = event.target.value.trim();
                     if (filter) v = filter(v);
