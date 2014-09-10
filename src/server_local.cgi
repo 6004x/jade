@@ -38,7 +38,8 @@ if json is not None:
         f.write(json)
         f.close()
     except:
-        http_status('500 Write failed: %s' % sys.exc_info()[0])
+        err = sys.exc_info()
+        http_status('500 Write failed: %s' % err[1])
     http_status('200 OK')
 
 # request for a file, return as json
