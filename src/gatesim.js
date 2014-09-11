@@ -1308,9 +1308,10 @@ jade.gatesim = (function() {
         this.type = type;
         this.size = properties.size || 0;
 
-        this.d = connections.d;
-        this.clk = connections.clk;
-        this.q = connections.q;
+        // 9/11/14 SAW: DREG terminal names seem to be upper case, fixed refs here:
+        this.d = connections.D;
+        this.clk = connections.CLK;
+        this.q = connections.Q;
 
         this.d.add_fanout(this);
         this.clk.add_fanout(this);
