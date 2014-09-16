@@ -7,6 +7,7 @@ what:
 	@echo "Make what?  Plausible args include"
 	@echo
 	@echo "  make run              run local copy of Jade, using MYFILES"
+	@echo
 
 	@echo "  make run-cjt          run local copy of Jade, using cjt's files"
 	@echo "  make run-ward         run local copy of Jade, using ward's files"
@@ -18,6 +19,7 @@ what:
 	@echo "  make push-ward        Update ward's files in next git commit/push"
 	@echo "  make push-notes       Update notes files in next git commit/push"
 	@echo "  make push-bugs        Update bugs files in next git commit/push"
+	@echo
 
 	@echo "  make commit           update modified/deleted files prior to git push"
 
@@ -67,7 +69,4 @@ files:
 	- mkdir src/files
 	scp -r 6004X.csail.mit.edu:jade/libraries/$(USERDIR)/* src/files/
 	chmod 777 src/files src/files/*
-
-try:
-	chrome http://localhost/jade/src/jade_local.html
 
