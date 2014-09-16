@@ -6,8 +6,19 @@ MYFILES=src/files/$(USER)
 what:
 	@echo "Make what?  Plausible args include"
 	@echo
-	@echo "  make run:             run local copy of Jade, using MYFILES"
+	@echo "  make run              run local copy of Jade, using MYFILES"
+
+	@echo "  make run-cjt          run local copy of Jade, using cjt's files"
+	@echo "  make run-ward         run local copy of Jade, using ward's files"
+	@echo "  make run-notes        run local copy of Jade, using notes files"
+	@echo "  make run-bugs         run local copy of Jade, using bugs files"
 	@echo
+	@echo "  make push-mine        Update your files in next git commit/push"
+	@echo "  make push-cjt         Update CJT's files in next git commit/push"
+	@echo "  make push-ward        Update ward's files in next git commit/push"
+	@echo "  make push-notes       Update notes files in next git commit/push"
+	@echo "  make push-bugs        Update bugs files in next git commit/push"
+
 	@echo "  make commit           update modified/deleted files prior to git push"
 
 
