@@ -1166,8 +1166,9 @@ jade.schematic_view = (function() {
         else c.stroke();
     };
 
-    Part.prototype.draw_text = function(text, x, y, size) {
+    Part.prototype.draw_text = function(text, x, y, font) {
         // most text not displayed for the parts icon
+        this.draw_text_important(text,x,y,font);
     };
 
     Part.prototype.draw_text_important = function(text, x, y, font) {

@@ -410,7 +410,7 @@ jade.test_view = (function() {
         //console.log('stop time: '+time);
         jade.netlist.print_netlist(netlist);
 
-        // handle results fromt the simulation
+        // handle results from the simulation
         function process_results(percent_complete,results) {
             if (percent_complete === undefined) {
                 jade.window_close(progress[0].win);  // done with progress bar
@@ -520,12 +520,19 @@ jade.test_view = (function() {
         // do the simulation
         var progress = jade.progress_report();
         jade.window('Progress',progress[0],$(diagram.canvas).offset());
-        if (mode == 'device')
-            jade.cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results);
-        else if (mode == 'gate')
-            jade.gatesim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results);
-        else 
-            throw 'Unrecognized simulation mode: '+mode;
+        try {
+            if (mode == 'device')
+                jade.cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results);
+            else if (mode == 'gate')
+                jade.gatesim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results);
+            else 
+                throw 'Unrecognized simulation mode: '+mode;
+        } catch (e) {
+            jade.window_close(progress[0].win);  // done with progress bar
+            diagram.message("Error running simulation:<p>" + e);
+            test_results[module.get_name()] = 'Error detected running simulation:<p>'+e;
+            return;
+        }
     };
 
     // add netlist elements to drive input nodes
