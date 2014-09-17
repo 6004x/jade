@@ -22,10 +22,35 @@ what:
 	@echo
 
 	@echo "  make commit           update modified/deleted files prior to git push"
+	@echo "  make pull             update files from git repository"
+
+	@echo
+	@echo "  make beta-json        Readable version of a json file"
+
+################################################################################
+### GIT interface commands:
+################################################################################
+
+pull:
+	git pull
+	chmod 777 src/files/* src/files/*/*
 
 
 commit:
 	git commit -a -m "`date`"
+
+
+# Add/delete my files to/from the GIT repo:
+push-mine:	$(MYFILES)
+		git add --all $(MYFILES)
+
+push-notes:	src/files/notes
+		git add --all src/files/notes
+
+push-bugs:	src/files/bugs
+		git add --all src/files/bugs
+
+
 
 ################################################################################
 ### Running from local git sandbox
@@ -54,15 +79,9 @@ run-notes:
 run-bugs:
 	chrome "http://localhost/jade/src/jade_local.html?dir=bugs"
 
-# Add/delete my files to/from the GIT repo:
-push-mine:	$(MYFILES)
-		git add --all $(MYFILES)
-
-push-notes:	src/files/notes
-		git add --all src/files/notes
-
-push-bugs:	src/files/bugs
-		git add --all src/files/bugs
+# ad-hoc target to show json of a file:
+beta-json:
+	cat src/files/ward/beta | underscore print
 
 # Copy user's Jade files from 6004x to src/files, where they are accessed by server_local.cgi:
 files:
