@@ -26,7 +26,7 @@ jade.schematic_view = (function() {
         this.diagram.grid = 8;
         this.diagram.zoom_factor = 1.25; // scaling is some power of zoom_factor
         this.diagram.zoom_min = Math.pow(this.diagram.zoom_factor, - 3);
-        this.diagram.zoom_max = Math.pow(this.diagram.zoom_factor, 5);
+        this.diagram.zoom_max = Math.pow(this.diagram.zoom_factor, 9);
         this.diagram.origin_min = -200; // in grids
         this.diagram.origin_max = 200;
 
