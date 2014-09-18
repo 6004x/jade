@@ -26,6 +26,9 @@ jade.test_view = (function() {
      .group inputs A B
      .group outputs Z
 
+     // simulation mode is either "device" or "gate"
+     .mode gate
+
      // tests are sequences of lines supplying test values; .cycle specifies
      // actions that will be performed for each test.  Available actions are
      //   assert <group> -- set values for signals in <group> with H,L test values
@@ -154,6 +157,43 @@ jade.test_view = (function() {
         return [this.type(), this.test];
     };
 
+    function parse_plot(line,errors,plots) {
+        // .plot sig sig ...
+        // sig is signal name or dfunction(sig [,] sig ...)
+        var j,k;
+        var dfunction,siglist,okay,name;
+        var plist = [];
+        j = 0;
+        while (j < line.length) {
+            if (j+1 < line.length && line[j+1] == '(') {
+                // parse dfunction(sig [,] sig ...)
+                dfunction = line[j];
+                j += 2;
+                siglist = [];
+                name = dfunction+'(';
+                okay = false;
+                while (j < line.length) {
+                    if (line[j] == ')') { name += ')'; okay = true; break; }
+                    if (name[name.length - 1] != '(') name += ',';
+                    name += line[j];
+                    $.each(jade.utils.parse_signal(line[j]), function (index,sig) {
+                        siglist.push(sig);
+                    });
+                    j += 1;
+                    if (j < line.length && line[j] == ',') j += 1;
+                }
+                if (!okay) errors.push('Missing ) in .plot statement: '+line.join(' '));
+                else plist.push({signals: siglist, dfunction: dfunction, name: name});
+            } else {
+                $.each(jade.utils.parse_signal(line[j]), function (index,sig) {
+                    plist.push({signals: [sig], dfunction: undefined, name: sig});
+                });
+            }
+            j += 1;
+        }
+        plots.push(plist);
+    }
+
     function run_tests(source,diagram,module) {
         var test_results = diagram.editor.jade.configuration.tests;
         test_results[module.get_name()] = 'Error detected: test did not yield a result.';
@@ -174,12 +214,13 @@ jade.test_view = (function() {
         var signals = [];  // list if signals in order that they'll appear on test line
         var driven_signals = {};   // if name in dictionary it will need a driver ckt
         var sampled_signals = {};   // if name in dictionary we want its value
+        var plotdefs = {};   // name -> array of string representations for values
         var errors = [];
 
         // process each line in test specification
         source = source.split('\n');
         for (k = 0; k < source.length; k += 1) {
-            var line = source[k].match(/([A-Za-z0-9_.:\[\]]+|=|-)/g);
+            var line = source[k].match(/([A-Za-z0-9_.:\[\]]+|=|-|,|\(|\))/g);
             if (line === null) continue;
             if (line[0] == '.mode') {
                 if (line.length != 2) errors.push('Malformed .mode statement: '+source[k]);
@@ -219,13 +260,16 @@ jade.test_view = (function() {
                     }
                 }
             }
-            else if (line[0] == '.plot') {
-                for (j = 1; j < line.length; j += 1) {
-                    $.each(jade.utils.parse_signal(line[j]), function (index,sig) {
-                        plots.push(sig);
-                        sampled_signals[sig] = [];
-                    });
+            else if (line[0] == '.plotdef') {
+                // .plotdef name val0 val1 ...
+                if (line.length < 3) {
+                    errors.push('Malformed .plotdef statement: '+source[k]);
+                } else {
+                    plotdefs[line[1]] = line.slice(2);
                 }
+            }
+            else if (line[0] == '.plot') {
+                parse_plot(line.slice(1),errors,plots);
             }
             else if (line[0] == '.cycle') {
                 // .cycle actions...
@@ -410,6 +454,87 @@ jade.test_view = (function() {
         //console.log('stop time: '+time);
         jade.netlist.print_netlist(netlist);
 
+        function multibit_to_int(dataset) {
+            // first merge all the nodes in the dataset into a single
+            // set of xvalues and yvalues, where each yvalue is an array of
+            // digital values from the component nodes
+            var xv = [];
+            var yv = [];
+            var vil = thresholds.Vil || 0.2;
+            var vih = thresholds.Vih || 0.8;
+            var nnodes = dataset.xvalues.length;  // number of nodes
+            var i,nindex,vindex,x,y,last_y,xvalues,yvalues,nvalues,type;
+            for (nindex = 0; nindex < nnodes; nindex += 1) {
+                xvalues = dataset.xvalues[nindex];
+                yvalues = dataset.yvalues[nindex];
+                nvalues = xvalues.length;
+                type = dataset.type[nindex];
+                i = 0;  // current index into merged values
+                last_y = undefined;
+                for (vindex = 0; vindex < nvalues; vindex += 1) {
+                    x = xvalues[vindex];
+                    y = yvalues[vindex];
+
+                    // convert to a digital value if necessary
+                    if (type == 'analog') y = (y <= vil) ? 0 : ((y >= vih) ? 1 : 2);
+
+                    // don't bother if node already has this logic value
+                    // unless it's the final time point, which we need to keep
+                    if (vindex != nvalues-1 && y == last_y) continue;
+
+                    // skip over merged values till we find where x belongs
+                    while (i < xv.length) {
+                        if (xv[i] >= x) break;
+                        // add new bit to time point we're skipping over
+                        yv[i][nindex] = last_y;  
+                        i += 1;
+                    }
+
+                    if (xv[i] == x) {
+                        // exact match of time with existing time point, so just add new bit
+                        yv[i][nindex] = y;
+                    } else {
+                        // need to insert new time point, copy previous time point, if any
+                        // otherwise make a new one from scratch
+                        var new_value;
+                        if (i > 0) new_value = yv[i-1].slice(0);  // copy previous one
+                        else new_value = new Array();
+                        new_value[nindex] = y;
+                        // insert new time point into xv and yv arrays
+                        xv.splice(i,0,x);
+                        yv.splice(i,0,new_value);
+                    }
+
+                    // all done! move to next value to merge
+                    last_y = y;    // needed to fill in entries we skip over
+                }
+
+                // propagate final value through any remaining elements
+                while (i < xv.length) {
+                    // add new bit to time point we're skipping over
+                    yv[i][nindex] = last_y;  
+                    i += 1;
+                }
+            }
+
+            // convert the yv's to integers or undefined, then format as specified
+            for (vindex = 0; vindex < yv.length; vindex += 1) {
+                yvalues = yv[vindex];
+                y = 0;
+                for (nindex = 0; nindex < nnodes; nindex += 1) {
+                    i = yvalues[nindex];
+                    if (i === 0 || i == 1) y = y*2 + i;
+                    else if (i == 3) y = -1;  // < 0 means Z
+                    else { y = undefined; break; }
+                }
+                yv[vindex] = y;
+            }
+            dataset.xvalues = xv;
+            dataset.yvalues = yv;
+            dataset.nnodes = nnodes;
+            return dataset;
+        }
+
         // handle results from the simulation
         function process_results(percent_complete,results) {
             if (percent_complete === undefined) {
@@ -466,17 +591,87 @@ jade.test_view = (function() {
                     test_results[module.get_name()] = 'passed';
                 }
 
-                // construct a data set for the given signal
-                function new_dataset(signal) {
-                    var history = results._network_.history(signal);
-                    if (history !== undefined) {
-                        return {xvalues: [history.xvalues],
-                                yvalues: [history.yvalues],
-                                name: [signal],
+                // construct a data set for {signals: [sig...], dfunction: string, name: string}
+                var plot_colors = ['#268bd2','#dc322f','#859900','#b58900','#6c71c4','#d33682','#2aa198'];
+                function new_dataset(plist) {
+                    var xvalues = [];
+                    var yvalues = [];
+                    var name = [];
+                    var color = [];
+                    var type = [];
+                    var xy,f;
+                    var yunits = mode == 'device' ? 'V' : '';
+                    $.each(plist,function (pindex,pspec) {
+                        if (pspec.dfunction) {
+                            // gather history information for each signal
+                            var xv = [];  // each element is a list of times
+                            var yv = [];  // each element is a list of values
+                            var t = [];
+                            var fn = pspec.dfunction;
+                            $.each(pspec.signals,function (index,sig) {
+                                var history = results._network_.history(sig);
+                                // deal with dfunction here...
+                                if (history !== undefined) {
+                                    xv.push(history.xvalues);
+                                    yv.push(history.yvalues);
+                                    t.push(results._network_.result_type());
+                                }
+                            });
+
+                            // merge multibit xvalues and yvalues into xvalues and integers
+                            xy = multibit_to_int({xvalues: xv, yvalues: yv, type: t});
+
+                            // convert each yvalue to its final representation
+                            $.each(xy.yvalues,function (index,y) {
+                                if (y !== undefined) {
+                                    if (y < 0) {
+                                        y = -1;  // indicate Z value for bus
+                                    } else if (fn in plotdefs) {
+                                        var v = plotdefs[fn][y];
+                                        if (v) y = v;
+                                        else {
+                                            // use hex if for some reason plotDef didn't supply a string
+                                            y = "0x" + ("0000000000000000" + y.toString(16)).substr(-Math.ceil(xy.nnodes/4));
+                                        }
+                                    } else if (fn == 'X' || fn == 'x') {  // format as hex number
+                                        y = "0x" + ("0000000000000000" + y.toString(16)).substr(-Math.ceil(xy.nnodes/4));
+                                    } else if (fn == 'O' || fn == 'o') {  // format as octal number
+                                        y = "0" + ("0000000000000000000000" + y.toString(8)).substr(-Math.ceil(xy.nnodes/3));
+                                    } else if (fn == 'B' || fn == 'b') {  // format as binary number
+                                        y = "0b" + ("0000000000000000000000000000000000000000000000000000000000000000" + y.toString(2)).substr(-Math.ceil(xy.nnodes));
+                                    } else throw "No definition for plot function "+fn;
+                                    xy.yvalues[index] = y;
+                                }
+                            });
+                            color.push(plot_colors[xvalues.length % plot_colors.length]);
+                            xvalues.push(xy.xvalues);
+                            yvalues.push(xy.yvalues);
+                            name.push(pspec.name);
+                            type.push('string');
+                            yunits = '';
+                        } else {
+                            $.each(pspec.signals,function (index,sig) {
+                                var history = results._network_.history(sig);
+                                // deal with dfunction here...
+                                if (history !== undefined) {
+                                    color.push(plot_colors[xvalues.length % plot_colors.length]);
+                                    xvalues.push(history.xvalues);
+                                    yvalues.push(history.yvalues);
+                                    name.push(sig);
+                                    type.push(results._network_.result_type());
+                                }
+                            });
+                        }
+                    });
+                        
+                    if (xvalues.length > 0) {
+                        return {xvalues: xvalues,
+                                yvalues: yvalues,
+                                name: name,
                                 xunits: 's',
-                                yunits: mode == 'device' ? 'V' : '',
-                                color: ['#268bd2'],
-                                type: [results._network_.result_type()]
+                                yunits: yunits,
+                                color: color,
+                                type: type
                                };
                     } else return undefined;
                 }
@@ -492,8 +687,8 @@ jade.test_view = (function() {
                 // produce requested plots
                 if (plots.length > 0) {
                     var dataseries = []; // plots we want
-                    $.each(plots,function(index,signal) {
-                        dataseries.push(new_dataset(signal));
+                    $.each(plots,function(index,plist) {
+                        dataseries.push(new_dataset(plist));
                     });
 
                     // callback to use if user wants to add a new plot
