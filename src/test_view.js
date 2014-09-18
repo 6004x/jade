@@ -26,6 +26,9 @@ jade.test_view = (function() {
      .group inputs A B
      .group outputs Z
 
+     // simulation mode is either "device" or "gate"
+     .mode gate
+
      // tests are sequences of lines supplying test values; .cycle specifies
      // actions that will be performed for each test.  Available actions are
      //   assert <group> -- set values for signals in <group> with H,L test values
@@ -154,6 +157,40 @@ jade.test_view = (function() {
         return [this.type(), this.test];
     };
 
+    function parse_plot(line,errors,plots) {
+        // .plot sig sig ...
+        // sig is signal name or dfunction(sig [,] sig ...)
+        var j,k;
+        var dfunction,siglist,okay;
+        var plist = [];
+        j = 0;
+        while (j < line.length) {
+            if (j+1 < line.length && line[j+1] == '(') {
+                // parse dfunction(sig [,] sig ...)
+                dfunction = line[j];
+                j += 2;
+                siglist = [];
+                okay = false;
+                while (j < line.length) {
+                    if (line[j] == ')') { okay = true; break; }
+                    $.each(jade.utils.parse_signal(line[j]), function (index,sig) {
+                        siglist.push(sig);
+                    });
+                    j += 1;
+                    if (j < line.length && line[j] == ',') j += 1;
+                }
+                if (!okay) errors.push('Missing ) in .plot statement: '+line.join(' '));
+                else plist.push({signals: siglist, dfunction: dfunction});
+            } else {
+                $.each(jade.utils.parse_signal(line[j]), function (index,sig) {
+                    plist.push({signals: [sig], dfunction: undefined});
+                });
+            }
+            j += 1;
+        }
+        plots.push(plist);
+    }
+
     function run_tests(source,diagram,module) {
         var test_results = diagram.editor.jade.configuration.tests;
         test_results[module.get_name()] = 'Error detected: test did not yield a result.';
@@ -174,12 +211,13 @@ jade.test_view = (function() {
         var signals = [];  // list if signals in order that they'll appear on test line
         var driven_signals = {};   // if name in dictionary it will need a driver ckt
         var sampled_signals = {};   // if name in dictionary we want its value
+        var plotdefs = {};   // name -> array of string representations for values
         var errors = [];
 
         // process each line in test specification
         source = source.split('\n');
         for (k = 0; k < source.length; k += 1) {
-            var line = source[k].match(/([A-Za-z0-9_.:\[\]]+|=|-)/g);
+            var line = source[k].match(/([A-Za-z0-9_.:\[\]]+|=|-|,|\(|\))/g);
             if (line === null) continue;
             if (line[0] == '.mode') {
                 if (line.length != 2) errors.push('Malformed .mode statement: '+source[k]);
@@ -219,13 +257,16 @@ jade.test_view = (function() {
                     }
                 }
             }
-            else if (line[0] == '.plot') {
-                for (j = 1; j < line.length; j += 1) {
-                    $.each(jade.utils.parse_signal(line[j]), function (index,sig) {
-                        plots.push(sig);
-                        sampled_signals[sig] = [];
-                    });
+            else if (line[0] == '.plotdef') {
+                // .plotdef name val0 val1 ...
+                if (line.length < 3) {
+                    errors.push('Malformed .plotdef statement: '+source[k]);
+                } else {
+                    plotdefs[line[1]] = line.slice(2);
                 }
+            }
+            else if (line[0] == '.plot') {
+                parse_plot(line.slice(1),errors,plots);
             }
             else if (line[0] == '.cycle') {
                 // .cycle actions...
@@ -466,17 +507,40 @@ jade.test_view = (function() {
                     test_results[module.get_name()] = 'passed';
                 }
 
-                // construct a data set for the given signal
-                function new_dataset(signal) {
-                    var history = results._network_.history(signal);
-                    if (history !== undefined) {
-                        return {xvalues: [history.xvalues],
-                                yvalues: [history.yvalues],
-                                name: [signal],
+                // construct a data set for {signals: [sig...], dfunction: string}
+                var plot_colors = ['#268bd2','#dc322f','#859900','#b58900','#6c71c4','#d33682','#2aa198'];
+                function new_dataset(plist) {
+                    var xvalues = [];
+                    var yvalues = [];
+                    var name = [];
+                    var color = [];
+                    var type = [];
+                    $.each(plist,function (pindex,pspec) {
+                        if (pspec.dfunction) {
+                            // ... more here ...
+                        } else {
+                            $.each(pspec.signals,function (index,sig) {
+                                var history = results._network_.history(sig);
+                                // deal with dfunction here...
+                                if (history !== undefined) {
+                                    xvalues.push(history.xvalues);
+                                    yvalues.push(history.yvalues);
+                                    name.push(sig);
+                                    color.push(plot_colors[index % plot_colors.length]);
+                                    type.push(results._network_.result_type());
+                                }
+                            });
+                        }
+                    });
+                        
+                    if (xvalues.length > 0) {
+                        return {xvalues: xvalues,
+                                yvalues: yvalues,
+                                name: name,
                                 xunits: 's',
                                 yunits: mode == 'device' ? 'V' : '',
-                                color: ['#268bd2'],
-                                type: [results._network_.result_type()]
+                                color: color,
+                                type: type
                                };
                     } else return undefined;
                 }
@@ -492,8 +556,8 @@ jade.test_view = (function() {
                 // produce requested plots
                 if (plots.length > 0) {
                     var dataseries = []; // plots we want
-                    $.each(plots,function(index,signal) {
-                        dataseries.push(new_dataset(signal));
+                    $.each(plots,function(index,plist) {
+                        dataseries.push(new_dataset(plist));
                     });
 
                     // callback to use if user wants to add a new plot
