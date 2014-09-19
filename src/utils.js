@@ -344,7 +344,7 @@ jade.utils = (function () {
         return false;
     }
 
-    // parse string into an array of symbols
+    // parse string into an array of symbols.  Canonicalize all text to lower case.
     //  sig_list := sig[,sig]...
     //  sig := symbol
     //      := sig#count         -- replicate sig specified number of times
@@ -364,7 +364,7 @@ jade.utils = (function () {
                 var n = parse_number(m[1]);
                 var size = parseInt(m[2],10);
                 for (var i = size-1; i >= 0; i -= 1) {
-                    result.push((n & (1 << i)) !== 0 ? 'Vdd' : 'gnd');
+                    result.push((n & (1 << i)) !== 0 ? 'vdd' : 'gnd');
                 }
                 return result;
             }
@@ -402,7 +402,7 @@ jade.utils = (function () {
             }
 
             // what's left is treated as a simple signal name
-            if (sig) return [sig];
+            if (sig) return [sig.toLowerCase()];
             else return [];
         }
 

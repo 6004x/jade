@@ -742,6 +742,7 @@ jade.model = (function () {
         // update properties from module's default values
         this.default_properties();
         this.name = this.properties.name; // used when extracting netlists
+        if (this.name) this.name.toLowerCase();
 
         this.icon = this.module.aspect('icon');
         if (this.icon === undefined) return;
@@ -1132,6 +1133,7 @@ jade.model = (function () {
                     new_properties[fields[i].prop_name] = v;
                 }
                 component.name = new_properties.name; // used when extracting netlists
+                if (component.name) component.name = component.name.toLowerCase();
 
                 // record the change
                 diagram.aspect.start_action();
