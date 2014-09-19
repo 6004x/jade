@@ -639,6 +639,11 @@ jade.test_view = (function() {
                                         y = "0" + ("0000000000000000000000" + y.toString(8)).substr(-Math.ceil(xy.nnodes/3));
                                     } else if (fn == 'B' || fn == 'b') {  // format as binary number
                                         y = "0b" + ("0000000000000000000000000000000000000000000000000000000000000000" + y.toString(2)).substr(-Math.ceil(xy.nnodes));
+                                    } else if (fn == 'D' || fn == 'd') {  // format as decimal number
+                                        y = y.toString(10);
+                                    } else if (fn == 'SD' || fn == 'sd') {  // format as signed decimal number
+                                        if (y & 1<<(xy.nnodes - 1)) y -= 1 << xy.nnodes;
+                                        y = y.toString(10);
                                     } else throw "No definition for plot function "+fn;
                                     xy.yvalues[index] = y;
                                 }
