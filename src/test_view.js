@@ -157,7 +157,7 @@ jade.test_view = (function() {
         return [this.type(), this.test];
     };
 
-    function parse_plot(line,errors,plots) {
+    function parse_plot(line,errors) {
         // .plot sig sig ...
         // sig is signal name or dfunction(sig [,] sig ...)
         var j,k;
@@ -191,7 +191,7 @@ jade.test_view = (function() {
             }
             j += 1;
         }
-        plots.push(plist);
+        return plist;
     }
 
     function run_tests(source,diagram,module) {
@@ -269,7 +269,7 @@ jade.test_view = (function() {
                 }
             }
             else if (line[0] == '.plot') {
-                parse_plot(line.slice(1),errors,plots);
+                plots.push(parse_plot(line.slice(1),errors));
             }
             else if (line[0] == '.cycle') {
                 // .cycle actions...
@@ -679,9 +679,15 @@ jade.test_view = (function() {
                 // called by plot.graph when user wants to plot another signal
                 function add_plot(signal) {
                     // construct data set for requested signal
-                    // if the signal was legit, use callback to plot it
-                    var dataset = new_dataset(signal);
-                    if (dataset !== undefined) dataseries.push(dataset);
+                    var line = signal.match(/([A-Za-z0-9_.:\[\]]+|=|-|,|\(|\))/g);
+                    var errors = [];
+                    var plist = parse_plot(line,errors);
+                    if (errors.length === 0)
+                        dataseries.push(new_dataset(plist));
+                    else {
+                        msg = '<ul><li>'+errors.join('<li>')+'</ul>';
+                        diagram.message(msg);
+                    }
                 }
 
                 // produce requested plots
