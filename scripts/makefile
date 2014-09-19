@@ -1,5 +1,8 @@
 # Scripts to generate Jade input tests
 
+beta-pd-test:	beta-pc-test.py
+		python $<
+
 inc29-test:	inc29-test.py
 		python $<
 

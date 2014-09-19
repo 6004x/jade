@@ -1,15 +1,19 @@
 # Some simple utility routines for scripted test vector generation
 
-# Generate a binary number as a string:
+# Generate a binary number as a string.
+#   x='-': generates don't cares.
 def bin(x, width):
+    if x == '-': return '-'*width
     s = ""
     for i in range(width):
         s = str(x & 1) + s
         x >>= 1
     return s
 
-# Generate a binary number as a string, using hokey L & H for 1 and 0:
+# Generate a binary number as a string, using hokey L & H for 1 and 0.
+#   x='-': generates don't cares.
 def lh(x, width):
+    if x == '-': return '-'*width
     s = ""
     for i in range(width):
         lhch = "LH"[x&1]
@@ -25,4 +29,5 @@ def hd(title, width):
 
     return s
 
-
+# Add a comment to the test data transcript:
+def cmt(msg): print "\n//", msg
