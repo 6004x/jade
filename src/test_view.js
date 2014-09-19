@@ -735,6 +735,7 @@ jade.test_view = (function() {
                 throw 'Unrecognized simulation mode: '+mode;
         } catch (e) {
             jade.window_close(progress[0].win);  // done with progress bar
+            //console.log(e);
             diagram.message("Error running simulation:<p>" + e);
             test_results[module.get_name()] = 'Error detected running simulation:<p>'+e;
             return;

@@ -210,17 +210,20 @@ jade.model.Component.prototype.netlist = function(mlist, prefix, mstack) {
         var port_map = {};
         for (var j = 0; j < connections.length; j += 1) {
             var nlist = connections[j][0]; // list of terminal names
+            var nlen = nlist.length;
             var slist = connections[j][1]; // list of connected signals
-            for (var k = 0; k < nlist.length; k += 1)
+            var bsize = slist.length/nlen;  // number of signals provided for each terminal
+            for (var k = 0; k < nlen; k += 1)
                 // keep cycling through entries in slist as necessary
-                port_map[nlist[k]] = slist[(i + k*ninstances) % slist.length];
+                port_map[nlist[k]] = slist[(i % bsize) + k*bsize];
         }
 
         if (mlist.indexOf(this.type()) != -1) {
             // if leaf, create netlist entry
             var props = this.clone_properties(false);
             props.name = prefix + this.name;
-            if (ninstances > 1) props.name += '[' + i.toString() + ']';
+            // start generated names with index at MSB
+            if (ninstances > 1) props.name += '[' + (ninstances -1 - i).toString() + ']';
             netlist.push([this.type(), port_map, props]);
             continue;
         }
