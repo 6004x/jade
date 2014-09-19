@@ -364,7 +364,7 @@ jade.utils = (function () {
                 var n = parse_number(m[1]);
                 var size = parseInt(m[2],10);
                 for (var i = size-1; i >= 0; i -= 1) {
-                    result.push((n & (1 << i)) !== 0 ? 'vdd' : 'gnd');
+                    result.push((n & (1 << i)) !== 0 ? 'Vdd' : 'gnd');
                 }
                 return result;
             }
