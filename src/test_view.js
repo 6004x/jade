@@ -239,7 +239,7 @@ jade.test_view = (function() {
                         errors.push('Unrecognized voltage specification "'+line[i+2]+'": '+source[k]);
                         break;
                     }
-                    if (line[0] == '.power') power[line[i]] = v;
+                    if (line[0] == '.power') power[line[i].toLowerCase()] = v;
                     else thresholds[line[i]] = v;
                 }
             }
@@ -317,8 +317,8 @@ jade.test_view = (function() {
                             errors.push('Unrecognized value specification "'+line[i+2]+'": '+source[k]);
                             break;
                         }
-                        cycle.push(['set',line[i],v]);
-                        driven_signals[line[i]] = [[0,'Z']];  // driven node is 0 at t=0
+                        cycle.push(['set',line[i].toLowerCase(),v]);
+                        driven_signals[line[i].toLowerCase()] = [[0,'Z']];  // driven node is 0 at t=0
                         i += 3;
                         continue;
                     }
@@ -747,18 +747,18 @@ jade.test_view = (function() {
     function build_inputs_device(netlist,driven_signals,thresholds) {
         // add pullup and pulldown FETs for driven nodes, connected to sources for Voh and Vol
         netlist.push({type: 'voltage source',
-                      connections:{nplus: '_Voh_', nminus: 'gnd'},
-                      properties:{name: '_Voh_source', value:{type:'dc',args:[thresholds.Voh]}}});
+                      connections:{nplus: '_voh_', nminus: 'gnd'},
+                      properties:{name: '_voh_source', value:{type:'dc',args:[thresholds.Voh]}}});
         netlist.push({type: 'voltage source',
-                      connections:{nplus: '_Vol_', nminus: 'gnd'},
-                      properties:{name: '_Voh_source', value:{type:'dc',args:[thresholds.Vol]}}});
+                      connections:{nplus: '_vol_', nminus: 'gnd'},
+                      properties:{name: '_vol_source', value:{type:'dc',args:[thresholds.Vol]}}});
         $.each(driven_signals,function(node) {
             netlist.push({type:'pfet',
-                          connections:{D:'_Voh_', G:node+'_pullup', S:node},
-                          properties:{W:8, L:1,name:node+'_pullup'}});
+                          connections:{d:'_voh_', g:node+'_pullup', s:node},
+                          properties:{W:100, L:1,name:node+'_pullup'}});
             netlist.push({type:'nfet',
-                          connections:{D:node ,G:node+'_pulldown', S:'_Vol_'},
-                          properties:{W:8, L:1,name:node+'_pulldown'}});
+                          connections:{d:node ,g:node+'_pulldown', s:'_vol_'},
+                          properties:{W:100, L:1,name:node+'_pulldown'}});
         });
 
         // construct PWL voltage sources to control pullups/pulldowns for driven nodes
@@ -818,7 +818,7 @@ jade.test_view = (function() {
         // add tristate drivers for driven nodes
         $.each(driven_signals,function(node) {
             netlist.push({type:'tristate',
-                          connections:{E:node+'_enable', A:node+'_data', Z:node},
+                          connections:{e:node+'_enable', a:node+'_data', z:node},
                           properties:{name: node+'_input_driver', tcd: 0, tpd: 100e-12, tr: 5000, tf: 5000, cin:0, size:0}});
         });
 

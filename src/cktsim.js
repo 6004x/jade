@@ -18,8 +18,8 @@ jade.cktsim = (function() {
     //    "inductor"            ports: n1, n2; properties: value, name
     //    "diode"               ports: anode, cathode; properties: area, type, name
     //    "opamp"               ports: nplus, nminus, output, gnd; properties: A, name
-    //    "nfet"                ports: D, G, S; properties: W, L, name
-    //    "pfet"                ports: D, G, S; properties: W, L, name
+    //    "nfet"                ports: d, g, s; properties: W, L, name
+    //    "pfet"                ports: d, g, s; properties: W, L, name
     //    "voltage source"      ports: nplus, nminus; properties: value=src, name
     //    "current source"      ports: nplus, nminus; properties: value=src, name
     //    "connect"             ports are all aliases for the same electrical node
@@ -413,10 +413,10 @@ jade.cktsim = (function() {
                 this.opamp(connections.nplus, connections.nminus, connections.output, connections.gnd, properties.A, name);
                 break;
             case 'nfet':
-                this.n(connections.D, connections.G, connections.S, properties.W, properties.L, name);
+                this.n(connections.d, connections.g, connections.s, properties.W, properties.L, name);
                 break;
             case 'pfet':
-                this.p(connections.D, connections.G, connections.S, properties.W, properties.L, name);
+                this.p(connections.d, connections.g, connections.s, properties.W, properties.L, name);
                 break;
             case 'voltage probe':
                 break;
