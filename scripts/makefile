@@ -1,5 +1,8 @@
 # Scripts to generate Jade input tests
 
+mux8-test:	mux8-test.py
+		python $<
+
 beta-pd-test:	beta-pc-test.py
 		python $<
 
