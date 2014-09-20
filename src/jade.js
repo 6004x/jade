@@ -31,7 +31,7 @@ var jade = (function() {
         // insert framework into DOM
         this.top_level = $('<div class="jade-top-level">' +
                            ' <div class="jade-tabs-div"></div>' +
-                           ' <div class="jade-status"><span id="message"></span><div style="float:right">Jade 2.1.8 (2014 \u00A9 MIT EECS)</div></div>' +
+                           ' <div class="jade-status"><span id="message"></span><div style="float:right">Jade 2.1.9 (2014 \u00A9 MIT EECS)</div></div>' +
                            '</div>');
         $(owner).append(this.top_level);
 
@@ -153,7 +153,6 @@ var jade = (function() {
 
         // starting module?
         if (configuration.edit === undefined) {
-            configuration.edit = localStorage.getItem('jade-module');
             if (configuration.edit == null) configuration.edit = "gates:and2";
         }
         var mname = configuration.edit.split('.');          // library:module.aspect
@@ -182,7 +181,6 @@ var jade = (function() {
         if (this.module !== undefined) {
             var mark = this.module.get_name();
             if (this.selected_tab !== undefined) mark += '.' + this.selected_tab;
-            localStorage.setItem('jade-module',mark);
         }
     };
 

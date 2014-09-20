@@ -25,15 +25,21 @@
 <script type="text/javascript">
 // see if jade's URL includes an arg of the form 'dir=xxx'
 // if so look file libraries in subdirectory xxx
-jade.user_directory = function () {
-    var user_dir = 'guest';
-    var page_args = window.location.search.match(/\w+=\w+/g);
+jade.page_args = function () {
+    var page_args = window.location.search.match(/\w+=[\w|\%|\:]+/g);
+    result = {}
     if (page_args) {
         $.each(page_args,function (index,arg) {
             var key_value = arg.split('=');
-            if (key_value[0] == 'dir') user_dir = key_value[1];
+            // if no value supplied, just use key as the value
+            result[key_value[0]] = key_value[1] || key_value[0];
         });
     }
+    return result;
+}
+
+jade.user_directory = function () {
+    var user_dir = jade.page_args()['dir'] || 'guest';
     return user_dir;
 }
 
@@ -81,6 +87,8 @@ jade.request_zip_url = undefined;  //'/jade-server?zip=1';
 jade.setup = (function () {
     // set up editor inside of div's with class "jade"
     function setup() {
+        var args = jade.page_args();
+
         // look for nodes of class "jade" and give them an editor
         $('.jade').each(function(index, div) {
             // skip if this div has already been configured
@@ -90,6 +98,7 @@ jade.setup = (function () {
 
                 // start configuration with whatever is provided by <jade> tag
                 var config = {};
+                if (args.edit) config.edit = args.edit;
                 $.each(div.attributes,function () {
                     if (this.name != 'class') config[this.name] = this.value;
                 });
