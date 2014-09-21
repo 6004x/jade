@@ -107,6 +107,7 @@ jade.icon_view = (function() {
         if (module) {
             var tests = this.jade.configuration.tests;
             delete tests[module.get_name()];
+            module.notify_listeners('icon_changed');
         }
     };
 

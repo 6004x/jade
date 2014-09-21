@@ -184,9 +184,12 @@ jade.model = (function () {
     };
 
     Module.prototype.add_listener = function(callback) {
-        // if we're already loaded, do callback now
-        if (this.loaded) callback('load');
-        else this.listeners.push(callback);
+        this.listeners.push(callback);
+    };
+
+    Module.prototype.notify_listeners = function(msg) {
+        // pass along message to all our listeners
+        $.each(this.listeners,function (index,callback) { callback(msg); });
     };
 
     Module.prototype.set_modified = function() {
@@ -726,9 +729,12 @@ jade.model = (function () {
 
         // track down icon and set up bounding box and connections
         var component = this; // for closure
-        this.module.add_listener(function() {
-            Component.prototype.compute_bbox.call(component);
+        this.module.add_listener(function(msg) {
+            if (msg == 'load' || msg == 'icon_changed')
+                component.compute_bbox();
         });
+        // if module is already loaded, we can compute bbox now
+        if (this.module.loaded) this.compute_bbox();
     };
 
     Component.prototype.default_properties = function() {
@@ -739,6 +745,8 @@ jade.model = (function () {
     };
 
     Component.prototype.compute_bbox = function() {
+        console.log('compute bbox for '+this.module.get_name());
+
         // update properties from module's default values
         this.default_properties();
         this.name = this.properties.name; // used when extracting netlists
@@ -747,9 +755,17 @@ jade.model = (function () {
         this.icon = this.module.aspect('icon');
         if (this.icon === undefined) return;
 
+        // clear out old connection points if any
+        var component = this;   // for closures
+        if (this.aspect) {
+            $.each(this.connections,function (index,cp) {
+                component.aspect.remove_connection_point(cp, cp.location);
+            });
+        }
+        this.connections = [];
+
         // look for terminals in the icon and add appropriate connection
         // points for this instance
-        var component = this; // for closure
         this.icon.map_over_components(function(c) {
             var cp = c.terminal_coords();
             if (cp) component.add_connection(cp[0], cp[1], cp[2]);
