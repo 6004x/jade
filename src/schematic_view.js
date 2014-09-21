@@ -775,7 +775,10 @@ jade.schematic_view = (function() {
     jade.model.built_in_components.port = Port;
     var port_module = {
         has_aspect: function () {return false;},
-        properties: {"signal":{"label":"Signal name","type":"string","value":"???","edit":"yes","choices":[""]}}
+        properties: {
+            "signal":{"label":"Signal name","type":"string","value":"???","edit":"yes","choices":[""]},
+            "direction":{"label":"Direction","type":"menu","value":"in","edit":"yes","choices":["in","out","inout"]}
+        }
     };
 
     Port.prototype.load = function(json) {
@@ -798,6 +801,17 @@ jade.schematic_view = (function() {
         this.draw_line(diagram,-12,4,-24,4);
         this.draw_line(diagram,-24,-4,-24,4);
         this.draw_text(diagram,this.properties.signal,-26,0,5,diagram.property_font);
+
+        this.draw_line(diagram,-14,0,-20,0);
+        var dir = this.properties.direction;
+        if (dir == 'in' || dir == 'inout') {
+            this.draw_line(diagram,-14,0,-16,-2);
+            this.draw_line(diagram,-14,0,-16,2);
+        }
+        if (dir == 'out' || dir == 'inout') {
+            this.draw_line(diagram,-20,0,-18,-2);
+            this.draw_line(diagram,-20,0,-18,2);
+        }
     };
 
     Port.prototype.netlist = function(prefix) {
