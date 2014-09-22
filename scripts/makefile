@@ -1,5 +1,14 @@
 # Scripts to generate Jade input tests
 
+alu-shift-test:	alu-shift-test.py
+		python $<
+
+alu-test:	alu-test.py
+		python $<
+
+alu-arith-test:	alu-arith-test.py
+		python $<
+
 mux8-test:	mux8-test.py
 		python $<
 
