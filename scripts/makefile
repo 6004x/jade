@@ -1,5 +1,9 @@
 # Scripts to generate Jade input tests
 
+
+alu-bool-test:	alu-bool-test.py
+		python $<
+
 alu-test:	alu-test.py
 		python $<
 

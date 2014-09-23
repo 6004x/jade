@@ -68,7 +68,7 @@ def trycase(A, B, Fn):
         tt = Fn & 0xF
         Y = 0
         for bitno in range(32):
-            index = (((A >> bitno) & 1)<<1) + ((B >> bitno) & 1)
+            index = ((A >> bitno) & 1) + (((B >> bitno) & 1) << 1)
             if (tt >> index) & 1: Y |= 1 << bitno
 
     else:
