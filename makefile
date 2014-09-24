@@ -13,6 +13,7 @@ what:
 	@echo "  make run-ward         run local copy of Jade, using ward's files"
 	@echo "  make run-notes        run local copy of Jade, using notes files"
 	@echo "  make run-bugs         run local copy of Jade, using bugs files"
+	@echo "  make run-beta         Run Jade on beta:vanilla"
 	@echo
 	@echo "  make push-mine        Update your files in next git commit/push"
 	@echo "  make push-cjt         Update CJT's files in next git commit/push"
@@ -25,7 +26,7 @@ what:
 	@echo "  make pull             update files from git repository"
 
 	@echo
-	@echo "  make beta-json        Readable version of a json file"
+	@echo "  make beta-json        Readable version of a json file (needs underscore)"
 
 ################################################################################
 ### GIT interface commands:
@@ -65,13 +66,16 @@ push-bugs:	src/files/bugs
 run:
 	chrome "http://localhost/jade/src/jade_local.html?dir=$(USER)"
 
+run-beta:
+	chrome "http://localhost/jade/src/jade_local.html?dir=ward&edit=beta:vanilla"
+
 # Alternative run commands, pointing at different module directories:
 
 run-cjt:
 	chrome "http://localhost/jade/src/jade_local.html?dir=cjt"
 
 run-ward:
-	chrome "http://localhost/jade/src/jade_local.html?dir=cjt"
+	chrome "http://localhost/jade/src/jade_local.html?dir=ward"
 
 run-notes:
 	chrome "http://localhost/jade/src/jade_local.html?dir=notes"
