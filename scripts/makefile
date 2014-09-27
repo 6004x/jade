@@ -1,6 +1,8 @@
 # Scripts to generate Jade input tests
 
 
+doit:		mul32-test
+
 alu-bool-test:	alu-bool-test.py
 		python $<
 
@@ -20,6 +22,9 @@ beta-pd-test:	beta-pc-test.py
 		python $<
 
 inc29-test:	inc29-test.py
+		python $<
+
+mul32-test:	mul32-test.py
 		python $<
 
 add32-test:	add32-test.py
