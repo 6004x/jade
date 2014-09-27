@@ -13,7 +13,7 @@ what:
 	@echo "  make run-ward         run local copy of Jade, using ward's files"
 	@echo "  make run-notes        run local copy of Jade, using notes files"
 	@echo "  make run-bugs         run local copy of Jade, using bugs files"
-	@echo "  make run-beta         Run Jade on beta:vanilla"
+
 	@echo
 	@echo "  make push-mine        Update your files in next git commit/push"
 	@echo "  make push-cjt         Update CJT's files in next git commit/push"
@@ -24,6 +24,11 @@ what:
 
 	@echo "  make commit           update modified/deleted files prior to git push"
 	@echo "  make pull             update files from git repository"
+
+	@echo
+	@echo "Run Some ad-hoc example files:"
+	@echo "  make run-beta         Run Jade on beta:vanilla"
+	@echo "  make run-nmul32       32-bit multiplier, approach 2 (not working)"
 
 	@echo
 	@echo "  make beta-json        Readable version of a json file (needs underscore)"
@@ -66,9 +71,6 @@ push-bugs:	src/files/bugs
 run:
 	chrome "http://localhost/jade/src/jade_local.html?dir=$(USER)"
 
-run-beta:
-	chrome "http://localhost/jade/src/jade_local.html?dir=ward&edit=beta:vanilla"
-
 # Alternative run commands, pointing at different module directories:
 
 run-cjt:
@@ -82,6 +84,15 @@ run-notes:
 
 run-bugs:
 	chrome "http://localhost/jade/src/jade_local.html?dir=bugs"
+
+# ad-hoc run commands to show various examples:
+
+run-beta:
+	chrome "http://localhost/jade/src/jade_local.html?dir=ward&edit=beta:vanilla"
+
+run-nmul32:
+	chrome "http://localhost/jade/src/jade_local.html?dir=ward&edit=beta:nmul32"
+
 
 # ad-hoc target to show json of a file:
 beta-json:
