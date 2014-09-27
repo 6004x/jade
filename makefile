@@ -28,7 +28,7 @@ what:
 	@echo
 	@echo "Run Some ad-hoc example files:"
 	@echo "  make run-beta         Run Jade on beta:vanilla"
-	@echo "  make run-nmul32       32-bit multiplier, approach 2 (not working)"
+	@echo "  make run-mul32        32-bit multiplier, approach 2 (not working)"
 
 	@echo
 	@echo "  make beta-json        Readable version of a json file (needs underscore)"
@@ -90,8 +90,8 @@ run-bugs:
 run-beta:
 	chrome "http://localhost/jade/src/jade_local.html?dir=ward&edit=beta:vanilla"
 
-run-nmul32:
-	chrome "http://localhost/jade/src/jade_local.html?dir=ward&edit=beta:nmul32"
+run-mul32:
+	chrome "http://localhost/jade/src/jade_local.html?dir=ward&edit=mul:mul32"
 
 
 # ad-hoc target to show json of a file:
