@@ -15,7 +15,7 @@ what:
 	@echo "  make run-bugs         run local copy of Jade, using bugs files"
 
 	@echo
-	@echo "  make push-mine        Update your files in next git commit/push"
+	@echo "  make push-mine        Update your files: push/commit/git push them"
 	@echo "  make push-cjt         Update CJT's files in next git commit/push"
 	@echo "  make push-ward        Update ward's files in next git commit/push"
 	@echo "  make push-notes       Update notes files in next git commit/push"
@@ -49,6 +49,8 @@ commit:
 # Add/delete my files to/from the GIT repo:
 push-mine:	$(MYFILES)
 		git add --all $(MYFILES)
+		git commit -a -m "Pushed my edited Jade files"
+		git push
 
 push-notes:	src/files/notes
 		git add --all src/files/notes
