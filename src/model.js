@@ -161,7 +161,10 @@ jade.model = (function () {
         this.library = lib;
         this.name = name;
         this.aspects = {};
-        this.properties = {"iterations":{"edit":"yes","type":"string","value":"1","label":"Iterations"}};
+        this.properties = {   // every module has itertions and name properties
+            "iterations":{"edit":"yes","type":"string","value":"1","label":"Iterations"},
+            "name":{"edit":"yes","type":"name","value":"","label":"Name"}
+        };
         this.modified = false;
 
         // list of callbacks when load is complete
@@ -228,7 +231,7 @@ jade.model = (function () {
         // load aspects
         for (var a in json) {
             if (a == 'properties')
-                this.properties = json[a];
+                $.extend(this.properties,json[a]);
             else
                 this.aspects[a] = new Aspect(a, this, json[a]);
         }
@@ -722,6 +725,11 @@ jade.model = (function () {
         return props;
     };
 
+    Component.prototype.set_property = function(pname,pvalue) {
+        this.properties[pname] = pvalue;
+        if (this.aspect) this.aspect.set_modified();
+    };
+
     Component.prototype.load = function(json) {
         this.module = find_module(json[0]);
         this.coords = json[1];
@@ -745,7 +753,7 @@ jade.model = (function () {
     };
 
     Component.prototype.compute_bbox = function() {
-        console.log('compute bbox for '+this.module.get_name());
+        //console.log('compute bbox for '+this.module.get_name());
 
         // update properties from module's default values
         this.default_properties();

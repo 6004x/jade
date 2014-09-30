@@ -101,6 +101,7 @@ jade.model.Aspect.prototype.ensure_component_names = function(prefix) {
                 counter += 1;
             }
             c.name = name; // remember name assignment for next time
+            c.set_property('name',name);   // add property to component
             cnames[name] = c; // add to our list
         }
     }

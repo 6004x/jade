@@ -19,6 +19,15 @@ jade.gate_level = (function() {
     // list of gate properties expected by gatesim
     var gate_properties = ['tcd', 'tpd', 'tr', 'tf', 'cin', 'size', 'ts', 'th'];
 
+    function diagram_gate_netlist(diagram) {
+        var netlist = gate_netlist(diagram.aspect);
+
+        // redraw diagram if netlist has updated component names
+        if (diagram.aspect.modified) diagram.redraw_background();
+
+        return netlist;
+    }
+
     // build extraction environment, ask diagram to give us flattened netlist
     function gate_netlist(aspect) {
         // extract netlist and convert to form suitable for new cktsim.js
@@ -94,7 +103,7 @@ jade.gate_level = (function() {
         var tstop_lbl = 'Stop Time (seconds)';
 
         // use modules in the gates library as the leafs
-        var netlist = gate_netlist(diagram.aspect);
+        var netlist = diagram_gate_netlist(diagram);
 
         if (find_probes(netlist).length === 0) {
             diagram.message("Transient Analysis: there are no probes in the diagram!");
