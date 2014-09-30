@@ -31,7 +31,7 @@ var jade = (function() {
         // insert framework into DOM
         this.top_level = $('<div class="jade-top-level">' +
                            ' <div class="jade-tabs-div"></div>' +
-                           ' <div class="jade-status"><span id="message"></span><div style="float:right">Jade 2.1.11 (2014 \u00A9 MIT EECS)</div></div>' +
+                           ' <div class="jade-status"><span id="message"></span><div style="float:right">Jade 2.1.12 (2014 \u00A9 MIT EECS)</div></div>' +
                            '</div>');
         $(owner).append(this.top_level);
 
