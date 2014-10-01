@@ -62,6 +62,9 @@ jade.test_view = (function() {
                 var test = module.aspect('test').components[0];
                 if (test) {
                     run_tests(test.test,diagram,module);
+                    // redraw diagram if netlist extraction modified
+                    // components with gensymed names
+                    if (module.modified) diagram.redraw_background();
                     return;
                 }
             }
