@@ -726,6 +726,8 @@ jade.gatesim = (function() {
         var nfanouts = this.fanouts.length;
         if (ndrivers === 0) {
             if (nfanouts > 0) {
+	        // SAW 10/3/14: I used this to track down a missing connection...
+	        // console.log('Node ', this, ' is not connected to any output.');
                 throw 'Node ' + this.name + ' is not connected to any output.';
             } else return;  // no drivers, no fanouts... not interesting :)  
         }
