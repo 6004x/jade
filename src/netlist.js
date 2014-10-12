@@ -8,7 +8,7 @@
 // of the extraction tree.
 // port_map is an associative array: local_sig => external_sig
 // mstack is an array of parent module names so we can detect recursion
-jade.model.Aspect.prototype.netlist = function(mlist, prefix, port_map,mstack) {
+jade.model.Aspect.prototype.netlist = function(mlist, globals, prefix, port_map, mstack) {
     var n = this.module.get_name();
     if (mstack.indexOf(n) != -1) {
         // oops, recursive use of module.  complain!
@@ -18,7 +18,7 @@ jade.model.Aspect.prototype.netlist = function(mlist, prefix, port_map,mstack) {
     mstack.push(n);  // remember that we're extracting this module
 
     // figure out signal names for all connections
-    this.label_connection_points(prefix, port_map);
+    this.label_connection_points(globals, prefix, port_map);
 
     // ensure unique names for each component
     this.ensure_component_names(prefix);
@@ -26,7 +26,7 @@ jade.model.Aspect.prototype.netlist = function(mlist, prefix, port_map,mstack) {
     // extract netlist from each component
     var netlist = [];
     for (var i = 0; i < this.components.length; i += 1) {
-        n = this.components[i].netlist(mlist, prefix, mstack);
+        n = this.components[i].netlist(mlist, globals, prefix, mstack);
         if (n !== undefined) netlist.push.apply(netlist, n);
     }
 
@@ -35,7 +35,7 @@ jade.model.Aspect.prototype.netlist = function(mlist, prefix, port_map,mstack) {
 };
 
 // label all the nodes in the circuit
-jade.model.Aspect.prototype.label_connection_points = function(prefix, port_map) {
+jade.model.Aspect.prototype.label_connection_points = function(globals, prefix, port_map) {
     var i;
     
     // start by clearing all the connection point labels
@@ -49,7 +49,7 @@ jade.model.Aspect.prototype.label_connection_points = function(prefix, port_map)
 
     // let special components like GND or named wires label their connection(s)
     for (i = this.components.length - 1; i >= 0; i -= 1) {
-        this.components[i].add_default_labels(prefix, port_map);
+        this.components[i].add_default_labels(globals, prefix, port_map);
     }
 
     // now have components generate labels for unlabeled connections
@@ -81,6 +81,7 @@ jade.model.Aspect.prototype.ensure_component_names = function(prefix) {
     var cnames = {}; // keep track of names at this level
     for (i = 0; i < this.components.length; i += 1) {
         c = this.components[i];
+        c.set_select(false);   // unselect now, may select later if there's an error
         name = c.name;
         if (name) {
             if (name in cnames) throw "Duplicate component name: " + prefix + name;
@@ -142,13 +143,16 @@ jade.model.Component.prototype.label_connections = function(prefix) {
 // give components a chance to generate a label for their connection(s).
 // valid for any component with a "global_signal" or "signal" property
 // (e.g., gnd, vdd, ports, wires).
-jade.model.Component.prototype.add_default_labels = function(prefix, port_map) {
+jade.model.Component.prototype.add_default_labels = function(globals, prefix, port_map) {
     var nlist, i;
 
-    if (this.properties.global_signal)
+    if (this.properties.global_signal) {
         // no mapping or prefixing for global signals
         nlist = jade.utils.parse_signal(this.properties.global_signal);
-    else {
+        // let everyone else know this signal is global
+        if (globals.indexOf(this.properties.global_signal) == -1)
+            globals.push(this.properties.global_signal);
+    } else {
         nlist = jade.utils.parse_signal(this.properties.signal);
         if (nlist.length > 0) {
             // substitute external names for local labels that are connected to ports
@@ -156,6 +160,7 @@ jade.model.Component.prototype.add_default_labels = function(prefix, port_map) {
             for (i = 0; i < nlist.length; i += 1) {
                 var n = nlist[i];
                 if (n in port_map) nlist[i] = port_map[n];
+                else if (globals.indexOf(n) != -1) nlist[i] = n;
                 else nlist[i] = prefix + n;
             }
         }
@@ -169,7 +174,7 @@ jade.model.Component.prototype.add_default_labels = function(prefix, port_map) {
 };
 
 // netlist entry: ["type", {terminal:signal, ...}, {property: value, ...}]
-jade.model.Component.prototype.netlist = function(mlist, prefix, mstack) {
+jade.model.Component.prototype.netlist = function(mlist, globals, prefix, mstack) {
     var i;
     
     // match up connections to the component's terminals, determine
@@ -235,7 +240,7 @@ jade.model.Component.prototype.netlist = function(mlist, prefix, mstack) {
             var p = prefix + this.name;
             if (ninstances > 1) p += '[' + i.toString() + ']';
             p += '.'; // hierarchical name separator
-            var result = sch.netlist(mlist, p, port_map, mstack);
+            var result = sch.netlist(mlist, globals, p, port_map, mstack);
             netlist.push.apply(netlist, result);
         }
         else {

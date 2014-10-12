@@ -16,24 +16,24 @@ jade.device_level = (function() {
         return {type: m[1], args: args};
     }
 
-    function diagram_device_netlist(diagram) {
-        var netlist = device_netlist(diagram.aspect);
+    function diagram_device_netlist(diagram, globals) {
+        var netlist = device_netlist(diagram.aspect,globals);
 
-        // redraw diagram if netlist has updated component names
-        if (diagram.aspect.modified) diagram.redraw_background();
+        // redraw diagram to show any changes in highlighting
+        diagram.redraw_background();
 
         return netlist;
     }
 
     // build extraction environment, ask diagram to give us flattened netlist
-    function device_netlist(aspect) {
+    function device_netlist(aspect,globals) {
         // extract netlist and convert to form suitable for new cktsim.js
         // use modules in the analog libraries as the leafs
         var mlist = ['ground','jumper'];
         if (jade.model.libraries.analog !== undefined)
             $.each(jade.model.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
 
-        var netlist = aspect.netlist(mlist, '', {}, []);
+        var netlist = aspect.netlist(mlist, globals, '', {}, []);
 
         // run through extracted netlist, updating device names, evaluating numeric
         // args and eliminating entries we don't care about
@@ -198,7 +198,7 @@ jade.device_level = (function() {
         // remove any previous annotations
         diagram.remove_annotations();
 
-        var netlist = diagram_device_netlist(diagram);
+        var netlist = diagram_device_netlist(diagram,[]);
 
         if (netlist.length > 0) {
             var ckt;
@@ -281,7 +281,7 @@ jade.device_level = (function() {
         var fstop_lbl = 'Ending frequency (Hz)';
         var source_name_lbl = 'Name of V or I source for ac';
 
-        var netlist = diagram_device_netlist(diagram);
+        var netlist = diagram_device_netlist(diagram,[]);
 
         if (find_probes(netlist).length === 0) {
             diagram.message("AC Analysis: there are no voltage probes in the diagram!");
@@ -494,7 +494,7 @@ jade.device_level = (function() {
         var tstop_lbl = 'Stop Time (seconds)';
 
         // use modules in the analog library as the leafs
-        var netlist = diagram_device_netlist(diagram);
+        var netlist = diagram_device_netlist(diagram,[]);
 
         if (find_probes(netlist).length === 0) {
             diagram.message("Transient Analysis: there are no probes in the diagram!");
