@@ -195,6 +195,10 @@
     padding: 5px;
     margin: 10px;
 }
+.jade-pmsg {
+    margin-left: 5px;
+    color: red;
+}
 .jade-test-editor {
     resize: none;
     outline: none;

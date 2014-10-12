@@ -443,7 +443,7 @@ jade.schematic_view = (function() {
         has_aspect: function () {return false;},
         properties: {
             "signal": {
-                "type": "string",
+                "type": "signal",
                 "label": "Signal name",
                 "value": "",
                 "edit": "yes"
@@ -705,7 +705,7 @@ jade.schematic_view = (function() {
     jade.model.built_in_components.vdd = Vdd;
     var vdd_module = {
         has_aspect: function () {return false;},
-        properties: {"global_signal":{"label":"Global signal name","type":"string","value":"Vdd","edit":"yes","choices":[""]}}
+        properties: {"global_signal":{"label":"Global signal name","type":"signal","value":"Vdd","edit":"yes","choices":[""]}}
     };
 
     Vdd.prototype.load = function(json) {
@@ -776,7 +776,7 @@ jade.schematic_view = (function() {
     var port_module = {
         has_aspect: function () {return false;},
         properties: {
-            "signal":{"label":"Signal name","type":"string","value":"???","edit":"yes","choices":[""]},
+            "signal":{"label":"Signal name","type":"signal","value":"???","edit":"yes","choices":[""]},
             "direction":{"label":"Direction","type":"menu","value":"in","edit":"yes","choices":["in","out","inout"]}
         }
     };

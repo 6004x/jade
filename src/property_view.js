@@ -83,7 +83,7 @@ jade.property_view = (function() {
             }
 
             add_column('label',jade.build_input('text', 10, property.label || property.name));
-            add_column('type',jade.build_select(['string', 'menu'], property.type || 'string'));
+            add_column('type',jade.build_select(['string', 'name', 'number', 'menu'], property.type || 'string'));
             add_column('value',jade.build_input('text', 10, property.value || ''));
             add_column('edit',jade.build_select(['yes', 'no'], property.edit || 'yes'));
             add_column('choices',jade.build_input('text', 15, property.choices ? property.choices.join() : ''),
@@ -118,7 +118,7 @@ jade.property_view = (function() {
             });
             fields.name = jade.build_input('text', 10, '');
             fields.label = jade.build_input('text', 10, '');
-            fields.type = jade.build_select(['string', 'menu'], 'string');
+            fields.type = jade.build_select(['string', 'name', 'number', 'menu'], 'string');
             fields.value = jade.build_input('text', 10, '');
             fields.edit = jade.build_select(['yes', 'no'], 'yes');
             fields.choices = jade.build_input('text', 15, '');

@@ -5,6 +5,31 @@ jade.utils = (function () {
     //
     //////////////////////////////////////////////////////////////////////
 
+    var valid_name = /^[A-Za-z_][A-Za-z_0-9]*$/;
+
+    var numeric_constant = /^[\-+]?(0x[0-9a-fA-F]+|0b[01]+|0[0-7]+|[0-9]+)'(\d+)$/;
+
+    // id, sig[num], sig[num:num], sig[num:num:num], sig#num
+    var valid_signal = /^[A-Za-z_]([A-Za-z0-9_]|\[\d+(\:\d+(\:d+)?)?\])*(\#\d+)?$/;
+
+    // does the proposed component/signal name meet our rules?
+    function validate_name(name) {
+        return name == '' || valid_name.test(name);
+    }
+
+    // does the proposed signal name meet our rules?
+    function validate_signal(name) {
+        if (name == '') return true;
+        if (numeric_constant.test(name)) return true;
+
+        // look for comma separated list of valid names
+        var nlist = name.split(',');
+        for (var i = 0; i < nlist.length; i += 1) {
+            if (!valid_signal.test(nlist[i].trim())) return false;
+        }
+        return true;
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     //
     //  Parse numbers in engineering notation
@@ -359,8 +384,8 @@ jade.utils = (function () {
             // number should be acceptable to parse_number
             // size (in decimal) gives number of bits of signals
             // expands into appropriate list of vdd and gnd
-            m = sig.match(/(.*)'(\d+)$/);
-            if (m) {
+            if (numeric_constant.test(sig)) {
+                m = sig.match(/(.*)'(\d+)$/);
                 var n = parse_number(m[1]);
                 var size = parseInt(m[2],10);
                 for (var i = size-1; i >= 0; i -= 1) {
@@ -428,6 +453,8 @@ jade.utils = (function () {
         parse_number: parse_number,
         parse_number_alert: parse_number_alert,
         engineering_notation: engineering_notation,
+        validate_name: validate_name,
+        validate_signal: validate_signal,
         parse_source: parse_source,
         parse_signal: parse_signal,
         signal_equals: signal_equals

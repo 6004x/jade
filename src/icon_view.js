@@ -683,6 +683,12 @@ jade.icon_view = (function() {
             if (c.properties.iterations == 1) return;
         }
 
+        // name property is special
+        if (/\{name\}/.test(s)) {
+            // don't draw name property if it begins with $ (it's a gensym)
+            if (c.properties.name && c.properties.name[0] == '$') return;
+        }
+
         // replace occurences of {pname} in format with the
         // corresponding property value
         for (var p in c.properties) {

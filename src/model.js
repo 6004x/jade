@@ -752,6 +752,10 @@ jade.model = (function () {
         }
     };
 
+    Component.prototype.property_info = function (pname) {
+        return this.module.properties[pname] || {};
+    };
+
     Component.prototype.compute_bbox = function() {
         //console.log('compute bbox for '+this.module.get_name());
 
@@ -1142,32 +1146,69 @@ jade.model = (function () {
                     var v = this.properties[p];
                     input = jade.build_input('text', Math.max(10, (v === undefined ? 1 : v.length) + 5), this.properties[p]);
                 }
-                input.prop_name = p;
-                fields[lbl] = input;
+                // provide an element to hold an error message
+                var xinput = $('<span></span>').append(input).append('<span class="jade-pmsg"></span>')[0];
+                xinput.prop_input = input;
+                xinput.prop_name = p;
+                xinput.prop_info = this.property_info(p);
+                fields[lbl] = xinput;
             }
 
             var content = jade.build_table(fields);
             var component = this;
 
-            diagram.dialog('Edit Properties', content, function() {
-                var new_properties = {};
+            function update_properties() {
+                var new_properties = {},ptype,pmsg;
+                var error = false;
                 for (var i in fields) {
-                    var v = fields[i].value;
-                    if (v === '') v = undefined;
+                    var v = fields[i].prop_input.value;
+                    if (v === '') v = fields[i].prop_info.value;
+
+                    // validate entered property values
+                    ptype = fields[i].prop_info.type;
+                    pmsg = $('.jade-pmsg',fields[i]);
+                    pmsg.text('');   // default is no message
+                    if (ptype == 'number') {
+                        if (isNaN(jade.utils.parse_number(v))) {
+                            error = true;
+                            pmsg.text('not a valid number');
+                        }
+                    }
+                    else if (ptype == 'name') {
+                        if (!jade.utils.validate_name(v)) {
+                            error = true;
+                            pmsg.text('not a valid name');
+                        }
+                    }
+                    else if (ptype == 'signal') {
+                        if (!jade.utils.validate_signal(v)) {
+                            error = true;
+                            pmsg.text('not a valid signal');
+                        }
+                    }
+
                     new_properties[fields[i].prop_name] = v;
                 }
-                component.name = new_properties.name; // used when extracting netlists
-                if (component.name) component.name = component.name.toLowerCase();
 
-                // record the change
-                diagram.aspect.start_action();
-                component.update_properties(new_properties);
-                diagram.aspect.end_action();
+                // if there's been an error, give user a chance for redemption
+                if (error) {
+                    diagram.dialog('Edit Properties', content, update_properties);
+                } else {
+                    component.name = new_properties.name; // used when extracting netlists
+                    if (component.name) component.name = component.name.toLowerCase();
 
-                if (callback) callback(component);
+                    // record the change
+                    diagram.aspect.start_action();
+                    component.update_properties(new_properties);
+                    diagram.aspect.end_action();
 
-                diagram.redraw_background();
-            });
+                    if (callback) callback(component);
+
+                    diagram.redraw_background();
+                }
+            }
+
+            diagram.dialog('Edit Properties', content, update_properties);
             return true;
         }
         else return false;
