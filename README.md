@@ -44,6 +44,10 @@ of the Jade repo.  I can then access Jade at
 
     http://localhost/jade/src/jade_local.html
 
+and the somewhat terse Jade help file at
+
+    http://localhost/jade/help.html
+
 The user libraries are stored in the src/files/ subdirectory
 of the repo.  If several people are sharing access, you can
 provide an optional "dir" argument to the URL above, specifying
