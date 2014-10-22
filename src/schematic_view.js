@@ -1017,7 +1017,7 @@ jade.schematic_view = (function() {
             plist.sort();   // arrange alphabetically
 
             var current = '';
-            var header,parts_list;
+            var parts_list;
             $.each(plist,function (index,p) {
                 // check cache, create Part if new module
                 var part = parts_bin.parts[p];
@@ -1044,7 +1044,7 @@ jade.schematic_view = (function() {
                 // add icon to parts bin along with new header if needed
                 var lname = part.component.module.library.name;
                 if (current != lname) {
-                    header = $('<div class="jade-xparts-header"></div>');
+                    var header = $('<div class="jade-xparts-header"></div>');
                     header.append('<span class="fa fa-caret-down fa-fw"></span>');
                     header.append(lname);
                     parts_list =  $('<div class="jade-xparts-list"></div>');
@@ -1061,7 +1061,7 @@ jade.schematic_view = (function() {
                     });
 
                     current = lname;
-                    bin.append(header,parts_list);
+                    bin.append(header,local_parts_list);
                 }
                 parts_list.append(part.canvas);
             });

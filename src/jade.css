@@ -213,7 +213,7 @@
     font: 10pt/1.25 "Lucida Console",monospace;
 }
 .jade-test-editor:disabled {
-    /*background-color: #E0E0E0;*/
+    background-color: #E0E0E0;
 }
 .jade-window {
     background-image: -webkit-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);
