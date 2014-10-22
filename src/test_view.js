@@ -587,7 +587,7 @@ jade.test_view = (function() {
                         errors = errors.slice(0,5);
                         postscript = '<br>...';
                     }
-                    msg = '<ul><li>'+errors.join('<li>')+postscript+'</ul>';
+                    msg = '<font color="red"><li>'+errors.join('<li>')+postscript+'</font>';
                     diagram.message(msg);
                     test_results[module.get_name()] = 'Error detected: '+msg;
                 } else {
