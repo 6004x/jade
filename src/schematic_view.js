@@ -213,7 +213,10 @@ jade.schematic_view = (function() {
         tool.off('click');   // different gesture for this tool
         var part = new Part(editor);
         part.set_component(jade.model.make_component([pname,[0,0,0],{}]));
-        tool.mousedown(function(event) { editor.diagram.new_part = part; });
+        tool.mousedown(function(event) {
+            editor.diagram.new_part = part;
+            event.originalEvent.preventDefault();  // keep Chrome from selecting text
+        });
         tool.mouseup(function(event) { editor.diagram.new_part = undefined; });
     }
 
@@ -1223,6 +1226,8 @@ jade.schematic_view = (function() {
 
         part.select(true);
         part.diagram.new_part = part;
+
+        event.originalEvent.preventDefault();  // keep Chrome from selecting text
         return false;
     }
 

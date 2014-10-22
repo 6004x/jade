@@ -31,7 +31,7 @@ var jade = (function() {
         // insert framework into DOM
         this.top_level = $('<div class="jade-top-level">' +
                            ' <div class="jade-tabs-div"></div>' +
-                           ' <div class="jade-version">Jade 2.1.15 (2014 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.1.16 (2014 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $(owner).append(this.top_level);
@@ -1595,7 +1595,7 @@ var jade = (function() {
     function Toolbar(diagram) {
         this.diagram = diagram;
         this.tools = {};
-        this.toolbar = $('<div class="jade-toolbar"></div>');
+        this.toolbar = $('<div class="jade-toolbar noselect"></div>');
     }
 
     Toolbar.prototype.add_tool = function(tname, icon, tip, handler, enable_check) {
