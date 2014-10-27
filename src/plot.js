@@ -45,7 +45,7 @@ jade.plot = (function() {
     //   type: 'digital' or 'analog'
     function graph(dataseries) {
         // create container
-        var container = $('<div class="plot-container"></div>');
+        var container = $('<div class="plot-container noselect"></div>');
         container[0].dataseries = dataseries;
         dataseries.container = container[0];
 
@@ -82,12 +82,13 @@ jade.plot = (function() {
         container.append('<div class="plot-scrollbar-wrapper"><div class="plot-scrollbar"><div class="plot-scrollbar-thumb"></div></div></div>');
 
         // handlers for zoom tools
-        zoom.on('click',function () {
+        zoom.on('click',function (event) {
             if (zoom.hasClass('plot-tool-enabled')) {
                 dataseries.sel0 = undefined;   // remove selection
                 dataseries.xstart = dataseries.xmin;
                 dataseries.xend = dataseries.xmax;
                 do_plot(container[0],container.width(),container.height());
+                event.preventDefault();
             }
         });
 
@@ -115,17 +116,19 @@ jade.plot = (function() {
             do_plot(container[0],container.width(),container.height());
         };
 
-        zoomin.on('click',function () {
+        zoomin.on('click',function (event) {
             if (zoomin.hasClass('plot-tool-enabled'))
                 do_zoom((dataseries.xend - dataseries.xstart)/2);
+            event.preventDefault();
         });
 
-        zoomout.on('click',function () {
+        zoomout.on('click',function (event) {
             if (zoomout.hasClass('plot-tool-enabled'))
                 do_zoom((dataseries.xend - dataseries.xstart)*2);
+            event.preventDefault();
         });
 
-        zoomsel.on('click',function () {
+        zoomsel.on('click',function (event) {
             if (zoomsel.hasClass('plot-tool-enabled') && dataseries.sel0 && dataseries.sel1) {
                 var x0 = dataseries[0].datax(dataseries.sel0);
                 var x1 = dataseries[0].datax(dataseries.sel1);
@@ -135,6 +138,7 @@ jade.plot = (function() {
                 dataseries.sel1 = undefined;
                 do_plot(container[0],container.width(),container.height());
             }
+            event.preventDefault();
         });
 
         function process_dataset(dataset) {
@@ -197,6 +201,7 @@ jade.plot = (function() {
                     // replot remaining datasets
                     do_plot(container[0],container.width(),container.height());
                 }
+                event.preventDefault();
             });
 
             // double-click zooms in, shift double-click zooms out
@@ -211,6 +216,7 @@ jade.plot = (function() {
                     if (event.shiftKey) do_zoom(xrange*2,gx);
                     else do_zoom(xrange/2,gx);
                 }
+                event.preventDefault();
             });
 
             // use arrow keys to pan (ie, move the scrollbar thumb)  [doesn't work?]
@@ -234,6 +240,7 @@ jade.plot = (function() {
                     event.preventDefault();
                     move_thumb(event.originalEvent.wheelDelta > 0 ? -1 : 1);
                 }
+                event.preventDefault();
             });
 
             // dragging in plot creates a selection region
@@ -250,11 +257,14 @@ jade.plot = (function() {
                     dataseries.sel = true;
                 }
 
-                $(document).on('mouseup',function () {
+                $(document).on('mouseup',function (event) {
                     $(document).unbind('mouseup');
                     dataseries.sel = undefined;      // we're done defining region
                     graph_redraw(dataseries);
+                    event.preventDefault();
                 });
+
+                event.preventDefault();
             });
 
             // track mouse to display vertical cursor & measurements
@@ -271,6 +281,7 @@ jade.plot = (function() {
                 } else dataseries.cursor = undefined;
 
                 graph_redraw(dataseries);
+                event.preventDefault();
             });
 
             dataset.bg_image = $('<canvas></canvas>');
@@ -320,30 +331,34 @@ jade.plot = (function() {
             graph_redraw(dataseries);
         }
 
+        // click on thumb doesn't count as click on scroll bar
+        thumb.on('click',function (event) {
+            event.stopPropagation();
+        });
+
+        scrollbar.on('click',function (event) {
+            var mx = event.pageX - thumb.offset().left;
+            var w = 0.8 * thumb.width();
+            move_thumb(mx < 0 ? -w : w);
+            event.preventDefault();
+        });
+
         thumb.on('mousedown',function (event) {
-            //var thumb_value = parseInt(thumb.css('margin-left'));
-            //var thumb_max_value = scrollbar.width() - thumb.width();
-            //var thumb_dx = (dataseries.xmax - dataseries.xmin)/scrollbar.width();
-            //var thumb_width = thumb.width() * thumb_dx;
             var mx = event.pageX;
 
             $(document).on('mousemove',function (event) {
                 move_thumb(event.pageX - mx);
                 mx = event.pageX;
-                /*
-                var dx = event.pageX - mx;
-                var value = Math.min(thumb_max_value,Math.max(0,thumb_value + dx));
-                thumb.css('margin-left',value);
-                dataseries.xstart = dataseries.xmin + value*thumb_dx;
-                dataseries.xend = dataseries.xstart + thumb_width;
-                do_plot(container[0],container.width(),container.height());
-                 */
+                event.preventDefault();
             });
 
             $(document).on('mouseup',function (event) {
                 $(document).unbind('mousemove');
                 $(document).unbind('mouseup');
+                event.preventDefault();
             });
+
+            event.preventDefault();
         });
 
         // set up resize handler
