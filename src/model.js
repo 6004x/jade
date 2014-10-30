@@ -970,7 +970,9 @@ jade.model = (function () {
     };
 
     Component.prototype.draw_line = function(diagram, x1, y1, x2, y2, width) {
-        diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type() == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : diagram.normal_style));
+        diagram.c.strokeStyle = this.selected ? diagram.selected_style :
+            this.type() == 'wire' ? (diagram.show_grid ? diagram.normal_style : 'rgb(0,0,0)') :
+            (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : 'rgb(0,0,0)'));
         var nx1 = this.transform_x(x1, y1) + this.coords[0];
         var ny1 = this.transform_y(x1, y1) + this.coords[1];
         var nx2 = this.transform_x(x2, y2) + this.coords[0];
@@ -980,7 +982,9 @@ jade.model = (function () {
 
     Component.prototype.draw_circle = function(diagram, x, y, radius, filled) {
         if (filled) diagram.c.fillStyle = this.selected ? diagram.selected_style : diagram.normal_style;
-        else diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type() == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : diagram.normal_style));
+        else diagram.c.strokeStyle = this.selected ? diagram.selected_style :
+            this.type() == 'wire' ? (diagram.show_grid ? diagram.normal_style : 'rgb(0,0,0)') :
+            (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : 'rgb(0,0,0)'));
         var nx = this.transform_x(x, y) + this.coords[0];
         var ny = this.transform_y(x, y) + this.coords[1];
 
@@ -989,7 +993,7 @@ jade.model = (function () {
 
     // draw arc from [x1,y1] to [x2,y2] passing through [x3,y3]
     Component.prototype.draw_arc = function(diagram, x1, y1, x2, y2, x3, y3) {
-        diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type() == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : diagram.normal_style));
+        diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type() == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : 'rgb(0,0,0)'));
 
         // transform coords, make second two points relative to x,y
         var x = this.transform_x(x1, y1) + this.coords[0];
@@ -1049,7 +1053,7 @@ jade.model = (function () {
         var a = aOrient[this.coords[2] * 9 + alignment];
         diagram.c.textAlign = textAlign[a];
         diagram.c.textBaseline = textBaseline[a];
-        if (fill === undefined) diagram.c.fillStyle = this.selected ? diagram.selected_style : (colors_rgb[this.properties.color] || (diagram.show_grid ? diagram.component_style : diagram.normal_style));
+        if (fill === undefined) diagram.c.fillStyle = this.selected ? diagram.selected_style : (colors_rgb[this.properties.color] || (diagram.show_grid ? diagram.component_style : 'rgb(0,0,0)'));
         else diagram.c.fillStyle = fill;
         diagram.draw_text(text,
                           this.transform_x(x, y) + this.coords[0],
