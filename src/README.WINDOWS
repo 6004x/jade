@@ -1,0 +1,49 @@
+To run this development version of jade under Windows:
+
+1. Download and install Apache 2.2.25 from
+
+   http://mirror.olnevhost.net/pub/apache//httpd/binaries/win32/
+
+2. Download and install Python 2.7.8 from
+
+   https://www.python.org/downloads/
+
+3. Go to apache installation directory.  On my machine this is
+
+   C:\Program Files (x86)\Apache Software Foundation\Apache2.2
+
+4. In that directory edit conf\http.conf and add the following to the end.
+   Replace both references to "C:\cygwin64\home\cjt\jade\src" with the
+   correct pathname to the src directory in the Jade git repo:
+
+   Alias /jade C:\cygwin64\home\cjt\jade\src
+   <Directory "C:\cygwin64\home\cjt\jade\src">
+     Options FollowSymLinks Includes ExecCGI MultiViews
+     AllowOverride All
+     ScriptInterpreterSource Registry
+     AddHandler cgi-script .py
+     Order allow,deny
+     Allow from all
+   </Directory>
+
+5. Restart Apache to reload the configuration file.  I use the cygwin tools
+   and from the Apache directory I typed:
+
+   cygstart --action=runas bin/httpd.exe -k restart
+
+6. Go the src directory in the Jade repo and make sure files/* and files/*/*
+   are writeable by all (specifically Apache needs access).  Under cygwin I
+   typed
+
+   chmod 777 files/* files/*/*
+
+7. You should now be able to access Jade at
+
+   http://localhost/jade/jade_local.html?dir=cjt
+
+   where you should replace cjt with an appropriate username which will be
+   used by the Jade file server to create a subdirectory in files/ to hold
+   the user's library files.
+
+
+    

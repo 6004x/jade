@@ -46,7 +46,7 @@ jade.load_from_server = function (lib) {
     var user_dir = jade.user_directory();
     var args = {
         async: false, // hang until load completes
-        url: 'server_local.cgi',
+        url: 'server_local.py',
         type: 'POST',
         data: { file: user_dir + '/' + lib.name },
         dataType: 'json',
@@ -64,7 +64,7 @@ jade.load_from_server = function (lib) {
 jade.save_to_server = function (lib) {
     var user_dir = jade.user_directory();
     var args = {
-        url: 'server_local.cgi',
+        url: 'server_local.py',
         type: 'POST',
         data: {
             file: user_dir + '/' + lib.name,
