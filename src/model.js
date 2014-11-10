@@ -101,8 +101,7 @@ jade.model = (function () {
     };
 
     Module.prototype.read_only = function() {
-        // is this module read only?
-        return this.properties['readonly'] == 'true';
+        return this.property_value('readonly') == 'true';
     };
 
     Module.prototype.add_listener = function(callback) {
@@ -120,6 +119,12 @@ jade.model = (function () {
 
     Module.prototype.clear_modified = function() {
         for (a in this.aspects) this.aspects[a].clear_modified();
+    };
+
+    Module.prototype.property_value = function(pname) {
+        var p = this.properties[pname];
+        // editable properties have a value field, otherwise just return what we have
+        return p ? (p.value || p) : undefined;
     };
 
     Module.prototype.set_property = function(prop, v) {
@@ -249,7 +254,7 @@ jade.model = (function () {
         if (!this.module) return false;
 
         // is this aspect read only?
-        if (this.module.properties[this.name + '-readonly'] == 'true') return true;
+        if (this.module.property_value(this.name + '-readonly') == 'true') return true;
 
         return this.module.read_only();
     };
