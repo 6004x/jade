@@ -1,155 +1,14 @@
 // JADE: JAvascript Design Environment
 
 // Model:
-//  libraries := {lname: Library, ...}
-//  Library := {mname: Module, ...}
-//  Module := {aname: Aspect, ...}
+//  Module := {aname: Aspect, properties: {pname: Property, ...}}
 //  Property := {type: ..., label: ..., value: ..., edit: ..., choices: ...}
 //  Aspect :=  [Component, ...]
 //  Component := [type [x, y, rotation, ...] {property: value, ... }]
 
 jade.model = (function () {
 
-    //////////////////////////////////////////////////////////////////////
-    //
-    // Libraries
-    //
-    //////////////////////////////////////////////////////////////////////
-
-    var libraries = {}; // attributes are Library objects
-
     var AUTOSAVE_TRIGGER = 25;  // number edits that triggers an autosave
-
-    function Library(name, json) {
-        this.name = name;
-        this.modules = {}; // attributes are Module objects
-        this.modified = false;
-        this.read_only = false;
-        this.loading = false;
-        this.nchanges = 0;   // for autosave logic
-
-        libraries[name] = this;
-
-        if (json) this.load(json);
-    }
-
-    // initialize library from JSON object
-    Library.prototype.load = function(json) {
-        this.loading = true;
-
-        // note that modules may have already been created because they've
-        // been referenced as a component is some other library.
-        for (var m in json) {
-            this.module(m).load(json[m]);
-        }
-
-        this.loading = false;
-    };
-
-    // return specified Module, newly created if necessary
-    Library.prototype.module = function(name,json) {
-        var module = this.modules[name];
-        if (module === undefined) {
-            module = new Module(name, this, json);
-            this.modules[name] = module;
-            this.set_modified();
-        }
-        return module;
-    };
-
-    // remove module from library
-    Library.prototype.remove_module = function(name) {
-        if (name in this.modules) {
-            delete this.modules[name];
-            this.set_modified();
-        }
-    };
-
-    // produce JSON representation of a library
-    Library.prototype.json = function() {
-        // weed out empty modules
-        var json = {};
-        for (var m in this.modules) {
-            var module = this.modules[m].json();
-            if (module) json[m] = module;
-        }
-        return json;
-    };
-
-    Library.prototype.clear_modified = function() {
-        for (m in this.modules) this.modules[m].clear_modified();
-        this.modified = false;
-        this.nchanges = 0;
-
-        // if all libraries are now unmodified, clear data-dirty attr
-        var dirty = false;
-        $.each(libraries,function (lname,lib) { if (lib.modified) dirty = true; });
-        if (!dirty) {
-            $('body').removeAttr('data-dirty');
-        }
-    };
-
-    Library.prototype.set_modified = function() {
-        if (this.loading) return;   // ignore changes while loading
-
-        if (!this.modified) {
-            this.modified = true;
-            // triggers alert if user tries to leave webpage without saving
-            $('body').attr('data-dirty','yes');
-        }
-
-        // see if it's time to autosave the changes
-        this.nchanges += 1;
-        if (this.nchanges >= AUTOSAVE_TRIGGER)
-            jade.save_to_server(this);
-    };
-
-    // if necessary save library to server
-    Library.prototype.save = function() {
-        if (!this.read_only && this.modified) {
-            jade.save_to_server(this);
-        }
-    };
-
-    // update server with any changes to loaded libraries
-    function save_libraries() {
-        for (var l in libraries) {
-            libraries[l].save();
-        }
-    }
-
-    // return library, loading it if necessary
-    function load_library(lname,read_only) {
-        var lib = libraries[lname];
-        if (!lib) {
-            // allocate new library, add to list so we know we're loading it
-            lib = new Library(lname);
-            if (read_only) lib.read_only = true;
-            jade.load_from_server(lib);
-        }
-        return lib;
-    }
-
-    // return specified Module, newly created if necessary. Module names have
-    // the form library:module.  This function will contact server to load needed
-    // library.
-    function find_module(name) {
-        var parse = name.split(':');
-        var lname, mname;
-        if (parse.length == 1) {
-            lname = 'user';
-            mname = parse[0];
-        }
-        else if (parse.length == 2) {
-            lname = parse[0];
-            mname = parse[1];
-        }
-        else return undefined;
-
-        if (!(lname in libraries)) load_library(lname);
-
-        return libraries[lname].module(mname);
-    }
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -157,8 +16,71 @@ jade.model = (function () {
     //
     //////////////////////////////////////////////////////////////////////
 
-    function Module(name, lib, json) {
-        this.library = lib;
+    var modules = {};
+
+    // grab file from server, load all the modules it contains
+    function load_modules(filename,shared) {
+        jade.load_from_server(filename,function(json) {
+            $.each(json,function(mname,mjson) {
+                var m = find_module(mname,mjson);
+                if (shared) modules[mname].shared = true;
+            });
+        });
+    }
+
+    // return json for all non-shared modules + modified flag
+    function json_modules() {
+        var modified = false;
+        var save = {};
+        $.each(modules,function(mname,module) {
+            modified |= module.modified;
+            if (!module.shared) {
+                save[mname] = module.json();
+            }
+        });
+        return {
+            modified: modified,
+            json: save
+        };
+    }
+
+    // update server with any changes to loaded modules
+    function save_modules() {
+        var result = json_modules();
+        if (result.modified) {
+            jade.save_to_server(result.json,function () {
+                $.each(result.json,function(mname,json) {
+                    modules[mname].clear_modified();
+                });
+            });
+        }
+    }
+
+    // return specified Module, newly created if necessary
+    function find_module(name,json) {
+        var module = modules[name];
+        if (module === undefined) {
+            module = new Module(name, json);
+            modules[name] = module;
+        } else if (json) module.load(json);
+        return module;
+    }
+
+    // remove module from list
+    function remove_module(name) {
+        if (name in modules) {
+            delete modules[name];
+        }
+    };
+
+    // apply function to matching modules
+    function map_modules(pattern,f) {
+        $.each(modules,function(mname,module) {
+            if (pattern.test(mname)) f(module);
+        });
+    }
+
+    function Module(name, json) {
         this.name = name;
         this.aspects = {};
         this.properties = {   // every module has itertions and name properties
@@ -175,15 +97,12 @@ jade.model = (function () {
     }
 
     Module.prototype.get_name = function() {
-        return this.library.name + ':' + this.name;
+        return this.name;
     };
 
     Module.prototype.read_only = function() {
         // is this module read only?
-        if (this.properties['readonly'] == 'true') return true;
-
-        // is this library read only?
-        return this.library.read_only;
+        return this.properties['readonly'] == 'true';
     };
 
     Module.prototype.add_listener = function(callback) {
@@ -197,7 +116,6 @@ jade.model = (function () {
 
     Module.prototype.set_modified = function() {
         this.modified = true;
-        this.library.set_modified();
     };
 
     Module.prototype.clear_modified = function() {
@@ -1084,9 +1002,7 @@ jade.model = (function () {
             });
         } else {
             // user didn't supply an icon, so fake a stand-in
-            var n = this.type().split(':');  // separate lib from module name
-            this.draw_text_important(diagram, n[0]+':', 0, 0, 7, diagram.annotation_font);
-            this.draw_text_important(diagram, n[1], 0, 0, 1, diagram.annotation_font);
+            this.draw_text_important(diagram, this.type(), 0, 0, 4, diagram.annotation_font);
             this.draw_line(diagram,-16,-16,16,-16,1);
             this.draw_line(diagram,16,-16,16,16,1);
             this.draw_line(diagram,16,16,-16,16,1);
@@ -1291,11 +1207,13 @@ jade.model = (function () {
     //////////////////////////////////////////////////////////////////////////////
 
     return {
-        libraries: libraries,
+        modules: modules,
+        load_modules: load_modules,
+        save_modules: save_modules,
+        json_modules: json_modules,
         find_module: find_module,
-        Library: Library,
-        load_library: load_library,
-        save_libraries: save_libraries,
+        remove_module: remove_module,
+        map_modules: map_modules,
         Aspect: Aspect,
         Component: Component,
         make_component: make_component,

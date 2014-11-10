@@ -978,7 +978,7 @@ jade.schematic_view = (function() {
         this.top_level = bin[0];
         this.top_level.parts_bin = this;
 
-        this.parts = {}; // lib:module => Part
+        this.parts = {}; // module name => Part
     }
 
     PartsBin.prototype.resize = function(w, h, selected) {
@@ -995,25 +995,18 @@ jade.schematic_view = (function() {
             // figure out all the parts to appear in parts bin
             var plist = [];
             $.each((this.parts_wanted || '').split(','),function (index,p) {
-                var part = p.split(':');   // split into lib and module
-                var lib = part[0];
-                var mpattern = new RegExp(part[1] ? '^'+part[1]+'$' : '^.+$');
-                lib = jade.model.load_library(lib);   // load reference library
-                // add all matching modules in library to parts list
-                $.each(lib.modules,function (mname, m) {
-                    if (mpattern.test(mname))
+                // add all matching modules to parts list
+                jade.model.map_modules(new RegExp(p), function (m) {
                         plist.push(m.get_name());
                 });
             });
 
             // in hierarchical mode, include all modules for all loaded libraries
             if (this.editor.hierarchy) {
-                $.each(jade.model.libraries,function (lname,lib) {
-                    $.each(lib.modules,function (mname,m) {
-                        var name = m.get_name();  // lib:module
-                        // only include each module once!
-                        if (plist.indexOf(name) == -1) plist.push(name);
-                    });
+                jade.model.map_modules(/.*/,function (m) {
+                    var name = m.get_name();  // lib:module
+                    // only include each module once!
+                    if (plist.indexOf(name) == -1) plist.push(name);
                 });
             }
 
@@ -1045,7 +1038,8 @@ jade.schematic_view = (function() {
                     .dblclick(part_dblclick);
 
                 // add icon to parts bin along with new header if needed
-                var lname = part.component.module.library.name;
+                var path = part.component.module.get_name().split('/');
+                var lname = path.length > 1 ? path.slice(0,path.length-1).join('/') : '/user';
                 if (current != lname) {
                     var header = $('<div class="jade-xparts-header"></div>');
                     header.append('<span class="fa fa-caret-down fa-fw"></span>');

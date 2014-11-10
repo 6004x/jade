@@ -19,7 +19,7 @@
 <script type="text/javascript" src="cktsim.js"></script>
 <script type="text/javascript" src="gate_level.js"></script>
 <script type="text/javascript" src="gatesim.js"></script>
-<script type="text/javascript" src="libraries.js"></script>
+<!--<script type="text/javascript" src="libraries.js"></script>-->
 
 <script type="text/javascript">
 // see if jade's URL includes an arg of the form 'dir=xxx'
@@ -37,45 +37,42 @@ jade.page_args = function () {
     return result;
 }
 
-jade.user_directory = function () {
-    var user_dir = jade.page_args()['dir'] || 'guest';
-    return user_dir;
+jade.user = function () {
+    var user = jade.page_args()['user'] || 'guest';
+    return user;
 }
 
-jade.load_from_server = function (lib) {
-    var user_dir = jade.user_directory();
+jade.load_from_server = function (filename,callback) {
     var args = {
         async: false, // hang until load completes
         url: 'server_local.py',
         type: 'POST',
-        data: { file: user_dir + '/' + lib.name },
+        data: { file: filename },
         dataType: 'json',
         error: function(jqXHR, textStatus, errorThrown) {
-            alert('Error while loading library '+lib.name+': '+errorThrown);
+            alert('Error while loading file '+filename+': '+errorThrown);
         },
-        success: function(json) {
-            lib.load(json[0]);
-            if (json[1] == 'shared') lib.read_only = true;
+        success: function(result) {
+            // result[1] is username
+            if (callback) callback(result[0]);
         }
     };
     $.ajax(args);
 };
 
-jade.save_to_server = function (lib) {
-    var user_dir = jade.user_directory();
+jade.save_to_server = function (json,callback) {
     var args = {
         url: 'server_local.py',
         type: 'POST',
         data: {
-            file: user_dir + '/' + lib.name,
-            json: JSON.stringify(lib.json())
+            file: jade.user(),
+            json: JSON.stringify(json)
         },
         error: function(jqXHR, textStatus, errorThrown) {
             alert(errorThrown);
         },
         success: function() {
-            // clear modified status for library and its modules
-            lib.clear_modified();
+            if (callback) callback();
         }
     };
     $.ajax(args);
@@ -97,6 +94,7 @@ jade.setup = (function () {
 
                 // start configuration with whatever is provided by <jade> tag
                 var config = {};
+                if (args.user) config.user = args.user;
                 if (args.edit) config.edit = args.edit;
                 $.each(div.attributes,function () {
                     if (this.name != 'class') config[this.name] = this.value;
@@ -125,7 +123,7 @@ $(document).ready(jade.setup.setup);
 
 </head>
 <body>
-<div class="jade" parts="analog,gates" hierarchical="true"></div>
+<div class="jade" shared_modules="analog,gates" parts="/analog/.*,/gates/.*" hierarchical="true"></div>
 <script>
 // notify user of unsaved changes
 $(window).bind('beforeunload',function () {

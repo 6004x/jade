@@ -30,8 +30,9 @@ jade.device_level = (function() {
         // extract netlist and convert to form suitable for new cktsim.js
         // use modules in the analog libraries as the leafs
         var mlist = ['ground','jumper'];
-        if (jade.model.libraries.analog !== undefined)
-            $.each(jade.model.libraries.analog.modules,function (mname,module) { mlist.push(module.get_name()); });
+        jade.model.map_modules(/^\/analog\/.*/,function(m) {
+            mlist.push(m.get_name());
+        });
 
         var netlist = aspect.netlist(mlist, globals, '', {}, []);
 

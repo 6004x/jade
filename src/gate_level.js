@@ -31,10 +31,11 @@ jade.gate_level = (function() {
     // build extraction environment, ask diagram to give us flattened netlist
     function gate_netlist(aspect,globals) {
         // extract netlist and convert to form suitable for new cktsim.js
-        // use modules in the analog libraries as the leafs
-        var mlist = ['ground','jumper','analog:v_source','analog:v_probe'];
-        if (jade.model.libraries.gates !== undefined)
-            $.each(jade.model.libraries.gates.modules,function (mname,module) { mlist.push(module.get_name()); });
+        // use modules in the gates library as the leafs
+        var mlist = ['ground','jumper','/analog/v_source','/analog/v_probe'];
+        jade.model.map_modules(/^\/gates\/.*/,function(m) {
+            mlist.push(m.get_name());
+        });
 
         var netlist = aspect.netlist(mlist, globals, '', {}, []);
 
@@ -46,8 +47,7 @@ jade.gate_level = (function() {
             var c = device[1];
             var props = device[2];
 
-            var lib_module = type.split(':');
-            if (lib_module[0] == 'gates') {
+            if (/^\/gates\/.*/.test(type)) {
                 // copy over relevant properties, evaluating numeric values
                 var revised_props = {name: props.name};
                 $.each(gate_properties,function (index,pname) {
@@ -55,12 +55,12 @@ jade.gate_level = (function() {
                     if (v) revised_props[pname] = jade.utils.parse_number(v);
                 });
 
-                revised_netlist.push({type: lib_module[1],
+                revised_netlist.push({type: type.split('/')[2],
                                       connections: c,
                                       properties: revised_props
                                       });
             }
-            else if (type == 'analog:v_source')
+            else if (type == '/analog/v_source')
                 revised_netlist.push({type: 'voltage source',
                                       connections: c,
                                       properties: {name: props.name, value: parse_source(props.value)}
@@ -78,7 +78,7 @@ jade.gate_level = (function() {
                                       properties: {}
                                      });
             }
-            else if (type == 'analog:v_probe')   // ground connection
+            else if (type == '/analog/v_probe')   // ground connection
                 revised_netlist.push({type: 'voltage probe',
                                       connections: c,
                                       properties: {name: props.name, color: props.color, offset: jade.utils.parse_number(props.offset)}

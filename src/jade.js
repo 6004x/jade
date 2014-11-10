@@ -99,6 +99,19 @@ var jade = (function() {
         // initialize object for recording test results
         if (configuration.tests === undefined) configuration.tests = {};
 
+        // load any shared modules from specified files
+        if (configuration.shared_modules) {
+            var filenames = configuration.shared_modules.split(',');
+            $.each(filenames,function (index,filename) {
+                jade.model.load_modules(filename,true);
+            });
+        }
+
+        // load user's modules
+        if (configuration.user) {
+            jade.model.load_modules(configuration.user,false);
+        }
+
         // setup editor panes
         var elist;
         if (configuration.editors) {
@@ -137,7 +150,7 @@ var jade = (function() {
             me.tabs[ename] = [tab[0], body[0]];
 
             // save changes to server if we're leaving this particular editor
-            body.on('mouseleave',function () { jade.model.save_libraries(); });
+            body.on('mouseleave',function () { jade.model.save_modules(); });
         });
         // select first aspect as the one to be displayed
         if (elist.length > 0) {
@@ -153,10 +166,8 @@ var jade = (function() {
         });
 
         // starting module?
-        if (configuration.edit === undefined) {
-            if (configuration.edit == null) configuration.edit = "gates:and2";
-        }
-        var mname = configuration.edit.split('.');          // library:module.aspect
+        var edit = configuration.edit || '/user/untitled';
+        var mname = edit.split('.');          // module.aspect
         this.edit(mname[0]);  // select module
         if (mname.length > 1) this.show(mname[1]);
     };
@@ -222,7 +233,7 @@ var jade = (function() {
         this.refresh();  // tell each tab which module we're editing
 
         // save any changes to the server when we change what we're editing
-        jade.model.save_libraries();
+        jade.model.save_modules();
     };
 
     // if underlying library/module is reloaded, refresh each tab

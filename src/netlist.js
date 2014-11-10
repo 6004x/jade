@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-// mlist is a list of module names "lib:module" that are the leaves
+// mlist is a list of module names that are the leaves
 // of the extraction tree.
 // port_map is an associative array: local_sig => external_sig
 // mstack is an array of parent module names so we can detect recursion
