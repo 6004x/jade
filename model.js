@@ -54,9 +54,9 @@ jade.model = (function () {
     }
 
     // update server with any changes to loaded modules
-    function save_modules() {
+    function save_modules(force) {
         var result = json_modules();
-        if (result.modified) jade.save_to_server(result.json,clear_modified);
+        if (force || result.modified) jade.save_to_server(result.json,clear_modified);
     }
 
     function clear_modified() {
@@ -79,7 +79,7 @@ jade.model = (function () {
     function remove_module(name) {
         if (name in modules) {
             delete modules[name];
-            save_modules();  // do this now since there's no place to keep modified indicator!
+            save_modules(true);  // do this now since there's no place to keep modified indicator!
         }
     };
 
