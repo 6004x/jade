@@ -26,10 +26,15 @@ jade.model = (function () {
     }
 
     function load_json(json,shared) {
-        $.each(json,function(mname,mjson) {
-            var m = find_module(mname,mjson);
-            if (shared) modules[mname].shared = true;
-        });
+        try {
+            $.each(json,function(mname,mjson) {
+                var m = find_module(mname,mjson);
+                if (shared) modules[mname].shared = true;
+            });
+        }
+        catch (e) {
+            console.log(e);
+        }
     }
 
     // return json for all non-shared modules + modified flag
