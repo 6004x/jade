@@ -107,9 +107,9 @@ var jade = (function() {
             });
         }
 
-        // load user's modules
-        if (configuration.user) {
-            jade.model.load_modules(configuration.user,false);
+        // load module files, including those for user?
+        if (configuration.modules) {
+            jade.model.load_modules(configuration.modules,false);
         }
 
         // setup editor panes
@@ -158,12 +158,9 @@ var jade = (function() {
         }
         $(window).trigger('resize');  // let editors know their size
 
-        // load state (dictionary of lname:lib)
+        // load state (dictionary of module_name:json)
         var state = configuration.state || configuration.initial_state || {};
-        $.each(state,function(lname,json) {
-            var lib = new jade.model.Library(lname);
-            lib.load(json);
-        });
+        jade.model.load_json(state);
 
         // starting module?
         var edit = configuration.edit || '/user/untitled';
@@ -173,13 +170,14 @@ var jade = (function() {
     };
 
     Jade.prototype.get_state = function() {
+        // start with all the ancillary information
         var state = $.extend({},this.configuration);
 
-        if (jade.model.libraries.user) {
-            state.state = {user: jade.model.libraries.user.json()};
-            // request for state means user library is being saved
-            jade.model.libraries.user.clear_modified();
-        }
+        // gather up json for all non-shared modules
+        state.state = jade.model.json_modules().json;
+
+        // request for state means user library is being saved
+        jade.model.clear_modified();
 
         return state;
     };

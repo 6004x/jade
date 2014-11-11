@@ -21,10 +21,14 @@ jade.model = (function () {
     // grab file from server, load all the modules it contains
     function load_modules(filename,shared) {
         jade.load_from_server(filename,function(json) {
-            $.each(json,function(mname,mjson) {
-                var m = find_module(mname,mjson);
-                if (shared) modules[mname].shared = true;
-            });
+            load_json(json,shared);
+        });
+    }
+
+    function load_json(json,shared) {
+        $.each(json,function(mname,mjson) {
+            var m = find_module(mname,mjson);
+            if (shared) modules[mname].shared = true;
         });
     }
 
@@ -47,13 +51,13 @@ jade.model = (function () {
     // update server with any changes to loaded modules
     function save_modules() {
         var result = json_modules();
-        if (result.modified) {
-            jade.save_to_server(result.json,function () {
-                $.each(result.json,function(mname,json) {
-                    modules[mname].clear_modified();
-                });
-            });
-        }
+        if (result.modified) jade.save_to_server(result.json,clear_modified);
+    }
+
+    function clear_modified() {
+        $.each(modules,function(mname,module) {
+            if (!module.shared) module.clear_modified();
+        });
     }
 
     // return specified Module, newly created if necessary
@@ -1214,7 +1218,9 @@ jade.model = (function () {
     return {
         modules: modules,
         load_modules: load_modules,
+        load_json: load_json,
         save_modules: save_modules,
+        clear_modified: clear_modified,
         json_modules: json_modules,
         find_module: find_module,
         remove_module: remove_module,

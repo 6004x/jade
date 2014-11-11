@@ -1,8 +1,7 @@
-// see if jade's URL includes an arg of the form 'dir=xxx'
-// if so look file libraries in subdirectory xxx
+// see if jade's URL includes an arg of the form 'arg=value'
 jade.page_args = function () {
     var page_args = window.location.search.match(/\w+=[\w|\%|\:]+/g);
-    result = {}
+    var result = {};
     if (page_args) {
         $.each(page_args,function (index,arg) {
             var key_value = arg.split('=');
@@ -11,7 +10,7 @@ jade.page_args = function () {
         });
     }
     return result;
-}
+};
 
 jade.user = function () {
     var user = jade.page_args()['user'] || 'guest';
@@ -65,13 +64,18 @@ jade.setup = (function () {
         $('.jade').each(function(index, div) {
             // skip if this div has already been configured
             if (div.jade === undefined) {
-                // now create the editor
+                var config = {};
+
+                // use text from jade.div, if any
+                var text = $(div).text().trim();
+                $(div).empty();  // all done with innards
+                if (text) config = JSON.parse(text);
+
+                // override with any values set in url
+                $.extend(config,args);
+
+                // now create the editor and pass along initial configuration
                 var j = new jade.Jade(div);
-                // start with configuration from body of div
-                var config = JSON.parse(div.text());
-                // override with any values set it url
-                $.extend(config,args)
-                // pass to editor
                 j.initialize(config);
             }
         });
@@ -84,7 +88,7 @@ jade.setup = (function () {
     //////////////////////////////////////////////////////////////////////
 
     return {
-        setup: setup,   // called to initialize jade editors on this page
+        setup: setup   // called to initialize jade editors on this page
     };
 
 }());

@@ -991,78 +991,72 @@ jade.schematic_view = (function() {
         var bin = $(this.top_level);
         bin.empty();
  
-        if (this.parts_wanted) {
-            // figure out all the parts to appear in parts bin
-            var plist = [];
-            $.each((this.parts_wanted || '').split(','),function (index,p) {
+        // figure out all the parts to appear in parts bin
+        var plist = [];
+        var p = this.editor.hierarchy ? (this.parts_wanted || '.*') : '';
+        if (p) {
+            $.each(p.split(','),function (index,p) {
                 // add all matching modules to parts list
                 jade.model.map_modules(new RegExp(p), function (m) {
-                        plist.push(m.get_name());
-                });
-            });
-
-            // in hierarchical mode, include all modules for all loaded libraries
-            if (this.editor.hierarchy) {
-                jade.model.map_modules(/.*/,function (m) {
-                    var name = m.get_name();  // lib:module
+                    var name = m.get_name();
                     // only include each module once!
                     if (plist.indexOf(name) == -1) plist.push(name);
                 });
-            }
-
-            plist.sort();   // arrange alphabetically
-
-            var current = '';
-            var parts_list;
-            $.each(plist,function (index,p) {
-                // check cache, create Part if new module
-                var part = parts_bin.parts[p];
-                if (part === undefined) {
-                    part = new Part(parts_bin.editor);
-                    parts_bin.parts[p] = part;
-                    part.set_component(jade.model.make_component([p, [0, 0, 0]]));
-                }
-                // incorporate any recent edits to the icon
-                part.component.compute_bbox();
-                part.rescale();
-                part.redraw();
-
-                // add handlers here since any old handlers were
-                // removed if part was removed from parts_list
-                // at some earlier point
-                part.canvas
-                    .mouseover(part_enter)
-                    .mouseout(part_leave)
-                    .mousedown(part_mouse_down)
-                    .mouseup(part_mouse_up)
-                    .dblclick(part_dblclick);
-
-                // add icon to parts bin along with new header if needed
-                var path = part.component.module.get_name().split('/');
-                var lname = path.length > 1 ? path.slice(0,path.length-1).join('/') : '/user';
-                if (current != lname) {
-                    var header = $('<div class="jade-xparts-header"></div>');
-                    header.append('<span class="fa fa-caret-down fa-fw"></span>');
-                    header.append(lname);
-                    parts_list =  $('<div class="jade-xparts-list"></div>');
-
-                    // allow user to open/close a particular parts bin
-                    var local_parts_list = parts_list; // for closure
-                    var arrow = $('span',header);
-                    header.on('click',function () {
-                        if (arrow.hasClass('fa-caret-down'))
-                            arrow.removeClass('fa-caret-down').addClass('fa-caret-right');
-                        else
-                            arrow.removeClass('fa-caret-right').addClass('fa-caret-down');
-                        local_parts_list.animate({height: 'toggle'});
-                    });
-
-                    current = lname;
-                    bin.append(header,local_parts_list);
-                }
-                parts_list.append(part.canvas);
             });
         }
+
+        plist.sort();   // arrange alphabetically
+
+        var current = '';
+        var parts_list;
+        $.each(plist,function (index,p) {
+            // check cache, create Part if new module
+            var part = parts_bin.parts[p];
+            if (part === undefined) {
+                part = new Part(parts_bin.editor);
+                parts_bin.parts[p] = part;
+                part.set_component(jade.model.make_component([p, [0, 0, 0]]));
+            }
+            // incorporate any recent edits to the icon
+            part.component.compute_bbox();
+            part.rescale();
+            part.redraw();
+
+            // add handlers here since any old handlers were
+            // removed if part was removed from parts_list
+            // at some earlier point
+            part.canvas
+                .mouseover(part_enter)
+                .mouseout(part_leave)
+                .mousedown(part_mouse_down)
+                .mouseup(part_mouse_up)
+                .dblclick(part_dblclick);
+
+            // add icon to parts bin along with new header if needed
+            var path = part.component.module.get_name().split('/');
+            var lname = path.length > 1 ? path.slice(0,path.length-1).join('/') : '/user';
+            if (current != lname) {
+                var header = $('<div class="jade-xparts-header"></div>');
+                header.append('<span class="fa fa-caret-down fa-fw"></span>');
+                header.append(lname);
+                parts_list =  $('<div class="jade-xparts-list"></div>');
+
+                // allow user to open/close a particular parts bin
+                var local_parts_list = parts_list; // for closure
+                var arrow = $('span',header);
+                header.on('click',function () {
+                    if (arrow.hasClass('fa-caret-down'))
+                        arrow.removeClass('fa-caret-down').addClass('fa-caret-right');
+                    else
+                        arrow.removeClass('fa-caret-right').addClass('fa-caret-down');
+                    local_parts_list.animate({height: 'toggle'});
+                });
+
+                current = lname;
+                bin.append(header,local_parts_list);
+            }
+            parts_list.append(part.canvas);
+        });
 
         // bug?  nudge DOM's redraw so it will actually display the newly added part
         // without this, sometimes the parts contents aren't shown ?!
