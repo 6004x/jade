@@ -1,7 +1,7 @@
 # Makefile for Jade subtree
 
 # Here's the directory containing MY files:
-MYFILES=src/files/$(USER)
+MYFILES=files/$(USER)
 
 what:
 	@echo "Make what?  Plausible args include"
@@ -39,7 +39,7 @@ what:
 
 pull:
 	git pull
-	chmod 777 src/files/* src/files/*/*
+	chmod 777 files/* files/*/*
 
 
 commit:
@@ -52,11 +52,11 @@ push-mine:	$(MYFILES)
 		git commit -a -m "Pushed my edited Jade files"
 		git push
 
-push-notes:	src/files/notes
-		git add --all src/files/notes
+push-notes:	files/notes
+		git add --all files/notes
 
-push-bugs:	src/files/bugs
-		git add --all src/files/bugs
+push-bugs:	files/bugs
+		git add --all files/bugs
 
 
 
@@ -65,44 +65,37 @@ push-bugs:	src/files/bugs
 ### Prereqs:
 ###   - Apache, configured so that
 ###      - http://localhost/jade accesses this directory
-###      - CGI scripts executable from localhost/jade/src
+###      - CGI scripts executable from localhost/jade
 ###         (Options ExecCGI, AddHandler cgi-script .cgi)
-###   - Jade files to be accessed in src/files
+###   - Jade files to be accessed in files
 ################################################################################
 
 run:
-	chrome "http://localhost/jade/src/jade_local.html?dir=$(USER)"
+	chrome "http://localhost/jade/jade_local.html?dir=$(USER)"
 
 # Alternative run commands, pointing at different module directories:
 
 run-cjt:
-	chrome "http://localhost/jade/src/jade_local.html?dir=cjt"
+	chrome "http://localhost/jade/jade_local.html?dir=cjt"
 
 run-ward:
-	chrome "http://localhost/jade/src/jade_local.html?dir=ward"
+	chrome "http://localhost/jade/jade_local.html?dir=ward"
 
 run-notes:
-	chrome "http://localhost/jade/src/jade_local.html?dir=notes"
+	chrome "http://localhost/jade/jade_local.html?dir=notes"
 
 run-bugs:
-	chrome "http://localhost/jade/src/jade_local.html?dir=bugs"
+	chrome "http://localhost/jade/jade_local.html?dir=bugs"
 
 # ad-hoc run commands to show various examples:
 
 run-beta:
-	chrome "http://localhost/jade/src/jade_local.html?dir=ward&edit=beta:vanilla"
+	chrome "http://localhost/jade/jade_local.html?dir=ward&edit=beta:vanilla"
 
 run-mul32:
-	chrome "http://localhost/jade/src/jade_local.html?dir=ward&edit=mul:mul32"
+	chrome "http://localhost/jade/jade_local.html?dir=ward&edit=mul:mul32"
 
 
 # ad-hoc target to show json of a file:
 beta-json:
-	cat src/files/ward/beta | underscore print
-
-# Copy user's Jade files from 6004x to src/files, where they are accessed by server_local.cgi:
-files:
-	- mkdir src/files
-	scp -r 6004X.csail.mit.edu:jade/libraries/$(USERDIR)/* src/files/
-	chmod 777 src/files src/files/*
-
+	cat files/ward/beta | underscore print

@@ -69,17 +69,23 @@
     background-color: #EEEEEE;
     width: 570px;
     min-width: 570px;
-    height: 300px;
-    min-height: 300px;
+    height: 286px;
+    min-height: 286px;
     border: 1px solid black;
     padding: 5px;
 }
 .jade-tab-body-active {
     display: block;
 }
-.jade-status {
-    height: 14px;
+.jade-version {
     padding-top: 5px;
+    float: right;
+}
+.jade-status {
+    height: 28px;
+    padding-top: 5px;
+    overflow-y: auto;
+    overflow-x: none;
 }
 .jade-resize {
     float: right;
@@ -91,7 +97,7 @@
 }
 .jade-schematic-diagram {
     width: 444px;
-    height: 268px;
+    height: 254px;
     border: 1px solid black;
     outline: none;
 }
@@ -102,11 +108,11 @@
     margin-right: 3px;
     margin-left: 3px;
     background-color: black;
-    height: 270px;
+    height: 256px;
 }
 .jade-xparts-bin {
     float:right;
-    height: 270px;
+    height: 256px;
     width: 115px; /*73px;*/
     /*min-width: 50px;*/
     /*max-width: 73px;*/
@@ -137,8 +143,8 @@
 .jade-icon-diagram {
     width: 568px;
     min-width: 568px;
-    height: 268px;
-    min-height: 268px;
+    height: 254px;
+    min-height: 254px;
     border: 1px solid black;
     outline: none;
 }
@@ -195,15 +201,19 @@
     padding: 5px;
     margin: 10px;
 }
+.jade-pmsg {
+    margin-left: 5px;
+    color: red;
+}
 .jade-test-editor {
     resize: none;
     outline: none;
     width: 565px;
-    height: 295px;
+    height: 281px;
     font: 10pt/1.25 "Lucida Console",monospace;
 }
 .jade-test-editor:disabled {
-    /*background-color: #E0E0E0;*/
+    background-color: #E0E0E0;
 }
 .jade-window {
     background-image: -webkit-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);
@@ -307,4 +317,12 @@
   margin-bottom: 1px;
   display: none;
   cursor: pointer;
+}
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
