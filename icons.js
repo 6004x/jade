@@ -1,5 +1,13 @@
 jade.icons = {};
 
+jade.icons.edit_module_icon = '<span class="fa fw fa-pencil-square-o"></span>';
+
+jade.icons.copy_module_icon = '<span class="fa fw fa-copy"></span>';
+
+jade.icons.delete_module_icon = '<span class="fa fw fa-trash-o"></span>';
+
+jade.icons.grid_icon = '<span class="fa fw fa-th"></span>';
+
 jade.icons.actions_icon = '<span class="fa fa-file-o"></span>';
 
 jade.icons.close_icon = '<span class="fa fa-times fa-inverse"></span>';
@@ -52,7 +60,6 @@ jade.icons.text_icon = '<span class="fa fw fa-font"></span>';
 
 jade.icons.check_icon = '<span class="fa fw fa-check" style="color:green;"></span>';
 
-//jade.icons.select_icon = 'data:image/gif;base64,R0lGODlhEAAQALMAAAAAAIAAAACAAICAAAAAgIAAgACAgMDAwICAgP8AAAD/AP//AAAA//8A/wD//////yH5BAEAAAcALAAAAAAQABAAAAQw8MgDpr0TVMzB25zlfaH4nGA4oiV1vum1wur7abE0ermpsaoNrwTatTKkI6WnlEQAADs=';
 jade.icons.select_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
                          '<path d="M 3.5 3.5 v 9 l 2 -2 l 2 5 l 3 -2 l -2 -4 l 2.5 -0.5 L 3.5 3.5" fill="black"/>' +
                          '</svg>';

@@ -16,8 +16,8 @@ To run this development version of jade under Windows:
    Replace both references to "C:\cygwin64\home\cjt\jade\src" with the
    correct pathname to the src directory in the Jade git repo:
 
-   Alias /jade C:\cygwin64\home\cjt\jade\src
-   <Directory "C:\cygwin64\home\cjt\jade\src">
+   Alias /jade C:\cygwin64\home\cjt\jade
+   <Directory "C:\cygwin64\home\cjt\jade">
      Options FollowSymLinks Includes ExecCGI MultiViews
      AllowOverride All
      ScriptInterpreterSource Registry
@@ -35,15 +35,15 @@ To run this development version of jade under Windows:
    are writeable by all (specifically Apache needs access).  Under cygwin I
    typed
 
-   chmod 777 files/* files/*/*
+   chmod 777 files/*
 
 7. You should now be able to access Jade at
 
-   http://localhost/jade/jade_local.html?dir=cjt
+   http://localhost/jade/jade_local.html?modules=cjt
 
    where you should replace cjt with an appropriate username which will be
-   used by the Jade file server to create a subdirectory in files/ to hold
-   the user's library files.
+   used by the Jade file server to create a file in files/ to hold
+   the user's modules.
 
 
     

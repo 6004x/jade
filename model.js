@@ -79,6 +79,7 @@ jade.model = (function () {
     function remove_module(name) {
         if (name in modules) {
             delete modules[name];
+            save_modules();  // do this now since there's no place to keep modified indicator!
         }
     };
 
@@ -127,7 +128,7 @@ jade.model = (function () {
     };
 
     Module.prototype.clear_modified = function() {
-        for (a in this.aspects) this.aspects[a].clear_modified();
+        for (var a in this.aspects) this.aspects[a].clear_modified();
     };
 
     Module.prototype.property_value = function(pname) {

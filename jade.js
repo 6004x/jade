@@ -30,6 +30,7 @@ var jade = (function() {
 
         // insert framework into DOM
         this.top_level = $('<div class="jade-top-level">' +
+                           ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-version">Jade 2.2.1 (2014 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
@@ -37,6 +38,17 @@ var jade = (function() {
         $(owner).append(this.top_level);
 
         this.status = this.top_level.find('#message');
+
+        // set up module tools at the very top
+        this.module_tools = this.top_level.find('#module-tools');
+        this.module_tools.append('<span>Module:</span><select id="module-select"></select>');
+        this.module_tools.append(this.module_tool(jade.icons.edit_module_icon,'edit-module','Edit/create module',edit_module));
+        this.module_tools.append(this.module_tool(jade.icons.copy_module_icon,'copy-module','Copy current module',copy_module));
+        this.module_tools.append(this.module_tool(jade.icons.delete_module_icon,'delete-module','Delete current module',delete_module));
+
+        $('#module-select',this.module_tools).on('change',function () {
+            owner.jade.edit($(this).val());
+        });
 
         // now add a display tab for each registered editor
         this.tabs_div = this.top_level.find('.jade-tabs-div');
@@ -55,6 +67,7 @@ var jade = (function() {
             me.resize(win_w,win_h);
         });
         
+        /*
         // set up settings pop-up
         var settings = $('<div class="jade-settings-popup"></div>');
         this.settings = settings;
@@ -86,7 +99,27 @@ var jade = (function() {
 
         settings.on('mouseleave',function() { settings.hide(); });
         this.top_level.append(settings);
+         */
     }
+
+    Jade.prototype.module_tool = function (icon,id,tip,action) {
+        var tool = $('<span></span>').append(icon).addClass('jade-tool jade-tool-enabled').css('id',id);
+
+        var j = this;  // for closure
+        tool.on('click',function () {
+            if (action) action(j);
+        });
+
+        tool.on('mouseenter',function () {
+            j.status.html(tip);
+        });
+
+        tool.on('mouseleave',function () {
+            j.status.html('');
+        });
+
+        return tool;
+    };
 
     // initialize editor from configuration object
     Jade.prototype.initialize = function (configuration) {
@@ -223,9 +256,8 @@ var jade = (function() {
         if (typeof module == 'string') module = jade.model.find_module(module);
         this.module = module;
 
-        if (this.input_field !== undefined) {
-            this.input_field.val(module.get_name());
-        }
+        // update list of available modules
+        build_select(Object.keys(jade.model.modules),module.get_name(),$('#module-select',this.module_tools));
 
         this.bookmark();    // remember current module for next visit
         this.refresh();  // tell each tab which module we're editing
@@ -265,7 +297,7 @@ var jade = (function() {
         var w_extra = e.outerWidth(true) - e.width();
         var h_extra = e.outerHeight(true) - e.height();
         w -= w_extra;
-        h -= h_extra + $('.jade-tabs-div',e).outerHeight(true) + $('.jade-status',e).outerHeight(true);
+        h -= h_extra + $('#module-tools').outerHeight(true) + $('.jade-tabs-div',e).outerHeight(true) + $('.jade-status',e).outerHeight(true);
 
         // adjust size of all the tab bodies
         for (var tab in this.tabs) {
@@ -320,20 +352,17 @@ var jade = (function() {
         settings.toggle();   // toggle visibility
     }
 
-    function edit_module(diagram) {
-        var j = diagram.editor.jade;
-        var offset = j.settings.offset();
-        j.settings.toggle();   // all done with settings pop-up
+    function edit_module(j) {
+        var offset = {top: 10, left: 10};
 
         var content = $('<div style="margin:10px;"><div id="msg" style="display:none;color:red;margin-bottom:10px;"></div></div>');
         content.append('Module name:');
-        var input = build_input('text',10,'library:module');
+        var input = build_input('text',10,'');
         $(input).css('vertical-align','middle');
         content.append(input);
 
         function edit() {
-            var lib,module;
-            var name = $(input).val().split(':');
+            var name = $(input).val();
 
             function try_again(msg) {
                 $('#msg',content).text(msg);
@@ -341,68 +370,51 @@ var jade = (function() {
                 dialog('Edit Module',content,edit,offset);
             }
 
-            // determine requested library and module
-            if (name.length == 1) {
-                // if no library specified, use current one; default to user
-                lib = diagram.aspect.module ? diagram.aspect.module.library.name : 'user';
-                module = name[0];
-            } else if (name.length == 2) {
-                lib = name[0];
-                module = name[1];
-            } else {
-                try_again('Invalid module name: '+$(input).val());
+            // make sure name is legit
+            var valid = true;
+            $.each(name.split('/'),function (index,n) {
+                if (!jade.utils.validate_name(n)) valid = false;
+            });
+            if (!valid) {
+                try_again('Invalid module name: '+name);
                 return;
             }
 
-            lib = jade.model.load_library(lib);
-            if (lib.read_only && !(module in lib.modules)) {
-                try_again('Library is read-only: '+lib.name);
-                return;
-            }
-            module = lib.module(module);
+            var module = jade.model.find_module(name);
             j.edit(module.get_name());
         }
 
         dialog('Edit Module',content,edit,offset);
     }
 
-    function delete_module(diagram) {
-        var j = diagram.editor.jade;
-        var offset = j.settings.offset();
-        j.settings.toggle();   // all done with settings pop-up
+    function delete_module(j) {
+        var offset = {top: 10, left:10};
 
         var content = $('<div style="margin:10px;width:300px;">Click OK to confirm the deletion of module <span id="mname"></span>.  Note that this action cannot be undone.</div>');
-        $('#mname',content).text(diagram.aspect.module.get_name());
+        $('#mname',content).text(j.module.get_name());
 
         function del() {
-            var module = diagram.aspect.module;
-            var lib = module.library;
-            lib.remove_module(module.name);
+            var module = j.module;
+            jade.model.remove_module(module.name);
 
             // choose something else to edit
-            module = Object.keys(lib.modules)[0];
-            if (module) module = lib.modules[module].get_name();
-            else module = 'user:untitled';
-            j.edit(module);
+            j.edit(jade.model.find_module('/user/untitled'));
         }
 
         dialog('Delete Module',content,del,offset);
     }
 
-    function copy_module(diagram) {
-        var j = diagram.editor.jade;
-        var offset = j.settings.offset();
-        j.settings.toggle();   // all done with settings pop-up
+    function copy_module(j) {
+        var offset = {top: 10, left:10};
         
         var content = $('<div style="margin:10px;"><div id="msg" style="display:none;color:red;margin-bottom:10px;"></div></div>');
         content.append('New module name:');
-        var input = build_input('text',10,'library:module');
+        var input = build_input('text',10,'');
         $(input).css('vertical-align','middle');
         content.append(input);
 
         function copy() {
-            var lib,module;
-            var name = $(input).val().split(':');
+            var name = $(input).val();
 
             function try_again(msg) {
                 $('#msg',content).text(msg);
@@ -410,36 +422,36 @@ var jade = (function() {
                 dialog('Copy Module',content,copy,offset);
             }
 
-            // determine requested library and module
-            if (name.length == 1) {
-                // if no library specified, use current one; default to user
-                lib = diagram.aspect.module ? diagram.aspect.module.library.name : 'user';
-                module = name[0];
-            } else if (name.length == 2) {
-                lib = name[0];
-                module = name[1];
-            } else {
-                try_again('Invalid module name: '+$(input).val());
+            // make sure name is legit
+            var valid = true;
+            $.each(name.split('/'),function (index,n) {
+                if (!jade.utils.validate_name(n)) valid = false;
+            });
+            if (!valid) {
+                try_again('Invalid module name: '+name);
                 return;
             }
 
-            lib = jade.model.load_library(lib);
-            if (lib.read_only) {
-                try_again('Library is read-only: '+lib.name);
-                return;
-            }
-            if (module in lib.modules) {
-                try_again('Module already exists: '+lib.modules[module].get_name());
+            if (name in jade.model.modules) {
+                try_again('Module already exists: '+name);
                 return;
             }
 
-            module = lib.module(module,diagram.aspect.module.json());
-            j.edit(module.get_name());
+            // make a new module and initialize it using the original
+            var module = jade.model.find_module(name,j.module.json());
+            // in case we're copying a shared module
+            module.shared = false;
+            module.remove_property('readonly');
+            module.set_modified();   // since it hasn't been saved yet
+
+            // select new module for editing
+            j.edit(module);
         }
 
         dialog('Copy Module',content,copy,offset);
     }
 
+    /*
     function copy_library(diagram) {
         var j = diagram.editor.jade;
         var offset = j.settings.offset();
@@ -502,6 +514,7 @@ var jade = (function() {
 
         dialog('Copy Library',content,copy,offset);
     }
+     */
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -1442,6 +1455,7 @@ var jade = (function() {
     function build_select(options, selected, select) {
         if (select === undefined) select = $('<select></select>');
         else select = $(select);
+        select.empty();
         for (var i = 0; i < options.length; i += 1) {
             var option = $('<option>'+options[i]+'</option>');
             select.append(option);
@@ -1684,6 +1698,7 @@ var jade = (function() {
 
     return {
         Diagram: Diagram,
+        diagram_toggle_grid: diagram_toggle_grid,
         diagram_undo: diagram_undo,
         diagram_redo: diagram_redo,
         diagram_cut: diagram_cut,

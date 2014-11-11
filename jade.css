@@ -69,8 +69,8 @@
     background-color: #EEEEEE;
     width: 570px;
     min-width: 570px;
-    height: 286px;
-    min-height: 286px;
+    height: 261px;
+    min-height: 261px;
     border: 1px solid black;
     padding: 5px;
 }
@@ -97,7 +97,7 @@
 }
 .jade-schematic-diagram {
     width: 444px;
-    height: 254px;
+    height: 229px;
     border: 1px solid black;
     outline: none;
 }
@@ -108,11 +108,11 @@
     margin-right: 3px;
     margin-left: 3px;
     background-color: black;
-    height: 256px;
+    height: 231px;
 }
 .jade-xparts-bin {
     float:right;
-    height: 256px;
+    height: 231px;
     width: 115px; /*73px;*/
     /*min-width: 50px;*/
     /*max-width: 73px;*/
@@ -143,10 +143,14 @@
 .jade-icon-diagram {
     width: 568px;
     min-width: 568px;
-    height: 254px;
-    min-height: 254px;
+    height: 229px;
+    min-height: 229px;
     border: 1px solid black;
     outline: none;
+}
+#module-select {
+    margin-left: 5px;
+    margin-right: 5px;
 }
 .jade-toolbar {
     line-height: 25px;

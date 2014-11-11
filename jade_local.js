@@ -13,9 +13,9 @@ jade.page_args = function () {
 };
 
 jade.user = function () {
-    var user = jade.page_args()['user'] || 'guest';
-    return user;
-}
+    var user = jade.page_args()['modules'] || 'guest';
+    return user.split(',')[0];
+};
 
 jade.load_from_server = function (filename,callback) {
     var args = {
