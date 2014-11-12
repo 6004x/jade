@@ -257,7 +257,7 @@ var jade = (function() {
         this.module = module;
 
         // update list of available modules
-        build_select(Object.keys(jade.model.modules),module.get_name(),$('#module-select',this.module_tools));
+        build_select(Object.keys(jade.model.modules).sort(),module.get_name(),$('#module-select',this.module_tools));
 
         this.bookmark();    // remember current module for next visit
         this.refresh();  // tell each tab which module we're editing
