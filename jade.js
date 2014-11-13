@@ -103,7 +103,7 @@ var jade = (function() {
     }
 
     Jade.prototype.module_tool = function (icon,id,tip,action) {
-        var tool = $('<span></span>').append(icon).addClass('jade-tool jade-tool-enabled').css('id',id);
+        var tool = $('<span></span>').append(icon).addClass('jade-module-tool jade-tool-enabled').attr('id',id);
 
         var j = this;  // for closure
         tool.on('click',function () {
@@ -144,6 +144,9 @@ var jade = (function() {
         if (configuration.modules) {
             jade.model.load_modules(configuration.modules,false);
         }
+
+        // display module tools if allowing hierarchy
+        this.module_tools.toggle(configuration.hierarchical === 'true');
 
         // setup editor panes
         var elist;
@@ -259,6 +262,14 @@ var jade = (function() {
         // update list of available modules
         build_select(Object.keys(jade.model.modules).sort(),module.get_name(),$('#module-select',this.module_tools));
 
+        if (module.shared) {
+            $('#delete-module',this.module_tools).removeClass('jade-tool-enabled');
+            $('#delete-module',this.module_tools).addClass('jade-tool-disabled');
+        } else {
+            $('#delete-module',this.module_tools).removeClass('jade-tool-disabled');
+            $('#delete-module',this.module_tools).addClass('jade-tool-enabled');
+        }
+
         this.bookmark();    // remember current module for next visit
         this.refresh();  // tell each tab which module we're editing
 
@@ -297,7 +308,9 @@ var jade = (function() {
         var w_extra = e.outerWidth(true) - e.width();
         var h_extra = e.outerHeight(true) - e.height();
         w -= w_extra;
-        h -= h_extra + $('#module-tools').outerHeight(true) + $('.jade-tabs-div',e).outerHeight(true) + $('.jade-status',e).outerHeight(true);
+        h -= h_extra + $('.jade-tabs-div',e).outerHeight(true) + $('.jade-status',e).outerHeight(true);
+        if (this.configuration.hierarchical == 'true')
+            h -= $('#module-tools').outerHeight(true);
 
         // adjust size of all the tab bodies
         for (var tab in this.tabs) {
@@ -323,6 +336,7 @@ var jade = (function() {
     //
     //////////////////////////////////////////////////////////////////////
 
+    /*
     function jade_settings(diagram) {
         var jade = diagram.editor.jade;
         var settings = jade.settings;
@@ -351,6 +365,7 @@ var jade = (function() {
 
         settings.toggle();   // toggle visibility
     }
+     */
 
     function edit_module(j) {
         var offset = {top: 10, left: 10};
@@ -1711,7 +1726,6 @@ var jade = (function() {
 
         Toolbar: Toolbar,
         Jade: Jade,
-        jade_settings: jade_settings,
 
         editors: editors,
         clipboards: clipboards,

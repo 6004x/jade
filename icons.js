@@ -1,10 +1,10 @@
 jade.icons = {};
 
-jade.icons.edit_module_icon = '<span class="fa fw fa-pencil-square-o"></span>';
+jade.icons.edit_module_icon = '<span class="fa fw fa-pencil-square-o fa-lg"></span>';
 
-jade.icons.copy_module_icon = '<span class="fa fw fa-copy"></span>';
+jade.icons.copy_module_icon = '<span class="fa fw fa-copy fa-lg"></span>';
 
-jade.icons.delete_module_icon = '<span class="fa fw fa-trash-o"></span>';
+jade.icons.delete_module_icon = '<span class="fa fw fa-trash-o fa-lg"></span>';
 
 jade.icons.grid_icon = '<span class="fa fw fa-th"></span>';
 
