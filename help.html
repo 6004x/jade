@@ -31,9 +31,11 @@ tt {
 <li>See the README for the 6004x/jade github repo for setting up a
 local copy of Jade for development use.
 <li>Tool tips, etc., appear in status bar below the diagram
-<li>Click on <i class="fa fa-fw fa-file-o"></i>, select "Edit module". Type
-"user:foo" followed by Enter.  Modules names have the form <i>library</i>:<i>module</i>.
-The "analog" and "gates" libraries are built in.
+<li>Click on <i class="fa fa-fw fa-pencil-square-o"></i> and type the name of a module to create
+or edit, e.g., "/user/foo", then click OK.
+Modules names look like file pathnames (/x/y/z) where the hierarchy is used to display
+the parts bin in organized way.
+The "/analog/..." and "/gates/..." modules are loaded automatically.
 <li>Click and drag a couple of components from the parts bin.  You can move components
 by clicking and dragging them to a new location.  You can select multiple components by
 clicking on the background and dragging out a selection rectangle.
@@ -48,7 +50,7 @@ port component or by double-clicking the wire.  Wires with the same signal name 
 considered electrically connected.
 <li>There is undo/redo support using <i class="fa fa-fw fa-reply"></i>, <i class="fa fa-fw fa-share"></i>
 <li>Saves are automatic (every 25 edits, when changing modules or when leaving
-the browser window).  The server knows who you are from your MIT certificate.
+the browser window).
 <li>To toggle the diagram grid for screen shots of schematics: Click on <i class="fa fa-fw fa-file-o"></i>, select "Toggle grid"
 </ul>
 
