@@ -27,20 +27,26 @@ version of Jade to read and write design libraries.  To access
 Jade via the browser and to give it access to the simple file
 server, you need to set up web access to the local repo.
 
+Look at README.WINDOWS for advice on running jade on
+a Windows machine.
+
 I use apache2 as a web server on my machine and added the following
 to my apache configuration file:
 
     Alias /jade /Users/cjt/git/jade
     <Directory "/Users/cjt/git/jade">
-      Order allow,deny
-      Allow from all
       Options FollowSymLinks Includes ExecCGI MultiViews
       AllowOverride All
+      #ScriptInterpreterSource Registry   # on Windows
       AddHandler cgi-script .py
+      Order allow,deny
+      Allow from all
+      #Require all granted  # for Apache 2.4
     </Directory>
 
 where "/Users/cjt/git/jade" is the pathname to my local copy
-of the Jade repo.  I can then access Jade at
+of the Jade repo.  Make sure your apache configuration is
+loading mod_cgi and mod_alias.  I can then access Jade at
 
     http://localhost/jade/src/jade_local.html
 
@@ -48,19 +54,18 @@ and the somewhat terse Jade help file at
 
     http://localhost/jade/help.html
 
-The user libraries are stored in the src/files/ subdirectory
-of the repo.  If several people are sharing access, you can
-provide an optional "dir" argument to the URL above, specifying
-another level of subdirectory for each user:
+User module files are stored in the src/files/ subdirectory
+of the repo.  To specify a particular module file, you can
+provide an optional "modules" argument to the URL above:
 
-    http://localhost/jade/src/jade_local.html?dir=cjt
+    http://localhost/jade/src/jade_local.html?modules=cjt
 
-would access library files in src/files/cjt/.
+would access the modules file "files/cjt".
 
 NOTE: You may have to change permissions on the /src/files/
 subdirectory to give apache read/write access to the user
 libraries:
 
-    chmod 777 src/files src/files/* src/files/*/*
+    chmod 777 files files/*
 
 
