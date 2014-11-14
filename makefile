@@ -71,29 +71,29 @@ push-bugs:	files/bugs
 ################################################################################
 
 run:
-	chrome "http://localhost/jade/jade_local.html?dir=$(USER)"
+	chrome "http://localhost/jade/jade_local.html?modules=$(USER)"
 
 # Alternative run commands, pointing at different module directories:
 
 run-cjt:
-	chrome "http://localhost/jade/jade_local.html?dir=cjt"
+	chrome "http://localhost/jade/jade_local.html?modules=cjt"
 
 run-ward:
-	chrome "http://localhost/jade/jade_local.html?dir=ward"
+	chrome "http://localhost/jade/jade_local.html?modules=ward"
 
 run-notes:
-	chrome "http://localhost/jade/jade_local.html?dir=notes"
+	chrome "http://localhost/jade/jade_local.html?modules=notes"
 
 run-bugs:
-	chrome "http://localhost/jade/jade_local.html?dir=bugs"
+	chrome "http://localhost/jade/jade_local.html?modules=bugs"
 
 # ad-hoc run commands to show various examples:
 
 run-beta:
-	chrome "http://localhost/jade/jade_local.html?dir=ward&edit=beta:vanilla"
+	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/beta/vanilla"
 
 run-mul32:
-	chrome "http://localhost/jade/jade_local.html?dir=ward&edit=mul:mul32"
+	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/mul/mul32"
 
 
 # ad-hoc target to show json of a file:
