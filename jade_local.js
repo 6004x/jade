@@ -55,6 +55,13 @@ jade.save_to_server = function (json,callback) {
 
 jade.request_zip_url = undefined;  //'/jade-server?zip=1';
 
+jade.unsaved_changes = function(which) {
+    if (which && $('body').attr('data-dirty') === undefined)
+        $('body').attr('data-dirty','true');
+    else if (!which && $('body').attr('data-dirty') !== undefined)
+        $('body').removeAttr('data-dirty');
+}
+
 jade.setup = (function () {
     // set up editor inside of div's with class "jade"
     function setup() {

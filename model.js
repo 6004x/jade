@@ -9,6 +9,7 @@
 jade.model = (function () {
 
     var AUTOSAVE_TRIGGER = 25;  // number edits that triggers an autosave
+    var edit_counter = 0;
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -60,6 +61,7 @@ jade.model = (function () {
     }
 
     function clear_modified() {
+        jade.unsaved_changes(false);
         $.each(modules,function(mname,module) {
             if (!module.shared) module.clear_modified();
         });
@@ -125,6 +127,12 @@ jade.model = (function () {
 
     Module.prototype.set_modified = function() {
         this.modified = true;
+        jade.unsaved_changes(true);
+
+        edit_counter += 1;
+        if (edit_counter % AUTOSAVE_TRIGGER == 0) {
+            save_modules();
+        }
     };
 
     Module.prototype.clear_modified = function() {

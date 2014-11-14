@@ -22,6 +22,9 @@ jade.save_to_server = function (json,callback) {
     return;
 };
 
+jade.unsaved_changes = function(which) {
+}
+
 jade.setup = (function () {
     // return JSON representation to be used by server-side grader
     function getGrade() {
