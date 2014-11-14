@@ -51,7 +51,7 @@ considered electrically connected.
 <li>There is undo/redo support using <i class="fa fa-fw fa-reply"></i>, <i class="fa fa-fw fa-share"></i>
 <li>Saves are automatic (every 25 edits, when changing modules or when leaving
 the browser window).
-<li>To toggle the diagram grid for screen shots of schematics: Click on <i class="fa fa-fw fa-file-o"></i>, select "Toggle grid"
+<li>To toggle the diagram grid for screen shots of schematics: Click on <i class="fa fa-fw fa-th"></i>.
 </ul>
 
 <p><h3>Overview</h3>
@@ -61,17 +61,16 @@ block diagrams.  The editing and simulation tools are provided by
 plug-ins, so it's easy extend the framework to support different
 types of diagrams.
 
-<p>The basic building block is a <i>module</i>, which are organized
-into <i>libraries</i>.  Each module has one or more <i>aspects</i>,
-which can be edited using one of the supplied editing tools.
-Currently Jade has editors for the following aspects:
+<p>The basic building block is a <i>module</i>.  Each module has one
+or more <i>aspects</i>, which can be edited using one of the supplied
+editing tools.  Currently Jade has editors for the following aspects:
 
 <ul>
 <p><b class="aspect">schematic</b>.  A circuit diagram incorporating
 components (instances of other modules) with wires that run between
 the component terminals.  Basic components (ground, vdd, ports,
 jumpers, text) are available on the toolbar; other components from
-the loaded libraries are available in the parts bin.  The toolbar
+the loaded module collections are available in the parts bin.  The toolbar
 also has icons for the simulation tools (dc analysis, ac analysis,
 transient analysis and module test).  It's possible
 to specify that the parts bin show only particular parts and the
@@ -118,8 +117,8 @@ Jade will generate a name to use for the netlist.
 a name for components whose name properties have not been set by the user.
 
 <p><li>Generate a netlist entry for each primitive component (instances
-from the analog library for device-level simulation, instances from the 
-gate library for gate-level simulation).  Depending on the signal lists
+from the /analog collection for device-level simulation, instances from the 
+/gates collection for gate-level simulation).  Depending on the signal lists
 associated with the component's terminals, more than one netlist entry
 may be generated; see below.
 
@@ -183,7 +182,7 @@ XOR gate
 <p><h3>Device-level simulation</h3>
 
 <p>The device-level simulation tool expects a flattened netlist containing
-components from the built-in analog library.
+components from the /analog collection.
 
 <p>When simulating digital circuits, the easiest way to run
 device-level transient simulations is to create
@@ -235,7 +234,7 @@ the error introduced by the linear approximation at that step is small.
 <p><h3>Gate-level simulation</h3>
 
 <p>The gate-level simulation tool expects a flattened netlist containing
-components from the built-in gates library.
+components from the /gates collection.
 
 <p>When simulating digital circuits, the easiest way to run gate-level
 simulations is to create a <span class="aspect">test</span> aspect
@@ -278,8 +277,8 @@ of a module.  Here's a test for an XOR circuit with inputs A and B, and output Z
 .group outputs Z
 
 // set type of simulation to be performed
-//  device -- transient simulation; components must be from from analog library
-//  gate -- gate-level simulation; components must be from gates library
+//  device -- transient simulation; components must be from from /analog
+//  gate -- gate-level simulation; components must be from /gates
 .mode device
 
 /*
@@ -311,8 +310,8 @@ actions are
 
 <p>The tests for a module can be run by clicking <span class="fa fa-fw fa-check" style="color:green;"></span> in the <span class="aspect">schematic</span> toolbar.
 
-<p>If you'd like to see more examples, each module in the gates
-library has a test aspect that verifies its functionality at the
+<p>If you'd like to see more examples, each module in the /gates
+collection has a test aspect that verifies its functionality at the
 device level.
 
 </body>

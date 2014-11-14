@@ -1,6 +1,6 @@
 // see if jade's URL includes an arg of the form 'arg=value'
 jade.page_args = function () {
-    var page_args = window.location.search.match(/\w+=[\w|\%|\:]+/g);
+    var page_args = window.location.search.match(/([^?=&]+)(=([^&]*))?/g);
     var result = {};
     if (page_args) {
         $.each(page_args,function (index,arg) {
