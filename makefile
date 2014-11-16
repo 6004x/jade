@@ -39,7 +39,7 @@ what:
 
 pull:
 	git pull
-	chmod 777 files/* files/*/*
+	chmod 777 files/*
 
 
 commit:
@@ -57,8 +57,6 @@ push-notes:	files/notes
 
 push-bugs:	files/bugs
 		git add --all files/bugs
-
-
 
 ################################################################################
 ### Running from local git sandbox
