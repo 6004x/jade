@@ -33,6 +33,9 @@ what:
 	@echo
 	@echo "  make beta-json        Readable version of a json file (needs underscore)"
 
+	@echo
+	@echo "  make brickmul         buggy 4x4 brick-wall combinational multiplier"
+
 ################################################################################
 ### GIT interface commands:
 ################################################################################
@@ -92,6 +95,9 @@ run-beta:
 
 run-mul32:
 	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/mul/mul32"
+
+run-bricks:
+	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/mul/b4x4"
 
 
 # ad-hoc target to show json of a file:
