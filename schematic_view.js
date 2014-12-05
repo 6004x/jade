@@ -450,6 +450,12 @@ jade.schematic_view = (function() {
                 "label": "Signal name",
                 "value": "",
                 "edit": "yes"
+            },
+            "width": {
+                "type": "number",
+                "label": "Bus width",
+                "value": "1",
+                "edit": "yes"
             }
         }
     };
