@@ -1,7 +1,7 @@
 # Scripts to generate Jade input tests
 
 
-doit:		mul4x4-test
+doit:		add4-test
 
 alu-bool-test:	alu-bool-test.py
 		python $<
@@ -31,6 +31,9 @@ mul4x4-test:	mul4x4-test.py
 		python $<
 
 add32-test:	add32-test.py
+		python $<
+
+add4-test:	add4-test.py
 		python $<
 
 inc4-test:	inc4-test.py
