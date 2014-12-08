@@ -742,7 +742,7 @@ jade.model = (function () {
     Component.prototype.clone = function(x, y) {
         var c = make_component(this.json());
         c.name = undefined;     // don't clone name
-        c.properties.name = '';
+        if (c.properties.name) c.properties.name.value = '';
         c.coords[0] = x; // override x and y
         c.coords[1] = y;
         return c;
