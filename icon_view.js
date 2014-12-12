@@ -677,12 +677,6 @@ jade.icon_view = (function() {
     Property.prototype.draw_icon = function(c, diagram) {
         var s = this.properties.format || '-no format-';
 
-        // iterations property is special
-        if (/\{iterations\}/.test(s)) {
-            // don't draw iterations property if value is 1
-            if (c.properties.iterations == 1) return;
-        }
-
         // name property is special
         if (/\{name\}/.test(s)) {
             // don't draw name property if it begins with $ (it's a gensym)

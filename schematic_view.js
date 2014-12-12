@@ -450,6 +450,12 @@ jade.schematic_view = (function() {
                 "label": "Signal name",
                 "value": "",
                 "edit": "yes"
+            },
+            "width": {
+                "type": "width",
+                "label": "Bus width",
+                "value": "",
+                "edit": "yes"
             }
         }
     };
@@ -534,6 +540,24 @@ jade.schematic_view = (function() {
         var dy = this.coords[4];
 
         this.draw_line(diagram, 0, 0, dx, dy);
+
+        var width = this.properties.width;
+        if (width !== undefined && width > 1) {
+            // perpendicular
+            var x0 = dx/2;
+            var y0 = dy/2;
+            if (dy == 0) { dx = 0; dy = 2; }
+            else if (dx == 0) {dx = 2; dy = 0; }
+            else {
+                var angle = Math.atan2(-dx,dy);
+                dx = 2*Math.cos(angle);
+                dy = 2*Math.sin(angle);
+            }
+            if (dx < 0) { dx = -dx; dy = -dy; }
+            this.draw_line(diagram, x0-dx, y0-dy, x0+dx, y0+dy, 0.5);
+            var align = (Math.abs(dy) > dx) ? (dy < 0 ? 7 : 1) : 3;
+            this.draw_text(diagram, width.toString(), x0+dx, y0+dy, align, '3pt sans-serif');
+        }
 
         // display signal name if there is one
         var name = this.properties.signal;

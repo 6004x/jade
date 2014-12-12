@@ -96,7 +96,6 @@ jade.model = (function () {
         this.name = name;
         this.aspects = {};
         this.properties = {   // every module has itertions and name properties
-            "iterations":{"edit":"yes","type":"string","value":"1","label":"Iterations"},
             "name":{"edit":"yes","type":"name","value":"","label":"Name"}
         };
         this.modified = false;
@@ -1115,6 +1114,12 @@ jade.model = (function () {
                     pmsg.text('');   // default is no message
                     if (ptype == 'number') {
                         if (isNaN(jade.utils.parse_number(v))) {
+                            error = true;
+                            pmsg.text('not a valid number');
+                        }
+                    }
+                    else if (ptype == 'width') {
+                        if (v=='' || isNaN(jade.utils.parse_number(v))) {
                             error = true;
                             pmsg.text('not a valid number');
                         }
