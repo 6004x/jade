@@ -103,10 +103,17 @@ jade.gate_level = (function() {
         var tstop_lbl = 'Stop Time (seconds)';
 
         // use modules in the gates library as the leafs
-        var netlist = diagram_gate_netlist(diagram,[]);
-
-        if (find_probes(netlist).length === 0) {
-            diagram.message("Transient Analysis: there are no probes in the diagram!");
+        var netlist;
+        try {
+            netlist = diagram_gate_netlist(diagram,[]);
+            if (find_probes(netlist).length === 0) {
+                throw "There are no probes in the diagram!";
+            }
+        }
+        catch (e) {
+            jade.window('Errors extracting netlist',
+                        $('<div class="jade-alert"></div>').html(e),
+                        $(diagram.canvas).offset());
             return;
         }
 

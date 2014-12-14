@@ -82,7 +82,7 @@
     float: right;
 }
 .jade-status {
-    height: 28px;
+    height: 14px;
     padding-top: 5px;
     overflow-y: auto;
     overflow-x: none;
@@ -225,6 +225,11 @@
 }
 .jade-test-editor:disabled {
     background-color: #E0E0E0;
+}
+.jade-alert {
+    padding: 5px;
+    color: #b94a48;
+    background-color: #f3dede;
 }
 .jade-window {
     background-image: -webkit-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);

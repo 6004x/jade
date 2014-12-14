@@ -165,7 +165,14 @@ jade.cktsim = (function() {
     //   yvalues -> array of voltages/currents
     function transient_analysis(netlist, tstop, probe_names, progress_callback, options) {
         if (netlist.length > 0 && tstop !== undefined) {
-            var ckt = new Circuit(netlist, options);
+            try {
+                var ckt = new Circuit(netlist, options);
+            }
+            catch (e) {
+                if (e instanceof Error) e = e.stack.split('\n').join('<br>');
+                progress_callback(undefined,e.toString());
+                return undefined;
+            }
 
             var progress = {};
             progress.probe_names = probe_names, // node names for LTE check
@@ -184,6 +191,7 @@ jade.cktsim = (function() {
                 ckt.tran_start(progress, 100, 0, tstop);
             }
             catch (e) {
+                if (e instanceof Error) e = e.stack.split('\n').join('<br>');
                 progress.finish(e);
             }
         }

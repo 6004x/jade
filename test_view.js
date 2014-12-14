@@ -360,7 +360,10 @@ jade.test_view = (function() {
 
         if (errors.length != 0) {
             msg = '<li>'+errors.join('<li>');
-            diagram.message('The following errors were found in the test specification:'+msg);
+            jade.window('Errors in test specification',
+                        $('<div class="jade-alert"></div>').html(msg),
+                        $(diagram.canvas).offset());
+            //diagram.message('The following errors were found in the test specification:'+msg);
             test_results[module.get_name()] = 'Error detected: invalid test specification'+msg;
             return;
         }
@@ -390,7 +393,10 @@ jade.test_view = (function() {
                 throw 'Unrecognized simulation mode: '+mode;
         }
         catch (e) {
-            diagram.message("Error extracting netlist:<p>" + e);
+            jade.window('Errors extracting netlist',
+                        $('<div class="jade-alert"></div>').html(e),
+                        $(diagram.canvas).offset());
+            //diagram.message("Error extracting netlist:<p>" + e);
             test_results[module.get_name()] = 'Error detected extracting netlist:<p>'+e;
             return;
         }
@@ -405,7 +411,10 @@ jade.test_view = (function() {
 
         if (errors.length != 0) {
             msg = '<li>'+errors.join('<li>');
-            diagram.message('The following errors were found in the test specification:'+msg);
+            jade.window('Errors in test specification',
+                        $('<div class="jade-alert"></div>').html(msg),
+                        $(diagram.canvas).offset());
+            //diagram.message('The following errors were found in the test specification:'+msg);
             test_results[module.get_name()] = 'Error detected:'+msg;
             return;
         }
@@ -456,7 +465,7 @@ jade.test_view = (function() {
             build_inputs_gate(netlist,driven_signals,thresholds);
         else throw 'Unrecognized simulation mode: '+mode;
         //console.log('stop time: '+time);
-        jade.netlist.print_netlist(netlist);
+        //jade.netlist.print_netlist(netlist);
 
         function multibit_to_int(dataset) {
             // first merge all the nodes in the dataset into a single
@@ -581,20 +590,6 @@ jade.test_view = (function() {
                     });
                 });
 
-                if (errors.length > 0) {
-                    var postscript = '';
-                    if (errors.length > 3) {
-                        errors = errors.slice(0,5);
-                        postscript = '<br>...';
-                    }
-                    msg = '<font color="red"><li>'+errors.join('<li>')+postscript+'</font>';
-                    diagram.message(msg);
-                    test_results[module.get_name()] = 'Error detected: '+msg;
-                } else {
-                    diagram.message('Test succesful!');
-                    test_results[module.get_name()] = 'passed';
-                }
-
                 // construct a data set for {signals: [sig...], dfunction: string, name: string}
                 var plot_colors = ['#268bd2','#dc322f','#859900','#b58900','#6c71c4','#d33682','#2aa198'];
                 function new_dataset(plist) {
@@ -700,6 +695,7 @@ jade.test_view = (function() {
                 }
 
                 // produce requested plots
+                var offset = $(diagram.canvas).offset();
                 if (plots.length > 0) {
                     var dataseries = []; // plots we want
                     $.each(plots,function(index,plist) {
@@ -711,15 +707,32 @@ jade.test_view = (function() {
 
                     // graph the result and display in a window
                     var graph1 = jade.plot.graph(dataseries);
-                    var offset = $(diagram.canvas).offset();
                     var win = jade.window('Test Results',graph1,offset);
 
                     // resize window to 75% of test pane
-                    var win_w = win.width();
-                    var win_h = win.height();
-                    win[0].resize(Math.floor(0.75*$(diagram.canvas).width()) - win_w,
-                                  Math.floor(0.75*$(diagram.canvas).height()) - win_h);
+                    var win_w = Math.floor(0.75*$(diagram.canvas).width());
+                    var win_h = Math.min(200*plots.length,Math.floor(0.75*$(diagram.canvas).height()));
+                    win[0].resize(win_w - win.width(),win_h - win.height());
+                    offset.top += win_h + 10;
                 }
+
+                // report any mismatches
+                if (errors.length > 0) {
+                    var postscript = '';
+                    if (errors.length > 5) {
+                        errors = errors.slice(0,5);
+                        postscript = '<br>...';
+                    }
+                    msg = '<li>'+errors.join('<li>')+postscript;
+                    jade.window("Errors detected by test",
+                                $('<div class="jade-alert"></div>').html(msg),
+                                offset);
+                    test_results[module.get_name()] = 'Error detected: '+msg;
+                } else {
+                    diagram.message('Test succesful!');
+                    test_results[module.get_name()] = 'passed';
+                }
+
                 return undefined;
             } else {
                 progress[0].update_progress(percent_complete);

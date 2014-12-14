@@ -153,6 +153,11 @@ jade.model = (function () {
 
     Module.prototype.set_property_attribute = function(pname, attr, v) {
         var prop = this.properties[pname];
+        if (prop === undefined) {
+            prop = {"edit":"yes","type":"string","value":"","label":pname};
+            this.properties[pname] = prop;
+            this.set_modified();
+        }
         if (v != prop[attr]) {
             prop[attr] = v;
             this.set_modified();

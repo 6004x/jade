@@ -199,47 +199,53 @@ jade.device_level = (function() {
         // remove any previous annotations
         diagram.remove_annotations();
 
-        var netlist = diagram_device_netlist(diagram,[]);
+        var ckt,netlist;
+        try {
+            netlist = diagram_device_netlist(diagram,[]);
+            if (netlist.length == 0) return;
+            ckt = new jade.cktsim.Circuit(netlist);
+        }
+        catch (e) {
+            if (e instanceof Error) e = e.stack.split('\n').join('<br>');
+            jade.window('Errors extracting netlist',
+                        $('<div class="jade-alert"></div>').html(e),
+                        $(diagram.canvas).offset());
+            //diagram.message(e);
+            return;
+        }
 
-        if (netlist.length > 0) {
-            var ckt;
-            try {
-                ckt = new jade.cktsim.Circuit(netlist);
-            }
-            catch (e) {
-                diagram.message(e);
-                return;
-            }
+        // run the analysis
+        var operating_point;
+        try {
+            operating_point = ckt.dc(true);
+            if (typeof operating_point == 'string') throw results;
+            else if (operating_point instanceof Error) throw results.stack.split('\n').join('<br>');
+        }
+        catch (e) {
+            jade.window('Errors during DC analysis',
+                        $('<div class="jade-alert"></div>').html(e),
+                        $(diagram.canvas).offset());
+            return;
+        }
 
-            // run the analysis
-            var operating_point;
-            try {
-                operating_point = ckt.dc(true);
-            }
-            catch (e) {
-                diagram.message("Error during DC analysis:\n\n" + e);
-                return;
-            }
+        //console.log('OP: '+JSON.stringify(operating_point));
 
-            //console.log('OP: '+JSON.stringify(operating_point));
+        if (operating_point !== undefined) {
+            /*
+             // save a copy of the results for submission
+             var dc = {};
+             for (var i in operating_point) {
+             if (i == '_network_') continue;
+             dc[i] = operating_point[i];
+             }
+             // add permanent copy to module's properties
+             diagram.aspect.module.set_property('dc_results', dc);
+             */
 
-            if (operating_point !== undefined) {
-                /*
-                // save a copy of the results for submission
-                var dc = {};
-                for (var i in operating_point) {
-                    if (i == '_network_') continue;
-                    dc[i] = operating_point[i];
-                }
-                // add permanent copy to module's properties
-                diagram.aspect.module.set_property('dc_results', dc);
-                 */
-
-                // display results on diagram
-                diagram.add_annotation(function(diagram) {
-                    display_dc(diagram, operating_point);
-                });
-            }
+            // display results on diagram
+            diagram.add_annotation(function(diagram) {
+                display_dc(diagram, operating_point);
+            });
         }
     }
 
@@ -282,18 +288,25 @@ jade.device_level = (function() {
         var fstop_lbl = 'Ending frequency (Hz)';
         var source_name_lbl = 'Name of V or I source for ac';
 
-        var netlist = diagram_device_netlist(diagram,[]);
-
-        if (find_probes(netlist).length === 0) {
-            diagram.message("AC Analysis: there are no voltage probes in the diagram!");
+        var netlist;
+        try {
+            netlist = diagram_device_netlist(diagram,[]);
+            if (find_probes(netlist).length === 0) {
+                throw "There are no voltage probes in the diagram!";
+            }
+        }
+        catch (e) {
+            jade.window('Errors extracting netlist',
+                        $('<div class="jade-alert"></div>').html(e),
+                        $(diagram.canvas).offset());
             return;
         }
 
         var module = diagram.aspect.module;
         var fields = {};
-        fields[fstart_lbl] = jade.build_input('text', 10, module.properties.ac_fstart || '10');
-        fields[fstop_lbl] = jade.build_input('text', 10, module.properties.ac_fstop || '1G');
-        fields[source_name_lbl] = jade.build_input('text', 10, module.properties.ac_source);
+        fields[fstart_lbl] = jade.build_input('text', 10, module.property_value('ac_fstart') || '10');
+        fields[fstop_lbl] = jade.build_input('text', 10, module.property_value('ac_fstop') || '1G');
+        fields[source_name_lbl] = jade.build_input('text', 10, module.property_value('ac_source'));
 
         var content = jade.build_table(fields);
 
@@ -303,9 +316,9 @@ jade.device_level = (function() {
             var ac_fstop = fields[fstop_lbl].value;
             var ac_source = fields[source_name_lbl].value;
 
-            module.set_property('ac_fstart', ac_fstart);
-            module.set_property('ac_fstop', ac_fstop);
-            module.set_property('ac_source', ac_source);
+            module.set_property_attribute('ac_fstart', 'value', ac_fstart);
+            module.set_property_attribute('ac_fstop', 'value', ac_fstop);
+            module.set_property_attribute('ac_source', 'value', ac_source);
 
             ac_fstart = jade.utils.parse_number_alert(ac_fstart);
             ac_fstop = jade.utils.parse_number_alert(ac_fstop);
@@ -320,132 +333,132 @@ jade.device_level = (function() {
         var npts = 50;
 
         if (netlist.length > 0) {
-            var ckt = new jade.cktsim.Circuit(netlist);
-            var results;
+            var ckt,results;
             try {
+                ckt = new jade.cktsim.Circuit(netlist);
                 results = ckt.ac(npts, fstart, fstop, ac_source_name);
+                if (typeof results == 'string') throw results;
             }
             catch (e) {
-                diagram.message("Error during AC analysis:\n\n" + e);
+                if (e instanceof Error) e= e.stack.split('\n').join('<br>');
+                jade.window('Errors during AC analysis',
+                            $('<div class="jade-alert"></div>').html(e),
+                            $(diagram.canvas).offset());
                 return;
             }
 
-            if (typeof results == 'string') diagram.message(results);
-            else if (results instanceof Error) diagram.message(results.stack.split('\n').join('<br>'));
-            else {
-                var x_values = results._frequencies_;
-                var i,j,v;
-                
-                // x axis will be a log scale
-                for (i = x_values.length - 1; i >= 0; i -= 1) {
-                    x_values[i] = Math.log(x_values[i]) / Math.LN10;
-                }
-
-                /*
-                // see what we need to submit.  Expecting attribute of the form
-                // submit_analyses="{'tran':[[node_name,t1,t2,t3],...],
-                //                   'ac':[[node_name,f1,f2,...],...]}"
-                var submit = diagram.getAttribute('submit_analyses');
-                if (submit && submit.indexOf('{') === 0) submit = JSON.parse(submit).ac;
-                else submit = undefined;
-
-                if (submit !== undefined) {
-                    // save a copy of the results for submission
-                    var ac_results = {};
-
-                    // save requested values for each requested node
-                    for (j = 0; j < submit.length; j += 1) {
-                        var flist = submit[j]; // [node_name,f1,f2,...]
-                        var node = flist[0];
-                        var values = results[node];
-                        var fvlist = [];
-                        // for each requested freq, interpolate response value
-                        for (var k = 1; k < flist.length; k += 1) {
-                            var f = flist[k];
-                            v = interpolate(f, x_values, values);
-                            // convert to dB
-                            fvlist.push([f, v === undefined ? 'undefined' : 20.0 * Math.log(v) / Math.LN10]);
-                        }
-                        // save results as list of [f,response] paris
-                        ac_results[node] = fvlist;
-                    }
-
-                    diagram.aspect.module.set_property('ac_result', ac_results);
-                }
-                 */
-
-                // set up plot values for each node with a probe
-                var y_values = []; // list of [color, result_array]
-                var z_values = []; // list of [color, result_array]
-                var probes = find_probes(netlist);
-
-                var probe_maxv = [];
-                var probe_color = [];
-                var label,color,offset;
-
-                // Check for probe with near zero transfer function and warn
-                for (i = probes.length - 1; i >= 0; i -= 1) {
-                    if (probes[i][3] != 'voltage') continue;
-                    probe_color[i] = probes[i][0];
-                    label = probes[i][1];
-                    v = results[label].magnitude;
-                    probe_maxv[i] = array_max(v); // magnitudes always > 0
-                }
-                var all_max = array_max(probe_maxv);
-
-                if (all_max < 1.0e-16) {
-                    diagram.message('Zero ac response, -infinity on DB scale.');
-                }
-                else {
-                    for (i = probes.length - 1; i >= 0; i -= 1) {
-                        if (probes[i][3] != 'voltage') continue;
-                        if ((probe_maxv[i] / all_max) < 1.0e-10) {
-                            diagram.message('Near zero ac response, remove ' + probe_color[i] + ' probe');
-                            return;
-                        }
-                    }
-                }
-
-                var dataseries = [];
-                for (i = probes.length - 1; i >= 0; i -= 1) {
-                    if (probes[i][3] != 'voltage') continue;
-                    color = probes[i][0];
-                    label = probes[i][1];
-                    offset = probes[i][2];
-
-                    v = results[label].magnitude;
-                    // convert values into dB relative to source amplitude
-                    var v_max = 1;
-                    for (j = v.length - 1; j >= 0; j -= 1) {
-                        // convert each value to dB relative to max
-                        v[j] = 20.0 * Math.log(v[j] / v_max) / Math.LN10;
-                    }
-                    // magnitude
-                    dataseries.push({xvalues: [x_values],
-                                     yvalues: [v],
-                                     name: [label],
-                                     color: [color],
-                                     //xlabel: 'log(Frequency in Hz)',
-                                     ylabel: 'Magnitude',
-                                     yunits: 'dB',
-                                     type: ['analog']
-                                    });
-                    // phase
-                    dataseries.push({xvalues: [x_values],
-                                     yvalues: [results[label].phase],
-                                     name: [label],
-                                     color: [color],
-                                     xlabel: 'log(Frequency in Hz)',
-                                     ylabel: 'Phase',
-                                     yunits: '\u00B0',    // degrees
-                                     type: ['analog']
-                                    });
-                }
-
-                // graph the result and display in a window
-                var graph = jade.plot.graph(dataseries);
-                diagram.window('Results of AC Analysis', graph);
+            var x_values = results._frequencies_;
+            var i,j,v;
+            
+            // x axis will be a log scale
+            for (i = x_values.length - 1; i >= 0; i -= 1) {
+                x_values[i] = Math.log(x_values[i]) / Math.LN10;
             }
+
+            /*
+             // see what we need to submit.  Expecting attribute of the form
+             // submit_analyses="{'tran':[[node_name,t1,t2,t3],...],
+             //                   'ac':[[node_name,f1,f2,...],...]}"
+             var submit = diagram.getAttribute('submit_analyses');
+             if (submit && submit.indexOf('{') === 0) submit = JSON.parse(submit).ac;
+             else submit = undefined;
+
+             if (submit !== undefined) {
+             // save a copy of the results for submission
+             var ac_results = {};
+
+             // save requested values for each requested node
+             for (j = 0; j < submit.length; j += 1) {
+             var flist = submit[j]; // [node_name,f1,f2,...]
+             var node = flist[0];
+             var values = results[node];
+             var fvlist = [];
+             // for each requested freq, interpolate response value
+             for (var k = 1; k < flist.length; k += 1) {
+             var f = flist[k];
+             v = interpolate(f, x_values, values);
+             // convert to dB
+             fvlist.push([f, v === undefined ? 'undefined' : 20.0 * Math.log(v) / Math.LN10]);
+             }
+             // save results as list of [f,response] paris
+             ac_results[node] = fvlist;
+             }
+
+             diagram.aspect.module.set_property('ac_result', ac_results);
+             }
+             */
+
+            // set up plot values for each node with a probe
+            var y_values = []; // list of [color, result_array]
+            var z_values = []; // list of [color, result_array]
+            var probes = find_probes(netlist);
+
+            var probe_maxv = [];
+            var probe_color = [];
+            var label,color,offset;
+
+            // Check for probe with near zero transfer function and warn
+            for (i = probes.length - 1; i >= 0; i -= 1) {
+                if (probes[i][3] != 'voltage') continue;
+                probe_color[i] = probes[i][0];
+                label = probes[i][1];
+                v = results[label].magnitude;
+                probe_maxv[i] = array_max(v); // magnitudes always > 0
+            }
+            var all_max = array_max(probe_maxv);
+
+            if (all_max < 1.0e-16) {
+                diagram.message('Zero ac response, -infinity on DB scale.');
+            }
+            else {
+                for (i = probes.length - 1; i >= 0; i -= 1) {
+                    if (probes[i][3] != 'voltage') continue;
+                    if ((probe_maxv[i] / all_max) < 1.0e-10) {
+                        diagram.message('Near zero ac response, remove ' + probe_color[i] + ' probe');
+                        return;
+                    }
+                }
+            }
+
+            var dataseries = [];
+            for (i = probes.length - 1; i >= 0; i -= 1) {
+                if (probes[i][3] != 'voltage') continue;
+                color = probes[i][0];
+                label = probes[i][1];
+                offset = probes[i][2];
+
+                v = results[label].magnitude;
+                // convert values into dB relative to source amplitude
+                var v_max = 1;
+                for (j = v.length - 1; j >= 0; j -= 1) {
+                    // convert each value to dB relative to max
+                    v[j] = 20.0 * Math.log(v[j] / v_max) / Math.LN10;
+                }
+                // magnitude
+                dataseries.push({xvalues: [x_values],
+                                 yvalues: [v],
+                                 name: [label],
+                                 color: [color],
+                                 //xlabel: 'log(Frequency in Hz)',
+                                 ylabel: 'Magnitude',
+                                 yunits: 'dB',
+                                 type: ['analog']
+                                });
+                // phase
+                dataseries.push({xvalues: [x_values],
+                                 yvalues: [results[label].phase],
+                                 name: [label],
+                                 color: [color],
+                                 xlabel: 'log(Frequency in Hz)',
+                                 ylabel: 'Phase',
+                                 yunits: '\u00B0',    // degrees
+                                 type: ['analog']
+                                });
+            }
+
+            // graph the result and display in a window
+            var graph = jade.plot.graph(dataseries);
+            diagram.window('Results of AC Analysis', graph);
         }
     }
 
@@ -495,23 +508,31 @@ jade.device_level = (function() {
         var tstop_lbl = 'Stop Time (seconds)';
 
         // use modules in the analog library as the leafs
-        var netlist = diagram_device_netlist(diagram,[]);
-
-        if (find_probes(netlist).length === 0) {
-            diagram.message("Transient Analysis: there are no probes in the diagram!");
+        var netlist;
+        try {
+            netlist = diagram_device_netlist(diagram,[]);
+            if (find_probes(netlist).length === 0) {
+                throw "There are no probes in the diagram!";
+            }
+        }
+        catch (e) {
+            if (e instanceof Error) e = e.stack.split('\n').join('<br>');
+            jade.window('Errors extracting netlist',
+                        $('<div class="jade-alert"></div>').html(e),
+                        $(diagram.canvas).offset());
             return;
         }
 
         var module = diagram.aspect.module;
         var fields = {};
-        fields[tstop_lbl] = jade.build_input('text', 10, module.properties.tran_tstop);
+        fields[tstop_lbl] = jade.build_input('text', 10, module.property_value('tran_tstop'));
 
         var content = jade.build_table(fields);
 
         diagram.dialog('Transient Analysis', content, function() {
             // retrieve parameters, remember for next time
-            module.set_property('tran_tstop', fields[tstop_lbl].value);
-            var tstop = jade.utils.parse_number_alert(module.properties.tran_tstop);
+            module.set_property_attribute('tran_tstop', 'value', fields[tstop_lbl].value);
+            var tstop = jade.utils.parse_number_alert(module.property_value('tran_tstop'));
 
             if (netlist.length > 0 && tstop !== undefined) {
                 // gather a list of nodes that are being probed.  These
@@ -544,8 +565,11 @@ jade.device_level = (function() {
     function transient_results(results,diagram,probes) {
         var v;
 
-        if (typeof results == 'string') diagram.message("Error during Transient analysis:\n\n" + results);
-        else if (results === undefined) diagram.message("Sorry, no results from transient analysis to plot!");
+        if (typeof results == 'string') {
+            jade.window('Errors during Transient analysis',
+                        $('<div class="jade-alert"></div>').html(results),
+                        $(diagram.canvas).offset());
+        } else if (results === undefined) diagram.message("Sorry, no results from transient analysis to plot!");
         else {
             /*
             // see what we need to submit.  Expecting attribute of the form
@@ -581,6 +605,15 @@ jade.device_level = (function() {
 
             // set up plot values for each node with a probe
             var dataseries = [];
+
+            // use time or, if specified, another probe value for the x axis
+            var xvalues = results._xvalues_;
+            for (var i = probes.length - 1; i >= 0; i -= 1) {
+                var color = probes[i][0];
+                var label = probes[i][1];
+                if (color == 'x-axis') xvalues = results[label];
+            }
+
             for (var i = probes.length - 1; i >= 0; i -= 1) {
                 var color = probes[i][0];
                 var label = probes[i][1];
@@ -588,8 +621,8 @@ jade.device_level = (function() {
                 if (v === undefined) {
                     diagram.message('The ' + color + ' probe is connected to node ' + '"' + label + '"' + ' which is not an actual circuit node');
                 } else if (color != 'x-axis') {
-                    dataseries.push({xvalues: [v.xvalues],
-                                     yvalues: [v.yvalues],
+                    dataseries.push({xvalues: [xvalues],
+                                     yvalues: [v],
                                      name: [label],
                                      color: [color],
                                      xunits: 's',
