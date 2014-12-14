@@ -38,9 +38,14 @@ jade.model.Aspect.prototype.netlist = function(mlist, globals, prefix, port_map,
 jade.model.Aspect.prototype.label_connection_points = function(globals, prefix, port_map) {
     var i;
     
-    // start by clearing all the connection point labels
+    // start by clearing all the connection point labels and widths
     for (i = this.components.length - 1; i >= 0; i -= 1) {
         this.components[i].clear_labels();
+    }
+
+    // propagate any specified widths through connected wires
+    for (i = this.components.length - 1; i >= 0; i -= 1) {
+        this.components[i].propagate_width();
     }
 
     // components are in charge of labeling their unlabeled connections.
@@ -71,6 +76,14 @@ jade.model.Aspect.prototype.propagate_label = function(label, location) {
     var cplist = this.connection_points[location];
     for (var i = cplist.length - 1; i >= 0; i -= 1) {
         cplist[i].propagate_label(label);
+    }
+};
+
+// propagate width to coincident connection points
+jade.model.Aspect.prototype.propagate_width = function(width, location) {
+    var cplist = this.connection_points[location];
+    for (var i = cplist.length - 1; i >= 0; i -= 1) {
+        cplist[i].propagate_width(width);
     }
 };
 
@@ -124,13 +137,16 @@ jade.model.Component.prototype.clear_labels = function() {
 // default action: don't propagate label
 jade.model.Component.prototype.propagate_label = function(label) {};
 
+// default action: don't propagate width
+jade.model.Component.prototype.propagate_width = function(width) {};
+
 // component should generate labels for all unlabeled connections
 jade.model.Component.prototype.label_connections = function(prefix) {
     for (var i = this.connections.length - 1; i >= 0; i -= 1) {
         var cp = this.connections[i];
         if (!cp.label) {
             // generate label of appropriate length
-            var len = cp.nlist.length;
+            var len = cp.width || cp.nlist.length;
             var label = [];
             for (var j = 0; j < len; j += 1) {
                 label.push(this.aspect.get_next_label(prefix));
@@ -152,6 +168,9 @@ jade.model.Component.prototype.add_default_labels = function(globals, prefix, po
         // let everyone else know this signal is global
         if (globals.indexOf(this.properties.global_signal) == -1)
             globals.push(this.properties.global_signal);
+        // replicate if necessary
+        if (this.connections[0].width > 1 && nlist.length == 1)
+            while (this.connections[0].width > nlist.length) nlist.push(nlist[0]);
     } else {
         nlist = jade.utils.parse_signal(this.properties.signal);
         if (nlist.length > 0) {
@@ -168,8 +187,10 @@ jade.model.Component.prototype.add_default_labels = function(globals, prefix, po
 
     // now actually propagate label to connections (we're expecting only
     // only one connection for all but wires which will have two).
-    if (nlist.length > 0) for (i = 0; i < this.connections.length; i += 1) {
-        this.connections[i].propagate_label(nlist);
+    if (nlist.length > 0) {
+        for (i = 0; i < this.connections.length; i += 1) {
+            this.connections[i].propagate_label(nlist);
+        }
     }
 };
 
@@ -259,7 +280,9 @@ jade.model.Component.prototype.netlist = function(mlist, globals, prefix, mstack
 //////////////////////////////////////////////////////////////////////
 
 jade.model.ConnectionPoint.prototype.propagate_label = function(label) {
-    // should we check if existing label is the same?  it should be...
+    if (this.width && this.width != label.length) {
+        throw "Node label ["+label+"] incompatible with specified width "+this.width.toString();
+    }
 
     if (this.label === undefined) {
         // label this connection point
@@ -271,9 +294,27 @@ jade.model.ConnectionPoint.prototype.propagate_label = function(label) {
         // possibly label other cp's for this device?
         this.parent.propagate_label(label);
     }
-    else if (!jade.utils.signal_equals(this.label, label))
+    else if (!jade.utils.signal_equals(this.label, label)) {
         // signal an error while generating netlist
         throw "Node has two conflicting sets of labels: [" + this.label + "], [" + label + "]";
+    }
+};
+
+jade.model.ConnectionPoint.prototype.propagate_width = function(width) {
+    if (this.width === undefined) {
+        // label this connection point
+        this.width = width;
+
+        // propagate width to coincident connection points
+        this.parent.aspect.propagate_width(width, this.location);
+
+        // possibly label other cp's for this device?
+        this.parent.propagate_width(width);
+    }
+    else if (this.width != width) {
+        // signal an error while generating netlist
+        throw "Node has two conflicting widths: " + this.width + ", " + width;
+    }
 };
 
 //////////////////////////////////////////////////////////////////////

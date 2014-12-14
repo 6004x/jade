@@ -1106,7 +1106,7 @@ jade.model = (function () {
                 var error = false;
                 for (var i in fields) {
                     var v = fields[i].prop_input.value;
-                    if (v === '') v = fields[i].prop_info.value;
+                    if (v == '') v = fields[i].prop_info.value;
 
                     // validate entered property values
                     ptype = fields[i].prop_info.type;
@@ -1119,7 +1119,7 @@ jade.model = (function () {
                         }
                     }
                     else if (ptype == 'width') {
-                        if (v=='' || isNaN(jade.utils.parse_number(v))) {
+                        if (v!='' && isNaN(jade.utils.parse_number(v))) {
                             error = true;
                             pmsg.text('not a valid number');
                         }
@@ -1181,10 +1181,12 @@ jade.model = (function () {
         this.location = '';
         this.update_location();
         this.label = undefined;
+        this.width = undefined;
     }
 
     ConnectionPoint.prototype.clear_label = function() {
         this.label = undefined;
+        this.width = undefined;
     };
 
     // return number of connection points coincidient with this one

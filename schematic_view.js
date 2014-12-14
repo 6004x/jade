@@ -542,7 +542,7 @@ jade.schematic_view = (function() {
         this.draw_line(diagram, 0, 0, dx, dy);
 
         var width = this.properties.width;
-        if (width !== undefined && width > 1) {
+        if (width && width > 1) {
             // perpendicular
             var x0 = dx/2;
             var y0 = dy/2;
@@ -557,6 +557,8 @@ jade.schematic_view = (function() {
             this.draw_line(diagram, x0-dx, y0-dy, x0+dx, y0+dy, 0.5);
             var align = (Math.abs(dy) > dx) ? (dy < 0 ? 7 : 1) : 3;
             this.draw_text(diagram, width.toString(), x0+dx, y0+dy, align, '3pt sans-serif');
+            dx = this.coords[3];
+            dy = this.coords[4];
         }
 
         // display signal name if there is one
@@ -663,6 +665,22 @@ jade.schematic_view = (function() {
         }
         return null;
     };
+
+    Wire.prototype.propagate_width = function(width) {
+        var w = this.properties.width;
+        if (w) {
+            if (width == undefined) width = parseInt(w);
+            else if (width != w) throw "Incompatible widths specified for wire: "+w.toString()+", "+width.toString();
+        }
+
+        if (width) {
+            // wires "conduct" their width to the other end
+            // don't worry about relabeling a cp, it won't recurse!
+            this.connections[0].propagate_width(width);
+            this.connections[1].propagate_width(width);
+        }
+    };
+
 
     Wire.prototype.propagate_label = function(label) {
         // wires "conduct" their label to the other end
