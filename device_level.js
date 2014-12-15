@@ -283,9 +283,9 @@ jade.device_level = (function() {
         var module = diagram.aspect.module;
         var fields = {};
         $.each(['Sweep 1','Sweep 2'],function (index,name) {
-            fields[name+': '+vstart_lbl] = jade.build_input('text', 10, module.property_value(name+'_vstart'));
-            fields[name+': '+vstop_lbl] = jade.build_input('text', 10, module.property_value(name+'_vstop'));
-            fields[name+': '+source_name_lbl] = jade.build_input('text', 10, module.property_value(name+'_source'));
+            fields['('+name+') '+vstart_lbl] = jade.build_input('text', 10, module.property_value(name+'_vstart'));
+            fields['('+name+') '+vstop_lbl] = jade.build_input('text', 10, module.property_value(name+'_vstop'));
+            fields['('+name+') '+source_name_lbl] = jade.build_input('text', 10, module.property_value(name+'_source'));
         });
 
         var content = jade.build_table(fields);
@@ -294,17 +294,17 @@ jade.device_level = (function() {
             // retrieve parameters, remember for next time
             var values = [];
             $.each(['Sweep 1','Sweep 2'],function (index,name) {
-                var v = fields[name+': '+vstart_lbl].value;
+                var v = fields['('+name+') '+vstart_lbl].value;
                 values.push(jade.utils.parse_number_alert(v));
                 module.set_property_attribute(name+'_vstart', 'value', v);
 
-                v = fields[name+': '+vstop_lbl].value;
+                v = fields['('+name+') '+vstop_lbl].value;
                 values.push(jade.utils.parse_number_alert(v));
                 module.set_property_attribute(name+'_vstop', 'value', v);
 
-                v = fields[name+': '+source_name_lbl].value;
+                v = fields['('+name+') '+source_name_lbl].value;
                 values.push(v);
-                module.set_property_attribute(name+'_vstop', 'value', v);
+                module.set_property_attribute(name+'_source', 'value', v);
             });
 
             dc_sweep(netlist, diagram,
