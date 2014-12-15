@@ -254,6 +254,91 @@ jade.device_level = (function() {
 
     ///////////////////////////////////////////////////////////////////////////////
     //
+    //  DC Sweep
+    //
+    //////////////////////////////////////////////////////////////////////////////
+
+    // use a dialog to get sweep parameters
+    function setup_dc_sweep(diagram) {
+        diagram.remove_annotations();
+
+        var vstart_lbl = 'Starting value';
+        var vstop_lbl = 'End value';
+        var source_name_lbl = 'Name of V or I source for sweep';
+
+        var netlist;
+        try {
+            netlist = diagram_device_netlist(diagram,[]);
+            if (find_probes(netlist).length === 0) {
+                throw "There are no probes in the diagram!";
+            }
+        }
+        catch (e) {
+            jade.window('Errors extracting netlist',
+                        $('<div class="jade-alert"></div>').html(e),
+                        $(diagram.canvas).offset());
+            return;
+        }
+
+        var module = diagram.aspect.module;
+        var fields = {};
+        $.each(['Sweep 1','Sweep 2'],function (index,name) {
+            fields[name+': '+vstart_lbl] = jade.build_input('text', 10, module.property_value(name+'_vstart'));
+            fields[name+': '+vstop_lbl] = jade.build_input('text', 10, module.property_value(name+'_vstop'));
+            fields[name+': '+source_name_lbl] = jade.build_input('text', 10, module.property_value(name+'_source'));
+        });
+
+        var content = jade.build_table(fields);
+
+        diagram.dialog('DC Sweep', content, function() {
+            // retrieve parameters, remember for next time
+            var values = [];
+            $.each(['Sweep 1','Sweep 2'],function (index,name) {
+                var v = fields[name+': '+vstart_lbl].value;
+                values.push(jade.utils.parse_number_alert(v));
+                module.set_property_attribute(name+'_vstart', 'value', v);
+
+                v = fields[name+': '+vstop_lbl].value;
+                values.push(jade.utils.parse_number_alert(v));
+                module.set_property_attribute(name+'_vstop', 'value', v);
+
+                v = fields[name+': '+source_name_lbl].value;
+                values.push(v);
+                module.set_property_attribute(name+'_vstop', 'value', v);
+            });
+
+            dc_sweep(netlist, diagram,
+                     {start: values[0], stop: values[1], source: values[2]},
+                     {start: values[3], stop: values[4], source: values[5]});
+        });
+    }
+
+    function dc_sweep(netlist, diagram, sweep1, sweep2) {
+        if (netlist.length > 0) {
+            var ckt,results;
+            try {
+                ckt = new jade.cktsim.Circuit(netlist);
+                results = ckt.dc_analysis(netlist, sweep1, sweep2);
+                if (typeof results == 'string') throw results;
+            }
+            catch (e) {
+                if (e instanceof Error) e= e.stack.split('\n').join('<br>');
+                jade.window('Errors during DC Sweep',
+                            $('<div class="jade-alert"></div>').html(e),
+                            $(diagram.canvas).offset());
+                return;
+            }
+
+            var foo = 3;
+        }
+    }
+
+
+    // add DC sweep to tool bar
+    jade.schematic_view.schematic_tools.push(['SWEEP', 'SWEEP', 'DC Sweep for 1 or 2 sources', setup_dc_sweep]);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    //
     //  AC Analysis
     //
     //////////////////////////////////////////////////////////////////////////////
