@@ -230,18 +230,21 @@
     padding: 5px;
     color: #b94a48;
     background-color: #f3dede;
+    font: 10pt/1.25 "Lucida Console",monospace;
 }
 .jade-window {
-    background-image: -webkit-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);
+    /*background-image: -webkit-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);
     background-image: -moz-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);
-    background-image: -ms-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);
+    background-image: -ms-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);*/
+    background-color: #EEEEEE;
     position: absolute;
-    border: 2px solid black;
     vertical-align: bottom;
     box-shadow: 0 10px 10px 1px rgba(0,0,0,0.25);
     -webkit-box-shadow: 0 10px 10px 1px rgba(0,0,0,0.25);
+    border: 2px solid black;
 }
 .jade-window-title {
+    border-bottom: 1px solid black;
     background-color: black;
     color: white;
     text-align: center;
