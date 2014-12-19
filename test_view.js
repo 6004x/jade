@@ -555,11 +555,18 @@ jade.test_view = (function() {
 
                 if (typeof results == 'string') {
                     // oops, some sort of exception: just report it
-                    diagram.message(results);
+                    jade.window('Error running test',
+                                $('<div class="jade-alert"></div>').html(results),
+                                $(diagram.canvas).offset());
+                    //diagram.message(results);
                     test_results[module.get_name()] = 'Error detected: '+results;
                     return undefined;
                 } else if (results instanceof Error) {
-                    diagram.message(results.stack.split('\n').join('<br>'));
+                    results = results.stack.split('\n').join('<br>');
+                    jade.window('Error running test',
+                                $('<div class="jade-alert"></div>').html(results),
+                                $(diagram.canvas).offset());
+                    //diagram.message(results.stack.split('\n').join('<br>'));
                     test_results[module.get_name()] = 'Error detected: '+results.message;
                     return undefined;
                 }
@@ -753,7 +760,10 @@ jade.test_view = (function() {
         } catch (e) {
             jade.window_close(progress[0].win);  // done with progress bar
             console.log(e.stack);
-            diagram.message("Error running simulation:<p>" + e);
+            jade.window('Error running test',
+                        $('<div class="jade-alert"></div>').html(e),
+                        $(diagram.canvas).offset());
+            //diagram.message("Error running simulation:<p>" + e);
             test_results[module.get_name()] = 'Error detected running simulation:<p>'+e;
             return;
         }
