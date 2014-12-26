@@ -264,6 +264,7 @@ jade.device_level = (function() {
 
         var vstart_lbl = 'Starting value';
         var vstop_lbl = 'End value';
+        var vstep_lbl = 'Step size';
         var source_name_lbl = 'Name of V or I source for sweep';
 
         var netlist;
@@ -285,6 +286,7 @@ jade.device_level = (function() {
         $.each(['Sweep 1','Sweep 2'],function (index,name) {
             fields['('+name+') '+vstart_lbl] = jade.build_input('text', 10, module.property_value(name+'_vstart'));
             fields['('+name+') '+vstop_lbl] = jade.build_input('text', 10, module.property_value(name+'_vstop'));
+            fields['('+name+') '+vstep_lbl] = jade.build_input('text', 10, module.property_value(name+'_vstep'));
             fields['('+name+') '+source_name_lbl] = jade.build_input('text', 10, module.property_value(name+'_source'));
         });
 
@@ -302,24 +304,85 @@ jade.device_level = (function() {
                 values.push(jade.utils.parse_number_alert(v));
                 module.set_property_attribute(name+'_vstop', 'value', v);
 
+                v = fields['('+name+') '+vstep_lbl].value;
+                values.push(jade.utils.parse_number_alert(v));
+                module.set_property_attribute(name+'_vstep', 'value', v);
+
                 v = fields['('+name+') '+source_name_lbl].value;
                 values.push(v);
                 module.set_property_attribute(name+'_source', 'value', v);
             });
 
             dc_sweep(netlist, diagram,
-                     {start: values[0], stop: values[1], source: values[2]},
-                     {start: values[3], stop: values[4], source: values[5]});
+                     {start: values[0], stop: values[1], step: values[2], source: values[3]},
+                     {start: values[4], stop: values[5], step: values[6], source: values[7]});
         });
     }
+
+    var colors = ['#268bd2','#dc322f','#859900','#b58900','#6c71c4','#d33682','#2aa198'];
 
     function dc_sweep(netlist, diagram, sweep1, sweep2) {
         if (netlist.length > 0) {
             var ckt,results;
             try {
-                ckt = new jade.cktsim.Circuit(netlist);
-                results = ckt.dc_analysis(netlist, sweep1, sweep2);
+                results = jade.cktsim.dc_analysis(netlist, sweep1, sweep2);
                 if (typeof results == 'string') throw results;
+
+                var dataseries = [];
+                $.each(find_probes(netlist), function (pindex,probe) {
+                    var dataset = {xvalues: [],
+                                   yvalues: [],
+                                   name: [],
+                                   color: [],
+                                   xunits: 'V',
+                                   yunits: '',
+                                   type: []
+                                  };
+                    dataseries.push(dataset);
+
+                    var index2 = 0;
+                    var values,x,x2,name,color;
+                    while (true) {
+                        if (sweep2.source === undefined) {
+                            values = results[probe.label];
+                            x = results._sweep1_;
+                        } else {
+                            values = results[index2][probe.label];
+                            x = results[index2]._sweep1_;
+                            x2 = results[index2]._sweep2_;
+                            index2 += 1;
+                        }
+                        
+                        // no values to plot for the given node
+                        if (values === undefined)
+			    throw "No values to plot for node "+probe.label;
+
+                        // boolean that records if the analysis asked for current through a node
+                        name = (probe.type == 'current') ? probe.label : "Node " + probe.label; 
+                        color = probe.color;
+                        if (sweep2.source !== undefined) {
+                            name += " [with " + sweep2.source + "=" +
+                                jade.utils.engineering_notation(x2,2) + (sweep2.units||'') + "]";
+                            color = colors[index2 % colors.length];
+                        }
+
+                        dataset.xvalues.push(x);
+                        dataset.yvalues.push(values);
+                        dataset.name.push(name);
+                        dataset.color.push(color);
+                        dataset.type.push('analog');
+                        dataset.xunits = sweep1.units || 'V';
+                        dataset.yunits = (probe.type == 'current') ? 'A' : 'V';
+                        dataset.xlabel = sweep1.source + " (" + sweep1.units + ")";
+                        dataset.ylabel = probe.label + " (" + dataset.yunits + ")";
+
+                        if (sweep2.source === undefined || index2 >= results.length) break;
+                    }
+                });
+
+                // graph the result and display in a window
+                var graph = jade.plot.graph(dataseries);
+                diagram.window('Results of DC Sweep', graph);
             }
             catch (e) {
                 if (e instanceof Error) e= e.stack.split('\n').join('<br>');
@@ -328,8 +391,6 @@ jade.device_level = (function() {
                             $(diagram.canvas).offset());
                 return;
             }
-
-            var foo = 3;
         }
     }
 
@@ -355,12 +416,18 @@ jade.device_level = (function() {
             var offset = properties.offset;
             if (offset === undefined || offset === '') offset = '0';
             if (type == 'voltage probe') {
-                result.push([properties.color, connections.probe, offset, 'voltage']);
+                result.push({color: properties.color,
+                             label: connections.probe,
+                             offset: offset,
+                             type: 'voltage'});
             } else if (type == 'voltage source' &&
                      properties.value.type == 'dc' &&
                      properties.value.args.length == 1 &&
                      properties.value.args[0] === 0)
-                result.push([properties.color, 'I(' + properties.name + ')', offset, 'current']);
+                result.push({color: properties.color,
+                             label: 'I(' + properties.name + ')',
+                             offset: offset,
+                             type: 'current'});
         }
         return result;
     }
@@ -484,9 +551,9 @@ jade.device_level = (function() {
 
             // Check for probe with near zero transfer function and warn
             for (i = probes.length - 1; i >= 0; i -= 1) {
-                if (probes[i][3] != 'voltage') continue;
-                probe_color[i] = probes[i][0];
-                label = probes[i][1];
+                if (probes[i].type != 'voltage') continue;
+                probe_color[i] = probes[i].color;
+                label = probes[i].label;
                 v = results[label].magnitude;
                 probe_maxv[i] = array_max(v); // magnitudes always > 0
             }
@@ -497,7 +564,7 @@ jade.device_level = (function() {
             }
             else {
                 for (i = probes.length - 1; i >= 0; i -= 1) {
-                    if (probes[i][3] != 'voltage') continue;
+                    if (probes[i].type != 'voltage') continue;
                     if ((probe_maxv[i] / all_max) < 1.0e-10) {
                         diagram.message('Near zero ac response, remove ' + probe_color[i] + ' probe');
                         return;
@@ -508,9 +575,9 @@ jade.device_level = (function() {
             var dataseries = [];
             for (i = probes.length - 1; i >= 0; i -= 1) {
                 if (probes[i][3] != 'voltage') continue;
-                color = probes[i][0];
-                label = probes[i][1];
-                offset = probes[i][2];
+                color = probes[i].color;
+                label = probes[i].label;
+                offset = probes[i].offset;
 
                 v = results[label].magnitude;
                 // convert values into dB relative to source amplitude
@@ -626,7 +693,7 @@ jade.device_level = (function() {
                 var probes = find_probes(netlist);
                 var probe_names = {};
                 for (var i = probes.length - 1; i >= 0; i -= 1) {
-                    probe_names[i] = probes[i][1];
+                    probe_names[i] = probes[i].label;
                 }
 
                 var progress = jade.progress_report();
@@ -693,15 +760,16 @@ jade.device_level = (function() {
 
             // use time or, if specified, another probe value for the x axis
             var xvalues = results._xvalues_;
+            var color,label;
             for (var i = probes.length - 1; i >= 0; i -= 1) {
-                var color = probes[i][0];
-                var label = probes[i][1];
+                color = probes[i].color;
+                label = probes[i].label;
                 if (color == 'x-axis') xvalues = results[label];
             }
 
             for (var i = probes.length - 1; i >= 0; i -= 1) {
-                var color = probes[i][0];
-                var label = probes[i][1];
+                color = probes[i].color;
+                label = probes[i].label;
                 v = results[label];
                 if (v === undefined) {
                     diagram.message('The ' + color + ' probe is connected to node ' + '"' + label + '"' + ' which is not an actual circuit node');
@@ -711,7 +779,7 @@ jade.device_level = (function() {
                                      name: [label],
                                      color: [color],
                                      xunits: 's',
-                                     yunits: (probes[i][3] == 'voltage') ? 'V' : 'A',
+                                     yunits: (probes[i].type == 'voltage') ? 'V' : 'A',
                                      type: ['analog']
                                     });
                 }

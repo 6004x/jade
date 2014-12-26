@@ -52,7 +52,9 @@ jade.cktsim = (function() {
 
             if (sweep1.source !== undefined) {
                 source1 = ckt.device_map[sweep1.source];
-                if (!(source1 instanceof VSource) && !(source1 instanceof ISource)) throw "Device not independent source in DC sweep: " + sweep1.source;
+                if (source1 instanceof VSource) sweep1.units= 'V';
+                else if (source1 instanceof ISource) sweep1.units= 'A';
+                else throw "Device not independent source in DC sweep: " + sweep1.source;
                 start1 = sweep1.start;
                 stop1 = sweep1.stop;
                 step1 = sweep1.step;
@@ -65,7 +67,9 @@ jade.cktsim = (function() {
 
             if (sweep2.source !== undefined) {
                 source2 = ckt.device_map[sweep2.source];
-                if (!(source2 instanceof VSource) && !(source2 instanceof ISource)) throw "Device not independent source in DC sweep: " + sweep2.source;
+                if (source2 instanceof VSource) sweep2.units= 'V';
+                else if (source2 instanceof ISource) sweep2.units= 'A';
+                else throw "Device not independent source in DC sweep: " + sweep2.source;
                 start2 = sweep2.start;
                 stop2 = sweep2.stop;
                 step2 = sweep2.step;
