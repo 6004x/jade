@@ -83,3 +83,26 @@ jade.icons.terminal_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
                            '<path d="M 5 10 h 8" stroke="black" fill="transparent"/>' +
                            '</svg>';
 
+jade.icons.dc_icon = '<span style="position: relative; top: 2px;"><svg width="16" height="16" viewBox="0 0 16 16">' +
+                     '<path d="M 2 2 h 12" stroke="black"/>' +
+                     '<path d="M 2 14 h 12" stroke="black" stroke-dasharray="2,1"/>' +
+                     '</svg></span>';
+
+jade.icons.sweep_icon = '<span style="position: relative; top: 2px;"><svg width="16" height="16" viewBox="0 0 16 16">' +
+                        '<path d="M 0 14 h 16" stroke="black"/>' +
+                        '<path d="M 0 14 L 4 10 8 8 16 7" stroke="black" fill="none"/>' +
+                        '<path d="M 0 14 L 4 6 6 4 8 2 16 0" stroke="black" fill="none"/>' +
+                        '</svg></span>';
+
+jade.icons.ac_icon = '<span style="position: relative; top: 2px;"><svg width="16" height="16" viewBox="0 0 16 16">' +
+                     '<path d="M 0 8 T 3 2 8 8 13 14 16 8" stroke="black" fill="none"/>' +
+                     '</svg></span>';
+
+jade.icons.tran_icon = '<span style="position: relative; top: 2px;"><svg width="16" height="16" viewBox="0 0 16 16">' +
+                       '<path d="M 12 0 v 4 h -4 v 8 h 4 v 4" stroke="black" fill="none"/>' +
+                       '<path d="M 5 4 v 8 M 5 8 h -4" stroke="black" fill="none"/>' +
+                       '</svg></span>';
+
+jade.icons.gate_icon = '<span style="position: relative; top: 2px;"><svg width="16" height="16" viewBox="0 0 16 16">' +
+                       '<path d="M 0 4 h 6 M 0 12 h 6 M 6 2 v 12 M 12 8 h 4 M 6 2 C 6 2 12 0 12 8 M 6 14 C 6 15 12 14 12 8" stroke="black" fill="none"/>' +
+                       '</svg></span>';

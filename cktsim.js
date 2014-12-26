@@ -104,11 +104,12 @@ jade.cktsim = (function() {
                 results._sweep2_ = val2; // remember sweep2 value as one of the results
 
                 if (val1 === undefined) break;
-                else if (val1 == stop1) {
+                else if (Math.abs(val1 - stop1) < Math.abs(0.01*step1)) {
                     // end of sweep for first source
                     if (val2 === undefined) break;
                     results2.push(results); // accumulate results from first sweep
-                    if (val2 == stop2) {
+                    // check to see if we're done
+                    if (Math.abs(val2 - stop2) < Math.abs(0.01*step2)) {
                         results = results2; // use accumlated results when there are two sweeps
                         break;
                     }

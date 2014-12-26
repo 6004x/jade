@@ -250,7 +250,7 @@ jade.device_level = (function() {
     }
 
     // add DC analysis to tool bar
-    jade.schematic_view.schematic_tools.push(['DC', 'DC', 'DC Analysis', dc_analysis]);
+    jade.schematic_view.schematic_tools.push(['DC', jade.icons.dc_icon, 'DC Analysis', dc_analysis]);
 
     ///////////////////////////////////////////////////////////////////////////////
     //
@@ -288,6 +288,7 @@ jade.device_level = (function() {
             fields['('+name+') '+vstop_lbl] = jade.build_input('text', 10, module.property_value(name+'_vstop'));
             fields['('+name+') '+vstep_lbl] = jade.build_input('text', 10, module.property_value(name+'_vstep'));
             fields['('+name+') '+source_name_lbl] = jade.build_input('text', 10, module.property_value(name+'_source'));
+            if (name == 'Sweep 1') fields['<i>Optional second sweep</i>'] = '';
         });
 
         var content = jade.build_table(fields);
@@ -396,7 +397,7 @@ jade.device_level = (function() {
 
 
     // add DC sweep to tool bar
-    jade.schematic_view.schematic_tools.push(['SWEEP', 'SWEEP', 'DC Sweep for 1 or 2 sources', setup_dc_sweep]);
+    jade.schematic_view.schematic_tools.push(['SWEEP', jade.icons.sweep_icon, 'DC Sweep for 1 or 2 sources', setup_dc_sweep]);
 
     ///////////////////////////////////////////////////////////////////////////////
     //
@@ -646,7 +647,7 @@ jade.device_level = (function() {
     }
 
     // add AC analysis to tool bar
-    jade.schematic_view.schematic_tools.push(['AC', 'AC', 'AC Analysis', setup_ac_analysis]);
+    jade.schematic_view.schematic_tools.push(['AC', jade.icons.ac_icon, 'AC Analysis', setup_ac_analysis]);
 
     ///////////////////////////////////////////////////////////////////////////////
     //
@@ -792,7 +793,7 @@ jade.device_level = (function() {
     }
 
     // add transient analysis to tool bar
-    jade.schematic_view.schematic_tools.push(['tran', 'TRAN', 'Transient Analysis', setup_transient_analysis]);
+    jade.schematic_view.schematic_tools.push(['tran', jade.icons.tran_icon, 'Device-level Simulation (transient analysis)', setup_transient_analysis]);
 
     ///////////////////////////////////////////////////////////////////////////////
     //

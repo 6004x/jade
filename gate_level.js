@@ -189,7 +189,7 @@ jade.gate_level = (function() {
     }
 
     // add transient analysis to tool bar
-    jade.schematic_view.schematic_tools.push(['gate', 'GATE', 'Gate-level simulation', setup_simulation]);
+    jade.schematic_view.schematic_tools.push(['gate', jade.icons.gate_icon, 'Gate-level simulation', setup_simulation]);
 
     // t is the time at which we want a value
     // times is a list of timepoints from the simulation
