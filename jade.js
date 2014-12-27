@@ -919,11 +919,13 @@ var jade = (function() {
 
         // show name of module in lower right corner
         if (this.aspect && this.aspect.module) {
+            var name = this.aspect.module.get_name();
+            if (this.aspect.read_only()) name += ' (read only)';
             c.textAlign = 'left';
             c.textBaseline = 'bottom';
             c.font = '12pt sans-serif';
             c.fillStyle = this.normal_style;
-            c.fillText(this.aspect.module.get_name(), 2, this.canvas.height - 2);
+            c.fillText(name, 2, this.canvas.height - 2);
         }
 
         this.redraw(); // background changed, redraw on screen

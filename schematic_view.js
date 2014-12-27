@@ -44,100 +44,102 @@ jade.schematic_view = (function() {
 
         this.toolbar = new jade.Toolbar(this.diagram);
 
-        this.toolbar.add_tool('grid', jade.icons.grid_icon,
-                              'Toggle schematic grid', jade.diagram_toggle_grid);
-        this.toolbar.add_spacer();
+        if (!parent.configuration.readonly) {
+            this.toolbar.add_tool('grid', jade.icons.grid_icon,
+                                  'Toggle schematic grid', jade.diagram_toggle_grid);
+            this.toolbar.add_spacer();
 
-        this.toolbar.add_tool('undo', jade.icons.undo_icon,
-                              'Undo: undo effect of previous action', jade.diagram_undo,
-                              function(diagram) {
-                                  return diagram.aspect && diagram.aspect.can_undo();
-                              });
-        this.toolbar.add_tool('redo', jade.icons.redo_icon,
-                              'redo: redo effect of next action', jade.diagram_redo,
-                              function(diagram) {
-                                  return diagram.aspect && diagram.aspect.can_redo();
-                              });
-
-        function has_selections(diagram) {
-            return diagram.aspect && !diagram.aspect.read_only() && diagram.aspect.selections();
-        }
-        
-        this.toolbar.add_tool('cut', jade.icons.cut_icon,
-                              'Cut: move selected components from diagram to the clipboard',
-                              jade.diagram_cut, has_selections);
-        this.toolbar.add_tool('copy', jade.icons.copy_icon,
-                              'Copy: copy selected components into the clipboard',
-                              jade.diagram_copy, has_selections);
-        this.toolbar.add_tool('paste', jade.icons.paste_icon,
-                              'Paste: copy clipboard into the diagram', jade.diagram_paste,
-                              function(diagram) {
-                                  return diagram.aspect && !diagram.aspect.read_only() &&
-                                         jade.clipboards[diagram.editor.editor_name].length > 0;
-                              });
-        this.toolbar.add_tool('fliph', jade.icons.fliph_icon,
-                              'Flip Horizontally: flip selection horizontally',
-                              jade.diagram_fliph, has_selections);
-        this.toolbar.add_tool('flipv', jade.icons.flipv_icon,
-                              'Flip Vertically: flip selection vertically',
-                              jade.diagram_flipv, has_selections);
-        this.toolbar.add_tool('rotcw', jade.icons.rotcw_icon,
-                              'Rotate Clockwise: rotate selection clockwise',
-                              jade.diagram_rotcw, has_selections);
-        this.toolbar.add_tool('rotccw', jade.icons.rotccw_icon,
-                              'Rotate Counterclockwise: rotate selection counterclockwise',
-                              jade.diagram_rotccw, has_selections);
-        this.toolbar.add_spacer();
-
-        // are we supporting hierarchy?
-        this.hierarchy = parent.configuration.hierarchical;
-        if (this.hierarchy) {
-            this.toolbar.add_tool('down', jade.icons.down_icon,
-                                  'Down in the hierarchy: view selected included module', schematic_down,
+            this.toolbar.add_tool('undo', jade.icons.undo_icon,
+                                  'Undo: undo effect of previous action', jade.diagram_undo,
                                   function(diagram) {
-                                      if (!diagram.aspect) return false;
-                                      var selected = diagram.aspect.selected_component();
-                                      if (selected !== undefined) return selected.has_aspect(Schematic.prototype.editor_name);
-                                      else return false;
+                                      return diagram.aspect && diagram.aspect.can_undo();
                                   });
-            this.toolbar.add_tool('up', jade.icons.up_icon,
-                                  'Up in the hierarchy: return to including module', schematic_up,
+            this.toolbar.add_tool('redo', jade.icons.redo_icon,
+                                  'redo: redo effect of next action', jade.diagram_redo,
                                   function(diagram) {
-                                      return diagram.editor && diagram.editor.hierarchy_stack.length > 0;
+                                      return diagram.aspect && diagram.aspect.can_redo();
                                   });
+
+            function has_selections(diagram) {
+                return diagram.aspect && !diagram.aspect.read_only() && diagram.aspect.selections();
+            }
+            
+            this.toolbar.add_tool('cut', jade.icons.cut_icon,
+                                  'Cut: move selected components from diagram to the clipboard',
+                                  jade.diagram_cut, has_selections);
+            this.toolbar.add_tool('copy', jade.icons.copy_icon,
+                                  'Copy: copy selected components into the clipboard',
+                                  jade.diagram_copy, has_selections);
+            this.toolbar.add_tool('paste', jade.icons.paste_icon,
+                                  'Paste: copy clipboard into the diagram', jade.diagram_paste,
+                                  function(diagram) {
+                                      return diagram.aspect && !diagram.aspect.read_only() &&
+                                          jade.clipboards[diagram.editor.editor_name].length > 0;
+                                  });
+            this.toolbar.add_tool('fliph', jade.icons.fliph_icon,
+                                  'Flip Horizontally: flip selection horizontally',
+                                  jade.diagram_fliph, has_selections);
+            this.toolbar.add_tool('flipv', jade.icons.flipv_icon,
+                                  'Flip Vertically: flip selection vertically',
+                                  jade.diagram_flipv, has_selections);
+            this.toolbar.add_tool('rotcw', jade.icons.rotcw_icon,
+                                  'Rotate Clockwise: rotate selection clockwise',
+                                  jade.diagram_rotcw, has_selections);
+            this.toolbar.add_tool('rotccw', jade.icons.rotccw_icon,
+                                  'Rotate Counterclockwise: rotate selection counterclockwise',
+                                  jade.diagram_rotccw, has_selections);
+            this.toolbar.add_spacer();
+
+            // are we supporting hierarchy?
+            this.hierarchy = parent.configuration.hierarchical;
+            if (this.hierarchy) {
+                this.toolbar.add_tool('down', jade.icons.down_icon,
+                                      'Down in the hierarchy: view selected included module', schematic_down,
+                                      function(diagram) {
+                                          if (!diagram.aspect) return false;
+                                          var selected = diagram.aspect.selected_component();
+                                          if (selected !== undefined) return selected.has_aspect(Schematic.prototype.editor_name);
+                                          else return false;
+                                      });
+                this.toolbar.add_tool('up', jade.icons.up_icon,
+                                      'Up in the hierarchy: return to including module', schematic_up,
+                                      function(diagram) {
+                                          return diagram.editor && diagram.editor.hierarchy_stack.length > 0;
+                                      });
+                this.toolbar.add_spacer();
+            }
+
+            function insert_part_allowed() {
+                return this.diagram && this.diagram.aspect && !this.diagram.aspect.read_only(); 
+            };
+
+            var part = this.toolbar.add_tool('ground', jade.icons.ground_icon,
+                                             'Ground connection: click and drag to insert', null,
+                                             insert_part_allowed);
+            part_tool(part,this,'ground');
+
+            part = this.toolbar.add_tool('vdd', jade.icons.vdd_icon,
+                                         'Power supply connection: click and drag to insert', null,
+                                         insert_part_allowed);
+            part_tool(part,this,'vdd');
+
+            part = this.toolbar.add_tool('port', jade.icons.port_icon,
+                                         'I/O Port: click and drag to insert', null, 
+                                         insert_part_allowed);
+            part_tool(part,this,'port');
+
+            part = this.toolbar.add_tool('jumper', jade.icons.jumper_icon,
+                                         'Jumper for connecting wires with different names: click and drag to insert', null,
+                                         insert_part_allowed);
+            part_tool(part,this,'jumper');
+
+            part = this.toolbar.add_tool('text', jade.icons.text_icon,
+                                         'Text: click and drag to insert', null, 
+                                         insert_part_allowed);
+            part_tool(part,this,'text');
+
             this.toolbar.add_spacer();
         }
-
-        function insert_part_allowed() {
-            return this.diagram && this.diagram.aspect && !this.diagram.aspect.read_only(); 
-        };
-
-        var part = this.toolbar.add_tool('ground', jade.icons.ground_icon,
-                                         'Ground connection: click and drag to insert', null,
-                                         insert_part_allowed);
-        part_tool(part,this,'ground');
-
-        part = this.toolbar.add_tool('vdd', jade.icons.vdd_icon,
-                                     'Power supply connection: click and drag to insert', null,
-                                     insert_part_allowed);
-        part_tool(part,this,'vdd');
-
-        part = this.toolbar.add_tool('port', jade.icons.port_icon,
-                                     'I/O Port: click and drag to insert', null, 
-                                     insert_part_allowed);
-        part_tool(part,this,'port');
-
-        part = this.toolbar.add_tool('jumper', jade.icons.jumper_icon,
-                                     'Jumper for connecting wires with different names: click and drag to insert', null,
-                                     insert_part_allowed);
-        part_tool(part,this,'jumper');
-
-        part = this.toolbar.add_tool('text', jade.icons.text_icon,
-                                     'Text: click and drag to insert', null, 
-                                     insert_part_allowed);
-        part_tool(part,this,'text');
-
-        this.toolbar.add_spacer();
 
         // add external tools
         var tools = parent.configuration.tools;
@@ -155,58 +157,60 @@ jade.schematic_view = (function() {
         var aspect = new jade.model.Aspect('untitled', null);
         this.diagram.set_aspect(aspect);
 
-        // set up parts bin
-        this.parts_bin = new PartsBin(this,parent.configuration.parts);
-        div.appendChild(this.parts_bin.top_level);
+        if (!parent.configuration.readonly) {
+            // set up parts bin
+            this.parts_bin = new PartsBin(this,parent.configuration.parts);
+            div.appendChild(this.parts_bin.top_level);
 
-        // set up resizer
-        this.resizer = $('<div class="jade-xparts-resize"></div>');
-        var sch = this;
-        var lastX, lastY;
-        this.resizer.on('mousedown',function (event) {
-            lastX = event.pageX;
-            lastY = event.pageY;
-
-            function move(e) {
-                var event = window.event || e;
-                var dx = event.pageX - lastX;
-                var parts = $(sch.parts_bin.top_level);
-                var sch_canvas = $(sch.diagram.canvas);
-                var w;
-
-                if (dx >= 0) {
-                    // min size for parts bin is 75
-                    w = parts.width() - dx;
-                    if (w < 75) dx -= 75 - w;
-                } else {
-                    // min size for schematic is 300
-                    w = sch_canvas.width() + dx;
-                    if (w < 300) dx += 300 - w;
-                }
-
-                parts.width(parts.width() - dx);
-                sch_canvas.width(sch_canvas.width() + dx);
-                sch_canvas[0].diagram.resize();
-
+            // set up resizer
+            this.resizer = $('<div class="jade-xparts-resize"></div>');
+            var sch = this;
+            var lastX, lastY;
+            this.resizer.on('mousedown',function (event) {
                 lastX = event.pageX;
                 lastY = event.pageY;
+
+                function move(e) {
+                    var event = window.event || e;
+                    var dx = event.pageX - lastX;
+                    var parts = $(sch.parts_bin.top_level);
+                    var sch_canvas = $(sch.diagram.canvas);
+                    var w;
+
+                    if (dx >= 0) {
+                        // min size for parts bin is 75
+                        w = parts.width() - dx;
+                        if (w < 75) dx -= 75 - w;
+                    } else {
+                        // min size for schematic is 300
+                        w = sch_canvas.width() + dx;
+                        if (w < 300) dx += 300 - w;
+                    }
+
+                    parts.width(parts.width() - dx);
+                    sch_canvas.width(sch_canvas.width() + dx);
+                    sch_canvas[0].diagram.resize();
+
+                    lastX = event.pageX;
+                    lastY = event.pageY;
+                    return false;
+                }
+
+                function up() {
+                    var doc = $(document).get(0);
+                    doc.removeEventListener('mousemove',move,true);
+                    doc.removeEventListener('mouseup',up,true);
+                    return false;
+                }
+
+                $(document).get(0).addEventListener('mousemove',move,true);
+                $(document).get(0).addEventListener('mouseup',up,true);
+
                 return false;
-            }
+            });
 
-            function up() {
-                var doc = $(document).get(0);
-                doc.removeEventListener('mousemove',move,true);
-                doc.removeEventListener('mouseup',up,true);
-                return false;
-            }
-
-            $(document).get(0).addEventListener('mousemove',move,true);
-            $(document).get(0).addEventListener('mouseup',up,true);
-
-            return false;
-        });
-
-        div.appendChild(this.resizer[0]);
+            div.appendChild(this.resizer[0]);
+        }
     }
 
     function part_tool(tool,editor,pname) {
@@ -234,7 +238,7 @@ jade.schematic_view = (function() {
 
         var w_extra = e.outerWidth(true) - e.width();
         var h_extra = e.outerHeight(true) - e.height();
-        var w_parts = this.resizer.outerWidth(true) + $(this.parts_bin.top_level).outerWidth(true);
+        var w_parts = this.parts_bin ? this.resizer.outerWidth(true) + $(this.parts_bin.top_level).outerWidth(true) : 0;
         var h_toolbar = this.toolbar.toolbar.outerHeight(true);
         
         var tw = w -  w_extra;
@@ -242,10 +246,11 @@ jade.schematic_view = (function() {
         e.width(tw - w_parts);
         e.height(th);
 
-        e = this.resizer;
-        e.height(th);
-
-        this.parts_bin.resize(tw, th, selected);
+        if (this.parts_bin) {
+            e = this.resizer;
+            e.height(th);
+            this.parts_bin.resize(tw, th, selected);
+        }
 
         // adjust diagram to reflect new size
         if (selected) this.diagram.resize();
@@ -253,12 +258,12 @@ jade.schematic_view = (function() {
 
     Schematic.prototype.show = function() {
         this.diagram.resize();
-        this.parts_bin.show();
+        if (this.parts_bin) this.parts_bin.show();
     };
 
     Schematic.prototype.set_aspect = function(module) {
         this.diagram.set_aspect(module.aspect(Schematic.prototype.editor_name));
-        this.parts_bin.show();
+        if (this.parts_bin) this.parts_bin.show();
     };
 
     Schematic.prototype.redraw = function(diagram) {

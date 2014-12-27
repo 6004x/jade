@@ -17,21 +17,20 @@ jade.user = function () {
     return user.split(',')[0];
 };
 
-jade.load_from_server = function (filename,callback) {
+jade.load_from_server = function (filename,shared,callback) {
     var args = {
         async: false, // hang until load completes
-        url: 'server_local.py',
+        url: shared ? 'files/'+filename : 'server_local.py',
         type: 'POST',
-        data: { file: filename },
         dataType: 'json',
         error: function(jqXHR, textStatus, errorThrown) {
             alert('Error while loading file '+filename+': '+errorThrown);
         },
         success: function(result) {
-            // result[1] is username
-            if (callback) callback(result[0]);
+            if (callback) callback(result);
         }
     };
+    if (!shared) args.data = {file: filename };
     $.ajax(args);
 };
 

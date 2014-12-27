@@ -50,11 +50,11 @@ jade.cktsim = (function() {
             var source1, start1, stop1, step1, source1_saved_src;
             var source2, start2, stop2, step2, source2_saved_src;
 
-            if (sweep1.source !== undefined) {
+            if (sweep1.source) {
                 source1 = ckt.device_map[sweep1.source];
                 if (source1 instanceof VSource) sweep1.units= 'V';
                 else if (source1 instanceof ISource) sweep1.units= 'A';
-                else throw "Device not independent source in DC sweep: " + sweep1.source;
+                else throw "Device 1 not independent source in DC sweep: " + sweep1.source;
                 start1 = sweep1.start;
                 stop1 = sweep1.stop;
                 step1 = sweep1.step;
@@ -65,11 +65,11 @@ jade.cktsim = (function() {
                 source1_saved_src = source1.src;
             }
 
-            if (sweep2.source !== undefined) {
+            if (sweep2.source) {
                 source2 = ckt.device_map[sweep2.source];
                 if (source2 instanceof VSource) sweep2.units= 'V';
                 else if (source2 instanceof ISource) sweep2.units= 'A';
-                else throw "Device not independent source in DC sweep: " + sweep2.source;
+                else throw "Device 2 not independent source in DC sweep: " + sweep2.source;
                 start2 = sweep2.start;
                 stop2 = sweep2.stop;
                 step2 = sweep2.step;
@@ -90,8 +90,8 @@ jade.cktsim = (function() {
             var results2 = [];
             while (true) {
                 // start by setting source values
-                if (source1 !== undefined) source1.src = parse_source({type: 'dc', args: [val1]});
-                if (source2 !== undefined) source2.src = parse_source({type: 'dc', args: [val2]});
+                if (source1) source1.src = parse_source({type: 'dc', args: [val1]});
+                if (source2) source2.src = parse_source({type: 'dc', args: [val2]});
 
                 // do DC analysis, add result to accumulated results for each node and branch
                 var result = ckt.dc(true);

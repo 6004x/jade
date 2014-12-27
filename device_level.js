@@ -298,15 +298,18 @@ jade.device_level = (function() {
             var values = [];
             $.each(['Sweep 1','Sweep 2'],function (index,name) {
                 var v = fields['('+name+') '+vstart_lbl].value;
-                values.push(jade.utils.parse_number_alert(v));
+                if (v) v = jade.utils.parse_number_alert(v);
+                values.push(v);
                 module.set_property_attribute(name+'_vstart', 'value', v);
 
                 v = fields['('+name+') '+vstop_lbl].value;
-                values.push(jade.utils.parse_number_alert(v));
+                if (v) v = jade.utils.parse_number_alert(v);
+                values.push(v);
                 module.set_property_attribute(name+'_vstop', 'value', v);
 
                 v = fields['('+name+') '+vstep_lbl].value;
-                values.push(jade.utils.parse_number_alert(v));
+                if (v) v = jade.utils.parse_number_alert(v);
+                values.push(v);
                 module.set_property_attribute(name+'_vstep', 'value', v);
 
                 v = fields['('+name+') '+source_name_lbl].value;
@@ -344,7 +347,7 @@ jade.device_level = (function() {
                     var index2 = 0;
                     var values,x,x2,name,color;
                     while (true) {
-                        if (sweep2.source === undefined) {
+                        if (!sweep2.source) {
                             values = results[probe.label];
                             x = results._sweep1_;
                         } else {
@@ -361,7 +364,7 @@ jade.device_level = (function() {
                         // boolean that records if the analysis asked for current through a node
                         name = (probe.type == 'current') ? probe.label : "Node " + probe.label; 
                         color = probe.color;
-                        if (sweep2.source !== undefined) {
+                        if (sweep2.source) {
                             name += " [with " + sweep2.source + "=" +
                                 jade.utils.engineering_notation(x2,2) + (sweep2.units||'') + "]";
                             color = colors[index2 % colors.length];
@@ -377,7 +380,7 @@ jade.device_level = (function() {
                         dataset.xlabel = sweep1.source + " (" + sweep1.units + ")";
                         dataset.ylabel = probe.label + " (" + dataset.yunits + ")";
 
-                        if (sweep2.source === undefined || index2 >= results.length) break;
+                        if (!sweep2.source || index2 >= results.length) break;
                     }
                 });
 

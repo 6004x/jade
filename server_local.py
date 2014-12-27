@@ -44,13 +44,12 @@ if json is not None:
 
 # request for a file, return as json
 if not os.path.exists(filename):
-    json = '[{},"bitdiddle@mit.edu"]'   # empty library
+    json = '{}'   # empty library
 else:
     try:
-        f = open(filename,'r')
-        json = f.read()
-        f.close()
-        json = '[%s,"%s"]' % (json,"bitdiddle@mit.edu")
+        with open(filename,'r') as f:
+            json = f.read()
+        json = '%s' % json;
     except:
         http_status('500 Read failed: %s' % sys.exc_info()[0])
 

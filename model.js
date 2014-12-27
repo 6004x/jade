@@ -21,7 +21,7 @@ jade.model = (function () {
 
     // grab file from server, load all the modules it contains
     function load_modules(filename,shared) {
-        jade.load_from_server(filename,function(json) {
+        jade.load_from_server(filename,shared,function(json) {
             load_json(json,shared);
         });
     }
@@ -141,7 +141,7 @@ jade.model = (function () {
     Module.prototype.property_value = function(pname) {
         var p = this.properties[pname];
         // editable properties have a value field, otherwise just return what we have
-        return p ? (p.value || p) : undefined;
+        return p !== undefined ? (p.value === undefined ? p : p.value) : undefined;
     };
 
     Module.prototype.set_property = function(prop, v) {
@@ -1150,7 +1150,6 @@ jade.model = (function () {
                     diagram.dialog('Edit Properties', content, update_properties);
                 } else {
                     component.name = new_properties.name; // used when extracting netlists
-                    if (component.name) component.name = component.name.toLowerCase();
 
                     // record the change
                     diagram.aspect.start_action();
