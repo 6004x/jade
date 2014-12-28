@@ -5,7 +5,7 @@ jade.utils = (function () {
     //
     //////////////////////////////////////////////////////////////////////
 
-    var valid_name = /^[A-Za-z_][A-Za-z_0-9]*$/;
+    var valid_name = /^[A-Za-z_/][A-Za-z_/0-9]*$/;
 
     var numeric_constant = /^[\-+]?(0x[0-9a-fA-F]+|0b[01]+|0[0-7]+|[0-9]+)'(\d+)$/;
 

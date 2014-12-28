@@ -32,9 +32,11 @@ var jade = (function() {
         this.top_level = $('<div class="jade-top-level">' +
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
-                           ' <div class="jade-version">Jade 2.2.7 (2014 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-resize-icon"></div>' +
+                           ' <div class="jade-version">Jade 2.2.8 (2014 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
+        $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
         $(owner).append(this.top_level);
 
         this.status = this.top_level.find('#message');
@@ -60,46 +62,47 @@ var jade = (function() {
 
         // set up handler to resize jade
         var me = this;
-        $(window).on('resize',function() {
-            var body = $('body');
-            var win_w = $(window).width() - (body.outerWidth(true) - body.width()) - 8;
-            var win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 8;
-            me.resize(win_w,win_h);
-        });
-        
-        /*
-        // set up settings pop-up
-        var settings = $('<div class="jade-settings-popup"></div>');
-        this.settings = settings;
-        settings.append($('<div class="jade-setting" id="edit_module">Edit module</div>')
-                        .on('click',function() { edit_module($('.jade-settings-popup')[0].diagram); }));
-        settings.append($('<div class="jade-setting" id="delete_module")>Delete module</div>')
-                        .on('click',function() { delete_module($('.jade-settings-popup')[0].diagram); }));
-        settings.append($('<div class="jade-setting" id="copy_module">Copy module</div>')
-                        .on('click',function() { copy_module($('.jade-settings-popup')[0].diagram); }));
+        if ($(owner).hasClass('jade-resize')) {
+            $('.jade-resize-icon',this.top_level)
+                .css('display','inline')
+                .on('mousedown',function (event) {
+                    var doc = $(document).get(0);
+                    var div = $(owner);
+                    var rx = event.pageX;
+                    var ry = event.pageY;
 
-        settings.append($('<hr/>'));
+                    function move(event) {
+                        var w = div.width() + event.pageX - rx;
+                        var h = div.height() + event.pageY - ry;
+                        div.width(w);
+                        div.height(h);
+                        // requery size in case it's been constrained by css
+                        me.resize(div.width(),div.height());
+                        rx = event.pageX;
+                        ry = event.pageY;
+                        return false;
+                    };
 
-        settings.append($('<div class="jade-setting" id="copy_library">Copy library</div>')
-                        .on('click',function() { copy_library($('.jade-settings-popup')[0].diagram); }));
+                    function up(event) {
+                        doc.removeEventListener('mousemove',move,true);
+                        doc.removeEventListener('mouseup',move,true);
+                        return false;
+                    }
 
-        settings.append($('<hr/>'));
-
-        settings.append($('<div class="jade-setting jade-setting-enabled">Toggle grid</div>')
-                        .on('click',function() {
-                            diagram_toggle_grid($('.jade-settings-popup')[0].diagram);
-                            settings.toggle();
-                        }));
-        if (jade.request_zip_url) {
-            var link = $('<a></a>').attr('href',jade.request_zip_url).text('Download zip archive');
-            link.css({'color':'black','text-decoration': 'none'});
-            settings.append($('<div class="jade-setting jade-setting-enabled"></div>').append(link)
-                           .on('click',function () { settings.toggle(); }));
+                    // add handlers to document so we capture them no matter what
+                    doc.addEventListener('mousemove',move,true);
+                    doc.addEventListener('mouseup',up,true);
+                    return false;
+                });
+        } else {
+            // we're full screen, so resize when window resizes
+            $(window).on('resize',function() {
+                var body = $('body');
+                win_w = $(window).width() - (body.outerWidth(true) - body.width()) - 8;
+                win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 8;
+                me.resize(win_w,win_h);
+            });
         }
-
-        settings.on('mouseleave',function() { settings.hide(); });
-        this.top_level.append(settings);
-         */
     }
 
     Jade.prototype.module_tool = function (icon,id,tip,action) {
@@ -192,7 +195,10 @@ var jade = (function() {
         if (elist.length > 0) {
             this.show(elist[0].prototype.editor_name);
         }
-        $(window).trigger('resize');  // let editors know their size
+
+        if ($(this.parent).hasClass('jade-resize'))
+            this.resize($(this.parent).width(),$(this.parent).height());
+        else $(window).trigger('resize');  // let editors know their size
 
         // load state (dictionary of module_name:json)
         var state = configuration.state || configuration.initial_state || {};

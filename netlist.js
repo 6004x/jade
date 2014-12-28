@@ -110,7 +110,7 @@ jade.model.Aspect.prototype.ensure_component_names = function(prefix) {
         if (name === '' || name === undefined) {
             var counter = 1;
             while (true) {
-                name = '$' + c.module.name.toLowerCase() + '_' + counter.toString();
+                name = c.module.name.toLowerCase() + '_' + counter.toString();
                 if (!(name in cnames)) break;
                 counter += 1;
             }

@@ -1,8 +1,8 @@
 .jade {
-    /*
     margin-top: 10px;
     margin-bottom: 10px;
-    */
+    min-width: 300px;
+    min-height: 200px;
 }
 .jade-top-level {
     display: inline-block;
@@ -68,9 +68,9 @@
     margin-top: 2px;
     background-color: #EEEEEE;
     width: 570px;
-    min-width: 570px;
+    /*min-width: 570px;*/
     height: 261px;
-    min-height: 261px;
+    /*min-height: 261px;*/
     border: 1px solid black;
     padding: 5px;
 }
@@ -81,19 +81,20 @@
     padding-top: 5px;
     float: right;
 }
-.jade-status {
-    height: 14px;
-    padding-top: 5px;
-    overflow-y: auto;
-    overflow-x: none;
-}
-.jade-resize {
+.jade-resize-icon {
+    display: none;
     float: right;
     height: 12px;
     width: 12px;
     position: relative;
     top: 4px;
     cursor: se-resize;
+} 
+.jade-status {
+    height: 14px;
+    padding-top: 5px;
+    overflow-y: auto;
+    overflow-x: none;
 }
 .jade-schematic-diagram {
     width: 444px;
