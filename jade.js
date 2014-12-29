@@ -216,7 +216,16 @@ var jade = (function() {
         var state = $.extend({},this.configuration);
 
         // gather up json for all non-shared modules
-        state.state = jade.model.json_modules().json;
+        if (this.configuration.hierarchical)
+            state.state = jade.model.json_modules().json;
+        else if (this.configuration.edit) {
+            // just save the module we're editing
+            var m = jade.model.modules[this.configuration.edit];
+            if (m) { 
+                state.state = {};
+                state.state[this.configuration.edit] = m.json();
+            }
+        };
 
         // request for state means user library is being saved
         jade.model.clear_modified();

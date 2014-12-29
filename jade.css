@@ -3,6 +3,7 @@
     margin-bottom: 10px;
     min-width: 300px;
     min-height: 200px;
+    text-align: left;
 }
 .jade-top-level {
     display: inline-block;
@@ -93,8 +94,6 @@
 .jade-status {
     height: 14px;
     padding-top: 5px;
-    overflow-y: auto;
-    overflow-x: none;
 }
 .jade-schematic-diagram {
     width: 444px;
