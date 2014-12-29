@@ -1081,7 +1081,7 @@ jade.model = (function () {
     };
 
     Component.prototype.edit_properties = function(diagram, x, y, callback) {
-        if (this.near(x, y) && Object.keys(this.properties).length > 0) {
+        if (this.near(x, y) /*&& Object.keys(this.properties).length > 0*/) {
             // make the appropriate input widget for each property
             var fields = {};
             for (var p in this.properties) {
@@ -1104,6 +1104,7 @@ jade.model = (function () {
             }
 
             var content = jade.build_table(fields);
+            $('tbody',content).prepend('<tr><td>Component:</td><td>'+this.module.get_name()+'<td></tr>');
             var component = this;
 
             function update_properties() {
@@ -1262,3 +1263,11 @@ jade.model = (function () {
         connection_point_radius: connection_point_radius
     };
 }());
+
+// helper function for grabbing json
+jade.json = function (mname) {
+    var m = jade.model.modules[mname];
+    if (m) m = JSON.stringify(m.json());
+    return m;
+};
+

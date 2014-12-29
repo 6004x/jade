@@ -448,7 +448,8 @@ jade.schematic_view = (function() {
     Wire.prototype.type = function () { return 'wire'; };
     jade.model.built_in_components.wire = Wire;
     var wire_module = {
-        has_aspect: function () {return false;},
+        get_name: function () { return 'wire'; },
+        has_aspect: function () { return false; },
         properties: {
             "signal": {
                 "type": "signal",
@@ -715,7 +716,8 @@ jade.schematic_view = (function() {
     Ground.prototype.type = function () { return 'ground'; };
     jade.model.built_in_components.ground = Ground;
     var ground_module = {
-        has_aspect: function () {return false;},
+        get_name: function () { return 'ground'; },
+        has_aspect: function () { return false; },
         properties: {"global_signal":{"label":"Global signal name","type":"string","value":"gnd","edit":"no","choices":[""]}}
     };
 
@@ -754,7 +756,8 @@ jade.schematic_view = (function() {
     Vdd.prototype.type = function () { return 'vdd'; };
     jade.model.built_in_components.vdd = Vdd;
     var vdd_module = {
-        has_aspect: function () {return false;},
+        get_name: function () { return 'vdd'; },
+        has_aspect: function () { return false; },
         properties: {"global_signal":{"label":"Global signal name","type":"signal","value":"Vdd","edit":"yes","choices":[""]}}
     };
 
@@ -792,7 +795,9 @@ jade.schematic_view = (function() {
     Jumper.prototype.type = function () { return 'jumper'; };
     jade.model.built_in_components.jumper = Jumper;
     var jumper_module = {
-        has_aspect: function () {return false;}
+        get_name: function () { return 'jumper'; },
+        has_aspect: function () { return false; },
+        properties: {}
     };
 
     Jumper.prototype.load = function(json) {
@@ -824,7 +829,8 @@ jade.schematic_view = (function() {
     Port.prototype.type = function () { return 'port'; };
     jade.model.built_in_components.port = Port;
     var port_module = {
-        has_aspect: function () {return false;},
+        get_name: function () { return 'port'; },
+        has_aspect: function () { return false; },
         properties: {
             "signal":{"label":"Signal name","type":"signal","value":"???","edit":"yes","choices":[""]},
             "direction":{"label":"Direction","type":"menu","value":"in","edit":"yes","choices":["in","out","inout"]}
@@ -937,7 +943,8 @@ jade.schematic_view = (function() {
     Text.prototype.type = function () { return 'text'; };
     jade.model.built_in_components.text = Text;
     var text_module = {
-        has_aspect: function () {return false;},
+        get_name: function () { return 'text'; },
+        has_aspect: function () { return false; },
         properties: {
             "text": {
                 "type": "string",

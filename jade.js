@@ -33,7 +33,7 @@ var jade = (function() {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.8 (2014 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.9 (2014 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -1445,11 +1445,11 @@ var jade = (function() {
     // build a 2-column HTML table from an associative array (keys as text in
     // column 1, values in column 2).
     function build_table(a) {
-        var tbl = $('<table></table>');
+        var tbl = $('<table><tbody></tbody></table>');
 
         // build a row for each element in associative array
         for (var i in a) {
-            var row = $('<tr valign="center"><td><nobr>'+i+' :</nobr></td><td id="field"></td></tr>');
+            var row = $('<tr valign="center"><td><nobr>'+i+':</nobr></td><td id="field"></td></tr>');
             row.find('#field').append(a[i]);
             tbl.append(row);
         }

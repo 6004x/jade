@@ -102,18 +102,22 @@ jade.model.Aspect.prototype.ensure_component_names = function(prefix) {
         }
     }
 
+    // use a small cache to make generating many device names faster
+    var cache = {};
+    function gen_name(base) {
+        var count = (cache[base] || 0) + 1;
+        cache[base] = count;
+        return base + '_' + count.toString();
+    }
+
     // now create reasonable unique name for unnamed components that have name property
     for (i = 0; i < this.components.length; i += 1) {
         c = this.components[i];
         if (c.module.name === undefined) continue; // filter out built-in components
         name = c.name;
         if (name === '' || name === undefined) {
-            var counter = 1;
-            while (true) {
-                name = c.module.name.toLowerCase() + '_' + counter.toString();
-                if (!(name in cnames)) break;
-                counter += 1;
-            }
+            var base = c.module.name.toLowerCase().split('/').pop();
+            do { name = gen_name(base); } while (name in cnames);
             c.name = name; // remember name assignment for next time
             c.set_property('name',name);   // add property to component
             cnames[name] = c; // add to our list
