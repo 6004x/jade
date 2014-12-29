@@ -701,12 +701,17 @@ jade.plot = (function() {
                 c.stroke();
 
                 if (dataseries.sel0 !== dataseries.sel1) {
-                    c.fillStyle = 'rgb(207,191,194)';
-                    c.font = graph_font;
-                    c.textAlign = 'left';
-                    c.textBaseline = 'top';
                     var delta = Math.abs(dataset.datax(dataseries.sel0) - dataset.datax(dataseries.sel1));
-                    c.fillText('dx='+jade.utils.engineering_notation(delta,3),xsel+wsel+2,dataset.top);
+                    var v = jade.utils.engineering_notation(delta,3);
+                    c.font = value_font;
+                    c.textAlign = 'right';
+                    c.textBaseline = 'top';
+                    c.fillStyle = 'rgb(0,0,0)';
+                    var background = '';
+                    for (var i = 0; i < v.length+5; i += 1) background += '\u2588';
+                    c.fillText(background,xsel+wsel,dataset.top);
+                    c.fillStyle = 'rgb(255,255,255)'; //'rgb(207,191,194)';
+                    c.fillText('dx='+v+' ',xsel+wsel,dataset.top);
                 }
             }
 
@@ -728,7 +733,7 @@ jade.plot = (function() {
                 c.textAlign = 'center';
                 c.textBaseline = 'top';
                 c.fillStyle = background_style;
-                c.fillText('\u2588\u2588\u2588\u2588\u2588\u2588', dataseries.cursor, dataset.top + dataset.hplot);
+                c.fillText('\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588', dataseries.cursor, dataset.top + dataset.hplot);
                 c.fillStyle = normal_style;
                 c.fillText(label, dataseries.cursor, dataset.top + dataset.hplot);
 
@@ -801,60 +806,6 @@ jade.plot = (function() {
     var zoomout_icon = 'data:image/gif;base64,R0lGODlhEAAQAMT/AAAAAP///zAwYT09bn19lYSEnJGRqZ6et5iYsJ6etqWlvbi40MzM5cXF3czM5Li4w+Hh5tTU2fDw84uMom49DbWKcQ0NDcDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABcALAAAAAAQABAAAAVX4CWOZFlagGWWaQQ9lrCKViQVxjQEay0RjYXDMFgBIKmkQsA7PQyLhEHB2PUmDoTisGuWBINpNTW7BAbggKWCKgfelzUFUB4BKJV5XXTP7/kUcH9mgyUhADshACH+T0NvcHlyaWdodCAyMDAwIGJ5IFN1biBNaWNyb3N5c3RlbXMsIEluYy4gQWxsIFJpZ2h0cyBSZXNlcnZlZC4NCkpMRiBHUiBWZXIgMS4wDQoAOw==';
 
     var zoomsel_icon = 'data:image/gif;base64,R0lGODlhEAAQAIQBAAAAAP///zAwYT09bpGRqZ6et5iYsKWlvbi40MzM5cXF3czM5OHh5tTU2fDw84uMom49DbWKcfLy8g0NDf///////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACH5BAEAAB8ALAAAAAAQABAAAAVY4CeOZFlOwCQF5pg2TDMJbIsCODBIdgMgCgSAsDMBGICgAnCgmSY+IAGQKJYkt5y1FBAMCIdqqvUJSAZebARFXvE+kwgEQCYBIHJ6XXSX710QK38jNYMkIQA7';
-
-    /*
-    function engineering_notation(n, nplaces, trim) {
-        if (n === 0) return '0';
-        if (n === undefined) return 'undefined';
-        if (trim === undefined) trim = true;
-
-        var sign = n < 0 ? -1 : 1;
-        var log10 = Math.log(sign * n) / Math.LN10;
-        var exp = Math.floor(log10 / 3); // powers of 1000
-        var mantissa = sign * Math.pow(10, log10 - 3 * exp);
-
-        // keep specified number of places following decimal point
-        //var mstring = (mantissa + sign * 0.5 * Math.pow(10, - nplaces)).toString();
-        var mstring = mantissa.toFixed(nplaces);
-        var mlen = mstring.length;
-        var endindex = mstring.indexOf('.');
-        if (endindex != -1) {
-            if (nplaces > 0) {
-                endindex += nplaces + 1;
-                if (endindex > mlen) endindex = mlen;
-                if (trim) {
-                    while (mstring.charAt(endindex - 1) == '0') endindex -= 1;
-                    if (mstring.charAt(endindex - 1) == '.') endindex -= 1;
-                }
-            }
-            if (endindex < mlen) mstring = mstring.substring(0, endindex);
-        }
-
-        switch (exp) {
-        case -5:
-            return mstring + "f";
-        case -4:
-            return mstring + "p";
-        case -3:
-            return mstring + "n";
-        case -2:
-            return mstring + "u";
-        case -1:
-            return mstring + "m";
-        case 0:
-            return mstring;
-        case 1:
-            return mstring + "K";
-        case 2:
-            return mstring + "M";
-        case 3:
-            return mstring + "G";
-        }
-
-        // don't have a good suffix, so just print the number
-        return n.toPrecision(nplaces);
-    }
-     */
 
     // module exports
     return {

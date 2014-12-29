@@ -23,6 +23,9 @@ jade.load_from_server = function (filename,shared,callback) {
 jade.save_to_server = function (json,callback) {
 };
 
+jade.unsaved_changes = function(which) {
+};
+
 jade.request_zip_url = undefined;  //'/jade-server?zip=1';
 
 jade.setup = function () {

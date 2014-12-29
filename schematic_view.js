@@ -1040,7 +1040,7 @@ jade.schematic_view = (function() {
  
         // figure out all the parts to appear in parts bin
         var plist = [];
-        var p = this.editor.hierarchy ? (this.parts_wanted || '.*') : '';
+        var p = this.parts_wanted || '.*';
         if (p) {
             $.each(p.split(','),function (index,p) {
                 // add all matching modules to parts list
@@ -1053,6 +1053,9 @@ jade.schematic_view = (function() {
         }
 
         plist.sort();   // arrange alphabetically
+
+        // shrink width of parts bin if there are just a few parts
+        if (plist.length <= 5) bin.width(75);
 
         var current = '';
         var parts_list;
@@ -1076,8 +1079,11 @@ jade.schematic_view = (function() {
                 .mouseover(part_enter)
                 .mouseout(part_leave)
                 .mousedown(part_mouse_down)
-                .mouseup(part_mouse_up)
-                .dblclick(part_dblclick);
+                .mouseup(part_mouse_up);
+
+            // you can only edit parts in the parts bin if in hierarchical mode
+            if (parts_bin.editor.jade.configuration.hierarchical)
+                part.canvas.dblclick(part_dblclick);
 
             // add icon to parts bin along with new header if needed
             var path = part.component.module.get_name().split('/');

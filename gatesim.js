@@ -857,7 +857,7 @@ jade.gatesim = (function() {
         this.vil = network.options.vil || 0.1;
         this.vih = network.options.vih || 0.9;
 
-        var v = jade.cktsim.parse_source(properties.value);
+        var v = jade.utils.parse_source(properties.value);
         if (v.fun == 'sin') throw "Can't use sin() sources in gate-level simulation";
 
         if (v.fun == 'dc') {

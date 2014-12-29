@@ -90,8 +90,8 @@ jade.cktsim = (function() {
             var results2 = [];
             while (true) {
                 // start by setting source values
-                if (source1) source1.src = parse_source({type: 'dc', args: [val1]});
-                if (source2) source2.src = parse_source({type: 'dc', args: [val2]});
+                if (source1) source1.src = jade.utils.parse_source({type: 'dc', args: [val1]});
+                if (source2) source2.src = jade.utils.parse_source({type: 'dc', args: [val2]});
 
                 // do DC analysis, add result to accumulated results for each node and branch
                 var result = ckt.dc(true);
@@ -1537,7 +1537,7 @@ jade.cktsim = (function() {
     function VSource(npos, nneg, branch, v) {
         Device.call(this);
 
-        this.src = parse_source(v);
+        this.src = jade.utils.parse_source(v);
         this.npos = npos;
         this.nneg = nneg;
         this.branch = branch;
@@ -1572,7 +1572,7 @@ jade.cktsim = (function() {
     function ISource(npos, nneg, v) {
         Device.call(this);
 
-        this.src = parse_source(v);
+        this.src = jade.utils.parse_source(v);
         this.npos = npos;
         this.nneg = nneg;
     }
@@ -1885,6 +1885,7 @@ jade.cktsim = (function() {
 
     Fet.prototype.load_ac = function(ckt) {};
 
+    /*
     ///////////////////////////////////////////////////////////////////////////////
     //
     //  Source parsing
@@ -2093,6 +2094,8 @@ jade.cktsim = (function() {
         return numerator - quotient * denominator;
     };
 
+     */
+
     ///////////////////////////////////////////////////////////////////////////////
     //
     //  Module definition
@@ -2103,8 +2106,7 @@ jade.cktsim = (function() {
         dc_analysis: dc_analysis,
         ac_analysis: ac_analysis,
         transient_analysis: transient_analysis,
-        print_netlist: print_netlist,
-        parse_source: parse_source
+        print_netlist: print_netlist
     };
     return module;
 }());

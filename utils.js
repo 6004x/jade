@@ -143,7 +143,7 @@ jade.utils = (function () {
     ///////////////////////////////////////////////////////////////////////////////
 
     // argument is a string describing the source's value (see comments for details)
-    // source types: dc,step,square,triangle,sin,pulse,pwl,pwl_repeating
+    // source types: dc,step,square,clock,triangle,sin,pulse,pwl,pwl_repeating
 
     // returns an object with the following attributes:
     //   fun -- name of source function
@@ -163,14 +163,18 @@ jade.utils = (function () {
             return undefined;
         }; // may be overridden below
 
-        var m = v.match(/^\s*(\w+)\s*\(([^\)]*)\)\s*$/); // parse f(arg,arg,...)
-        if (m) {
-            src.fun = m[1];
-            src.args = m[2].split(/\s*,\s*/).map(parse_number_alert);
-        }
-        else {
-            src.fun = 'dc';
-            src.args = [parse_number_alert(v)];
+        if (typeof v == 'string') {
+            var m = v.match(/^\s*(\w+)\s*\(([^\)]*)\)\s*$/); // parse f(arg,arg,...)
+            if (m) {
+                src.fun = m[1];
+                src.args = m[2].split(/\s*,\s*/).map(parse_number_alert);
+            } else {
+                src.fun = 'dc';
+                src.args = [parse_number_alert(v)];
+            }
+        } else {
+            src.fun = v.type;
+            src.args = v.args;
         }
         //console.log(src.fun + ': ' + src.args);
 
@@ -207,23 +211,38 @@ jade.utils = (function () {
         }
 
         // post-processing for square wave
-        // square(v_init,v_plateau,freq,duty_cycle)
+        // square(v_init,v_plateau,freq,duty_cycle,rise_fall)
         else if (src.fun == 'square') {
             v1 = arg_value(src.args, 0, 0); // default init value: 0V
             v2 = arg_value(src.args, 1, 1); // default plateau value: 1V
             freq = Math.abs(arg_value(src.args, 2, 1)); // default frequency: 1Hz
             duty_cycle = Math.min(100, Math.abs(arg_value(src.args, 3, 50))); // default duty cycle: 0.5
-            src.args = [v1, v2, freq, duty_cycle]; // remember any defaulted values
+            t_change = Math.abs(arg_value(src.args,4,0.1e-9));   // default rise/fall: .1ns
+            src.args = [v1, v2, freq, duty_cycle,t_change]; // remember any defaulted values
 
             per = freq === 0 ? Infinity : 1 / freq;
-            t_change = 0.01 * per; // rise and fall time
-            pw = 0.01 * duty_cycle * 0.98 * per; // fraction of cycle minus rise and fall time
-            pwl_source(src, [0, v1, t_change, v2, t_change + pw,
-                             v2, t_change + pw + t_change, v1, per, v1], true);
+            pw = (.01 * duty_cycle) * (per - 2*t_change); // fraction of cycle minus rise and fall time
+            pwl_source(src, [0, v1, pw, v1, pw + t_change, v2, 2*pw + t_change,
+			     v2, 2*t_change + 2*pw, v1, per, v1], true);
+        }
+
+        // post-processing for clock (like square except you specify period)
+        // clock(v_init,v_plateau,period,duty_cycle,rise_fall)
+        else if (src.fun == 'clock') {
+            v1 = arg_value(src.args, 0, 0); // default init value: 0V
+            v2 = arg_value(src.args, 1, 1); // default plateau value: 1V
+            per = Math.abs(arg_value(src.args, 2, 100e-9)); // default period 100ns
+            duty_cycle = Math.min(100, Math.abs(arg_value(src.args, 3, 50))); // default duty cycle: 0.5
+            t_change = Math.abs(arg_value(src.args,4,0.1e-9));   // default rise/fall: .1ns
+            src.args = [v1, v2, per, duty_cycle,t_change]; // remember any defaulted values
+
+            pw = (.01 * duty_cycle) * (per - 2*t_change); // fraction of cycle minus rise and fall time
+            pwl_source(src, [0, v1, pw, v1, pw + t_change, v2, 2*pw + t_change,
+			     v2, 2*t_change + 2*pw, v1, per, v1], true);
         }
 
         // post-processing for triangle
-        // triangle(v_init,v_plateua,t_period)
+        // triangle(v_init,v_plateau,freq)
         else if (src.fun == 'triangle') {
             v1 = arg_value(src.args, 0, 0); // default init value: 0V
             v2 = arg_value(src.args, 1, 1); // default plateau value: 1V
@@ -286,6 +305,8 @@ jade.utils = (function () {
                 else return undefined;
             };
         }
+
+        else throw 'Unrecognized source function '+src.fun;
 
         // object has all the necessary info to compute the source value and inflection points
         src.dc = src.value(0); // DC value is value at time 0

@@ -400,7 +400,7 @@ jade.device_level = (function() {
 
 
     // add DC sweep to tool bar
-    jade.schematic_view.schematic_tools.push(['SWEEP', jade.icons.sweep_icon, 'DC Sweep for 1 or 2 sources', setup_dc_sweep]);
+    jade.schematic_view.schematic_tools.push(['sweep', jade.icons.sweep_icon, 'DC Sweep for 1 or 2 sources', setup_dc_sweep]);
 
     ///////////////////////////////////////////////////////////////////////////////
     //
