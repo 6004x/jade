@@ -182,6 +182,7 @@ var jade = (function() {
 
             // add body for each tab (only one will have display != none)
             var body = $('<div class="jade-tab-body"></div>');
+            body[0].tab = tab[0];   // make it easy to find our tab later
             me.top_level.find('.jade-tabs-div').after(body);
             // make a new editor for this aspect
             body[0].editor = new editor(body[0], me);

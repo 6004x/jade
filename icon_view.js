@@ -18,6 +18,7 @@ jade.icon_view = (function() {
     function Icon(div, parent) {
         this.jade = parent;
         this.status = parent.status;
+        this.tab = div.tab;
 
         this.diagram = new jade.Diagram(this, 'jade-icon-diagram');
         div.diagram = this.diagram;
@@ -137,7 +138,18 @@ jade.icon_view = (function() {
     };
 
     Icon.prototype.set_aspect = function(module) {
-        this.diagram.set_aspect(module.aspect(Icon.prototype.editor_name));
+        var aspect = module.aspect(Icon.prototype.editor_name);
+
+        $(this.tab).html(Icon.prototype.editor_name);
+        if (aspect.read_only()) $(this.tab).append(' ' + jade.icons.readonly);
+
+        if (aspect.read_only()) {
+            $(this.tab).html('icon <i class="fa fa-ban"></i>');
+        } else {
+            $(this.tab).html('icon');
+        }
+
+        this.diagram.set_aspect(aspect);
     };
 
     Icon.prototype.editor_name = 'icon';

@@ -17,6 +17,7 @@ jade.property_view = (function() {
         this.jade = parent;
         this.status = parent.status;
         this.module = undefined;
+        this.tab = div.tab;
 
         this.table = $('<table class="jade-property-table"></div>');
         $(div).append(this.table);
@@ -29,6 +30,10 @@ jade.property_view = (function() {
 
     PropertyEditor.prototype.set_aspect = function(module) {
         this.module = module;
+
+        $(this.tab).html(PropertyEditor.prototype.editor_name);
+        if (module.read_only()) $(this.tab).append(' ' + jade.icons.readonly);
+
         this.build_table();
     };
 

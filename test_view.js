@@ -78,6 +78,7 @@ jade.test_view = (function() {
         this.module = undefined;
         this.aspect = undefined;
         this.test_component = undefined;
+        this.tab = div.tab;
 
         var textarea = $('<textarea class="jade-test-editor"></textarea>');
         this.textarea = textarea;
@@ -119,8 +120,14 @@ jade.test_view = (function() {
         }
         this.textarea.val(this.test_component.test);
 
-        if (this.aspect.read_only()) this.textarea.attr('disabled','disabled');
-        else this.textarea.removeAttr('disabled');
+        $(this.tab).html(TestEditor.prototype.editor_name);
+
+        if (this.aspect.read_only()) {
+            this.textarea.attr('disabled','disabled');
+            $(this.tab).append(' ' + jade.icons.readonly);
+        } else {
+            this.textarea.removeAttr('disabled');
+        }
     };
 
     TestEditor.prototype.event_coords = function () { };

@@ -17,6 +17,7 @@ jade.schematic_view = (function() {
     function Schematic(div, parent) {
         this.jade = parent;
         this.status = parent.status;
+        this.tab = div.tab;
 
         this.diagram = new jade.Diagram(this, 'jade-schematic-diagram');
         div.diagram = this.diagram;
@@ -262,7 +263,12 @@ jade.schematic_view = (function() {
     };
 
     Schematic.prototype.set_aspect = function(module) {
-        this.diagram.set_aspect(module.aspect(Schematic.prototype.editor_name));
+        var aspect = module.aspect(Schematic.prototype.editor_name);
+
+        $(this.tab).html(Schematic.prototype.editor_name);
+        if (aspect.read_only()) $(this.tab).append(' ' + jade.icons.readonly);
+
+        this.diagram.set_aspect(aspect);
         if (this.parts_bin) this.parts_bin.show();
     };
 

@@ -107,3 +107,5 @@ jade.icons.tran_icon = '<span style="position: relative; top: 2px;"><svg width="
 jade.icons.gate_icon = '<span style="position: relative; top: 2px;"><svg width="16" height="16" viewBox="0 0 16 16">' +
                        '<path d="M 0 4 h 6 M 0 12 h 6 M 6 2 v 12 M 12 8 h 4 M 6 2 C 6 2 12 0 12 8 M 6 14 C 6 15 12 14 12 8" stroke="black" fill="none"/>' +
                        '</svg></span>';
+
+jade.icons.readonly = '<i class="fa fa-ban"></i>';
