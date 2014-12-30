@@ -235,7 +235,9 @@ var jade = (function() {
     };
 
     Jade.prototype.get_grade = function() {
-        return this.configuration.tests;
+        return {'required-tests': this.configuration['required-tests'] || [],
+                'tests': this.configuration.tests || {}
+               };
     };
 
     // remember module and aspect for next visit

@@ -103,3 +103,11 @@ run-bug:
 # ad-hoc target to show json of a file:
 beta-json:
 	cat files/ward/beta | underscore print
+
+edx:
+	grunt jade_edx
+	cp build/jade_edx* build/analog build/gates build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6004x_mitx/static/
+
+6004:
+	grunt jade_6004
+	scp build/jade_6004* build/analog build/gates build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* 6004:coursewarex/

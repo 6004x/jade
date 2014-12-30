@@ -12,9 +12,9 @@ module.exports = function(grunt) {
                        src: ['jade_edx.html', 'jade.css', 'files/analog', 'files/gates'],
                        dest: 'build/'
                        },
-            jade_sandbox: {expand: true,
+            jade_6004: {expand: true,
                            flatten: true,
-                           src: ['jade_sandbox.html', 'jade.css', 'files/analog', 'files/gates'],
+                           src: ['jade_6004.html', 'jade.css', 'files/analog', 'files/gates'],
                            dest: 'build/'
                           },
             jade: {expand: true,
@@ -23,8 +23,9 @@ module.exports = function(grunt) {
                    dest: 'build/'
                   },
             font_awesome: {expand: true,
-                          src:['font-awesome/**'],
-                          dest: 'build/'
+                           flatten: true,
+                           src:['font-awesome/4.2.0/fonts/*'],
+                           dest: 'build/'
                           }
         },
         uglify: {
@@ -38,7 +39,7 @@ module.exports = function(grunt) {
         },
         useminPrepare: {
             jade_edx: 'jade_edx.html',
-            jade_sandbox: 'jade_sandbox.html',
+            jade_6004: 'jade_6004.html',
             jade: 'jade.html',
             options: {
                 dest: 'build'
@@ -49,8 +50,8 @@ module.exports = function(grunt) {
                 src: 'build/jade_edx.html',
                 options: {type: 'html'}
             },
-            jade_sandbox: {
-                src: 'build/jade_sandbox.html',
+            jade_6004: {
+                src: 'build/jade_6004.html',
                 options: {type: 'html'}
             },
             jade: {
@@ -70,10 +71,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
 
-    grunt.registerTask('jade_sandbox', ['copy:jade_sandbox', 'copy:font_awesome', 'useminPrepare:jade_sandbox', 'concat', 'uglify', 'usemin:jade_sandbox']);
+    grunt.registerTask('jade_6004', ['copy:jade_6004', 'copy:font_awesome', 'useminPrepare:jade_6004', 'concat', 'uglify', 'usemin:jade_6004']);
     grunt.registerTask('jade_edx', ['copy:jade_edx', 'copy:font_awesome', 'useminPrepare:jade_edx', 'concat', 'uglify', 'usemin:jade_edx']);
     grunt.registerTask('jade', ['copy:jade', 'copy:font_awesome', 'useminPrepare:jade', 'concat', 'uglify', 'usemin:jade']);
 
     // Builds everything if just called as 'grunt'
-    grunt.registerTask('default', ['jade_sandbox']);
-}
+    grunt.registerTask('default', ['jade_6004']);
+};

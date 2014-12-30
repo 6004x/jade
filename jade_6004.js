@@ -38,7 +38,12 @@ jade.setup = function () {
             // use text from jade.div, if any
             var text = $(div).text().trim();
             $(div).empty();  // all done with innards
-            if (text) config = JSON.parse(text);
+            if (text)
+                try {
+                    config = JSON.parse(text);
+                } catch(e) {
+                    console.log('Error parsing configuration: '+e);
+                }
 
             // now create the editor and pass along initial configuration
             var j = new jade.Jade(div);

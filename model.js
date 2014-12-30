@@ -22,6 +22,7 @@ jade.model = (function () {
     // grab file from server, load all the modules it contains
     function load_modules(filename,shared) {
         jade.load_from_server(filename,shared,function(json) {
+            if (typeof json == 'string') json = JSON.parse(json);
             load_json(json,shared);
         });
     }
