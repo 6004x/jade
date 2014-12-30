@@ -143,12 +143,6 @@ jade.icon_view = (function() {
         $(this.tab).html(Icon.prototype.editor_name);
         if (aspect.read_only()) $(this.tab).append(' ' + jade.icons.readonly);
 
-        if (aspect.read_only()) {
-            $(this.tab).html('icon <i class="fa fa-ban"></i>');
-        } else {
-            $(this.tab).html('icon');
-        }
-
         this.diagram.set_aspect(aspect);
     };
 

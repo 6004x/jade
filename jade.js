@@ -936,7 +936,7 @@ var jade = (function() {
         // show name of module in lower right corner
         if (this.aspect && this.aspect.module) {
             var name = this.aspect.module.get_name();
-            if (this.aspect.read_only()) name += ' (read only)';
+            //if (this.aspect.read_only()) name += ' (read only)';
             c.textAlign = 'left';
             c.textBaseline = 'bottom';
             c.font = '12pt sans-serif';
