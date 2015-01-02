@@ -1055,14 +1055,14 @@ jade.schematic_view = (function() {
         var y = 0;
         for (var port = 0; port < this.properties.nports; port += 1) {
             this.add_connection(0,y,'A_'+port.toString()+'['+(this.properties.naddr-1).toString()+':0]');
-            this.add_connection(64,y,'D_'+port.toString()+'['+(this.properties.ndata-1).toString()+':0]');
+            this.add_connection(80,y,'D_'+port.toString()+'['+(this.properties.ndata-1).toString()+':0]');
             this.add_connection(0,y+8,'OE_'+port.toString());
             this.add_connection(0,y+16,'WE_'+port.toString());
             this.add_connection(0,y+24,'CLK_'+port.toString());
             y += 40;
         }
 
-        this.bounding_box = [0,-24,64,y-8];
+        this.bounding_box = [0,-24,80,y-8];
         this.update_coords();
     };
 
@@ -1089,11 +1089,13 @@ jade.schematic_view = (function() {
 
         // draw stubs for each port
         var y = 0;
+        var alabel = 'A['+(this.properties.naddr-1).toString()+':0]';
+        var dlabel = 'D['+(this.properties.ndata-1).toString()+':0]';
         for (var port = 0; port < this.properties.nports; port += 1) {
             this.draw_line(diagram,0,y,8,y);
-            this.draw_text(diagram,'A',9,y,3,diagram.property_font);
-            this.draw_line(diagram,56,y,64,y);
-            this.draw_text(diagram,'D',55,y,5,diagram.property_font);
+            this.draw_text(diagram,alabel,9,y,3,diagram.property_font);
+            this.draw_line(diagram,72,y,80,y);
+            this.draw_text(diagram,dlabel,71,y,5,diagram.property_font);
             this.draw_line(diagram,0,y+8,8,y+8);
             this.draw_text(diagram,'OE',9,y+8,3,diagram.property_font);
             this.draw_line(diagram,0,y+16,8,y+16);
@@ -1102,14 +1104,14 @@ jade.schematic_view = (function() {
             this.draw_line(diagram,8,y+22,12,y+24);  // CLK triangle
             this.draw_line(diagram,8,y+26,12,y+24);
 
-            this.draw_line(diagram,8,y+32,56,y+32);
+            this.draw_line(diagram,8,y+32,72,y+32);
             y += 40;
         }
 
         // draw internal labels
-        this.draw_text(diagram,this.properties.name || 'Memory',32,-16,7,diagram.property_font);
+        this.draw_text(diagram,this.properties.name || 'Memory',40,-16,7,diagram.property_font);
         var nlocns = 1 << this.properties.naddr;
-        this.draw_text(diagram,nlocns.toString()+"\u00D7"+this.properties.ndata,32,-16,1,diagram.property_font);
+        this.draw_text(diagram,nlocns.toString()+"\u00D7"+this.properties.ndata,40,-16,1,diagram.property_font);
     };
 
     Memory.prototype.netlist = function(prefix) {
