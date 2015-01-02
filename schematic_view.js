@@ -678,11 +678,22 @@ jade.schematic_view = (function() {
         return null;
     };
 
+    Wire.prototype.propagate_select = function () {
+        if (!this.selected) {
+            this.selected = true;
+            this.connections[0].propagate_select();
+            this.connections[1].propagate_select();
+        }
+    };
+
     Wire.prototype.propagate_width = function(width) {
         var w = this.properties.width;
         if (w) {
             if (width == undefined) width = parseInt(w);
-            else if (width != w) throw "Incompatible widths specified for wire: "+w.toString()+", "+width.toString();
+            else if (width != w) {
+                this.propagate_select();
+                throw "Incompatible widths specified for wire: "+w.toString()+", "+width.toString();
+            }
         }
 
         if (width) {
@@ -692,7 +703,6 @@ jade.schematic_view = (function() {
             this.connections[1].propagate_width(width);
         }
     };
-
 
     Wire.prototype.propagate_label = function(label) {
         // wires "conduct" their label to the other end
@@ -1037,7 +1047,8 @@ jade.schematic_view = (function() {
             "name":{"label":"Name","type":"name","value":"","edit":"yes","choices":[""]},
             "nports":{"label":"Number of ports","type":"menu","value":"1","edit":"yes","choices":["1","2","3"]},
             "naddr":{"label":"Width of address","type":"number","value":"1","edit":"yes","choices":[""]},
-            "ndata":{"label":"Width of data","type":"number","value":"1","edit":"yes","choices":[""]}
+            "ndata":{"label":"Width of data","type":"number","value":"1","edit":"yes","choices":[""]},
+            "contents":{"label":"Contents","type":"nlist","value":"","edit":"yes","choices":[""]}
         }
     };
 

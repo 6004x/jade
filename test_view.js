@@ -393,13 +393,14 @@ jade.test_view = (function() {
             var globals = Object.getOwnPropertyNames(power);  // all the power supplies are global
             globals.push('gnd');
             if (mode == 'device')
-                netlist = jade.device_level.device_netlist(module.aspect('schematic'),globals);
+                netlist = jade.device_level.diagram_device_netlist(diagram,globals);
             else if (mode == 'gate')
-                netlist = jade.gate_level.gate_netlist(module.aspect('schematic'),globals);
+                netlist = jade.gate_level.diagram_gate_netlist(diagram,globals);
             else
                 throw 'Unrecognized simulation mode: '+mode;
         }
         catch (e) {
+            if (e.stack) console.log(e.stack);
             jade.window('Errors extracting netlist',
                         $('<div class="jade-alert"></div>').html(e),
                         $(diagram.canvas).offset());
@@ -766,7 +767,7 @@ jade.test_view = (function() {
                 throw 'Unrecognized simulation mode: '+mode;
         } catch (e) {
             jade.window_close(progress[0].win);  // done with progress bar
-            console.log(e.stack);
+            if (e.stack) console.log(e.stack);
             jade.window('Error running test',
                         $('<div class="jade-alert"></div>').html(e),
                         $(diagram.canvas).offset());

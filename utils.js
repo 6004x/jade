@@ -315,7 +315,9 @@ jade.utils = (function () {
 
     function pwl_source(src, tv_pairs, repeat) {
         var nvals = tv_pairs.length;
+        src.tvpairs = tv_pairs;
         if (repeat) src.period = tv_pairs[nvals - 2]; // Repeat period of source
+        else src.period = 0;
         if (nvals % 2 == 1) nvals -= 1; // make sure it's even!
 
         if (nvals <= 2) {

@@ -395,6 +395,8 @@ jade.icon_view = (function() {
     Line.prototype.type = function () { return 'line'; };
     jade.model.built_in_components.line = Line;
     var line_module = {
+        get_name: function () { return 'line'; },
+        has_aspect: function () { return false; },
         properties: {}
     };
 
@@ -489,6 +491,8 @@ jade.icon_view = (function() {
     Arc.prototype.type = function () { return 'arc'; };
     jade.model.built_in_components.arc = Arc;
     var arc_module = {
+        get_name: function () { return 'arc'; },
+        has_aspect: function () { return false; },
         properties: {}
     };
 
@@ -587,6 +591,8 @@ jade.icon_view = (function() {
     Circle.prototype.type = function () { return 'circle'; };
     jade.model.built_in_components.circle = Circle;
     var circle_module = {
+        get_name: function () { return 'circle'; },
+        has_aspect: function () { return false; },
         properties: {}
     };
 
@@ -637,6 +643,8 @@ jade.icon_view = (function() {
     Property.prototype.type = function () { return 'property'; };
     jade.model.built_in_components.property = Property;
     var property_module = {
+        get_name: function () { return 'property'; },
+        has_aspect: function () { return false; },
         properties: {
             "format": {
                 "type": "string",
@@ -723,6 +731,8 @@ jade.icon_view = (function() {
     Terminal.prototype.type = function () { return 'terminal'; };
     jade.model.built_in_components.terminal = Terminal;
     var terminal_module = {
+        get_name: function () { return 'terminal'; },
+        has_aspect: function () { return false; },
         properties: {
             "name": {
                 "type": "string",

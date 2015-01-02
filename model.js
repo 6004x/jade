@@ -1143,6 +1143,16 @@ jade.model = (function () {
                             pmsg.text('not a valid signal');
                         }
                     }
+                    else if (ptype == 'nlist') {
+                        var nlist = v.split(/\s+/);
+                        for (var j = 0; j < nlist.length; j += 1) {
+                            if (isNaN(jade.utils.parse_number(nlist[j]))) {
+                                error = true;
+                                pmsg.text('item '+(j+1).toString()+' not a valid number');
+                                break;
+                            }
+                        }
+                    }
 
                     new_properties[fields[i].prop_name] = v;
                 }
@@ -1188,11 +1198,13 @@ jade.model = (function () {
         this.update_location();
         this.label = undefined;
         this.width = undefined;
+        this.selected = false;
     }
 
     ConnectionPoint.prototype.clear_label = function() {
         this.label = undefined;
         this.width = undefined;
+        this.selected = false;
     };
 
     // return number of connection points coincidient with this one

@@ -17,6 +17,11 @@ jade.model.Aspect.prototype.netlist = function(mlist, globals, prefix, port_map,
     }
     mstack.push(n);  // remember that we're extracting this module
 
+    // clear any selections so we can highlight errors
+    for (i = 0; i < this.components.length; i += 1) {
+        this.components[i].set_select(false);
+    }
+
     // figure out signal names for all connections
     this.label_connection_points(globals, prefix, port_map);
 
@@ -26,7 +31,13 @@ jade.model.Aspect.prototype.netlist = function(mlist, globals, prefix, port_map,
     // extract netlist from each component
     var netlist = [];
     for (var i = 0; i < this.components.length; i += 1) {
-        n = this.components[i].netlist(mlist, globals, prefix, mstack);
+        try {
+            n = this.components[i].netlist(mlist, globals, prefix, mstack);
+        } catch (e) {
+            // catch errors as they go by and highlight offending component
+            this.components[i].set_select(true);
+            throw e;
+        }
         if (n !== undefined) netlist.push.apply(netlist, n);
     }
 
@@ -71,6 +82,13 @@ jade.model.Aspect.prototype.get_next_label = function(prefix) {
     return prefix + this.next_label.toString();
 };
 
+jade.model.Aspect.prototype.propagate_select = function(cp) {
+    var cplist = this.connection_points[cp.location];
+    for (var i = cplist.length - 1; i >= 0; i -= 1) {
+        cplist[i].propagate_select();
+    }
+};
+
 // propagate label to coincident connection points
 jade.model.Aspect.prototype.propagate_label = function(label, location) {
     var cplist = this.connection_points[location];
@@ -94,10 +112,12 @@ jade.model.Aspect.prototype.ensure_component_names = function(prefix) {
     var cnames = {}; // keep track of names at this level
     for (i = 0; i < this.components.length; i += 1) {
         c = this.components[i];
-        c.set_select(false);   // unselect now, may select later if there's an error
         name = c.name;
         if (name) {
-            if (name in cnames) throw "Duplicate component name: " + prefix + name;
+            if (name in cnames) {
+                c.selected = true;
+                throw "Duplicate component name: " + prefix + name;
+            }
             cnames[name] = c; // add to our list
         }
     }
@@ -137,6 +157,8 @@ jade.model.Component.prototype.clear_labels = function() {
         this.connections[i].clear_label();
     }
 };
+
+jade.model.Component.prototype.propagate_select = function () {};
 
 // default action: don't propagate label
 jade.model.Component.prototype.propagate_label = function(label) {};
@@ -211,6 +233,7 @@ jade.model.Component.prototype.netlist = function(mlist, globals, prefix, mstack
         var got = c.label.length;
         var expected = c.nlist.length;
         if ((got % expected) !== 0) {
+            this.selected = true;
             throw "Number of connections (" + got + ") for terminal " + c.name + " of " + prefix + this.name + " not a multiple of " + expected;
         }
 
@@ -230,6 +253,7 @@ jade.model.Component.prototype.netlist = function(mlist, globals, prefix, mstack
         var W = c.label.length;
         var consumed = ninstances * c.nlist.length;
         if (consumed % W !== 0) {
+            this.selected = true;
             throw "Number of signals needed (" + consumed + ") for terminal " + c.name + " of " + prefix + this.name + " not multiple of " + W;
         }
     }
@@ -269,6 +293,7 @@ jade.model.Component.prototype.netlist = function(mlist, globals, prefix, mstack
             netlist.push.apply(netlist, result);
         }
         else {
+            this.selected = true;
             // if no schematic, complain
             throw "No schematic for " + prefix + this.properties.name + " an instance of " + this.type();
         }
@@ -283,8 +308,21 @@ jade.model.Component.prototype.netlist = function(mlist, globals, prefix, mstack
 //
 //////////////////////////////////////////////////////////////////////
 
+jade.model.ConnectionPoint.prototype.propagate_select = function() {
+    if (!this.selected) {
+        this.selected = true;
+
+        // propagate selection to coincident connection points
+        this.parent.aspect.propagate_select(this);
+
+        // see if our parent wants to select themselves
+        this.parent.propagate_select();
+    }
+};
+
 jade.model.ConnectionPoint.prototype.propagate_label = function(label) {
     if (this.width && this.width != label.length) {
+        this.parent.aspect.propagate_select(this);
         throw "Node label ["+label+"] incompatible with specified width "+this.width.toString();
     }
 
@@ -299,6 +337,9 @@ jade.model.ConnectionPoint.prototype.propagate_label = function(label) {
         this.parent.propagate_label(label);
     }
     else if (!jade.utils.signal_equals(this.label, label)) {
+        // highlight offending nodes
+        this.parent.aspect.propagate_select(this);
+
         // signal an error while generating netlist
         throw "Node has two conflicting sets of labels: [" + this.label + "], [" + label + "]";
     }
@@ -316,6 +357,9 @@ jade.model.ConnectionPoint.prototype.propagate_width = function(width) {
         this.parent.propagate_width(width);
     }
     else if (this.width != width) {
+        // highlight offending nodes
+        this.parent.aspect.propagate_select(this);
+
         // signal an error while generating netlist
         throw "Node has two conflicting widths: " + this.width + ", " + width;
     }

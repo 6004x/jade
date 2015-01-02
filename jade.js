@@ -33,7 +33,7 @@ var jade = (function() {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.9 (2014 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.10 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -1306,7 +1306,6 @@ var jade = (function() {
             this.select_rect[2] = this.mouse_x;
             this.select_rect[3] = this.mouse_y;
         }
-        else return;
 
         // just redraw dynamic components
         this.redraw();

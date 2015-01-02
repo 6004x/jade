@@ -17,10 +17,14 @@ jade.device_level = (function() {
     }
 
     function diagram_device_netlist(diagram, globals) {
-        var netlist = device_netlist(diagram.aspect,globals);
-
-        // redraw diagram to show any changes in highlighting
-        diagram.redraw_background();
+        var netlist;
+        try {
+            netlist = device_netlist(diagram.aspect, globals);
+        } catch(e) {
+            // redraw diagram to show highlighted offenders
+            diagram.redraw_background();
+            throw e;
+        }
 
         return netlist;
     }
@@ -805,7 +809,7 @@ jade.device_level = (function() {
     //////////////////////////////////////////////////////////////////////////////
 
     return {
-        device_netlist: device_netlist,
+        diagram_device_netlist: diagram_device_netlist,
         interpolate: interpolate
     };
 

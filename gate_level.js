@@ -20,10 +20,14 @@ jade.gate_level = (function() {
     var gate_properties = ['tcd', 'tpd', 'tr', 'tf', 'cin', 'size', 'ts', 'th'];
 
     function diagram_gate_netlist(diagram, globals) {
-        var netlist = gate_netlist(diagram.aspect, globals);
-
-        // redraw diagram to show any changes in highlighting
-        diagram.redraw_background();
+        var netlist;
+        try {
+            netlist = gate_netlist(diagram.aspect, globals);
+        } catch(e) {
+            // redraw diagram to show highlighted offenders
+            diagram.redraw_background();
+            throw e;
+        }
 
         return netlist;
     }
@@ -213,7 +217,7 @@ jade.gate_level = (function() {
     //////////////////////////////////////////////////////////////////////////////
 
     return {
-        gate_netlist: gate_netlist,
+        diagram_gate_netlist: diagram_gate_netlist,
         interpolate: interpolate
     };
 
