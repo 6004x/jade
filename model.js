@@ -35,7 +35,7 @@ jade.model = (function () {
             });
         }
         catch (e) {
-            console.log(e);
+            console.log(e.stack);
         }
     }
 

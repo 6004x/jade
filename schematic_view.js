@@ -1019,6 +1019,103 @@ jade.schematic_view = (function() {
         return undefined;
     };
 
+    // Multi-port memory
+
+    function Memory(json) {
+        jade.model.Component.call(this);
+        this.module = memory_module; // set up properties for this component
+        this.load(json);
+    }
+    Memory.prototype = new jade.model.Component();
+    Memory.prototype.constructor = Memory;
+    Memory.prototype.type = function () { return 'memory'; };
+    jade.model.built_in_components.memory = Memory;
+    var memory_module = {
+        get_name: function () { return 'memory'; },
+        has_aspect: function () { return false; },
+        properties: {
+            "name":{"label":"Name","type":"name","value":"","edit":"yes","choices":[""]},
+            "nports":{"label":"Number of ports","type":"menu","value":"1","edit":"yes","choices":["1","2","3"]},
+            "naddr":{"label":"Width of address","type":"number","value":"1","edit":"yes","choices":[""]},
+            "ndata":{"label":"Width of data","type":"number","value":"1","edit":"yes","choices":[""]}
+        }
+    };
+
+    Memory.prototype.rebuild_connections = function() {
+        // clear out old connection points if any
+        var aspect = this.aspect;   // for closures
+        if (aspect) {
+            $.each(this.connections,function (index,cp) {
+                aspect.remove_connection_point(cp, cp.location);
+            });
+        }
+        this.connections = [];
+
+        // add connections for each port
+        var y = 0;
+        for (var port = 0; port < this.properties.nports; port += 1) {
+            this.add_connection(0,y,'A_'+port.toString()+'['+(this.properties.naddr-1).toString()+':0]');
+            this.add_connection(64,y,'D_'+port.toString()+'['+(this.properties.ndata-1).toString()+':0]');
+            this.add_connection(0,y+8,'OE_'+port.toString());
+            this.add_connection(0,y+16,'WE_'+port.toString());
+            this.add_connection(0,y+24,'CLK_'+port.toString());
+            y += 40;
+        }
+
+        this.bounding_box = [0,-24,64,y-8];
+        this.update_coords();
+    };
+
+    Memory.prototype.load = function(json) {
+        this.coords = json[1];
+        this.properties = json[2] || {};
+        this.default_properties(); // add any missing properties
+
+        this.rebuild_connections();
+    };
+
+    Memory.prototype.update_properties = function(new_properties) {
+        jade.model.Component.prototype.update_properties.call(this,new_properties);
+        this.rebuild_connections();
+    };
+
+    Memory.prototype.draw = function(diagram) {
+        // draw bbox
+        var bb = this.bounding_box;
+        this.draw_line(diagram,bb[0]+8,bb[1],bb[2]-8,bb[1]);
+        this.draw_line(diagram,bb[0]+8,bb[1],bb[0]+8,bb[3]);
+        this.draw_line(diagram,bb[2]-8,bb[1],bb[2]-8,bb[3]);
+        this.draw_line(diagram,bb[0]+8,bb[1]+16,bb[2]-8,bb[1]+16);
+
+        // draw stubs for each port
+        var y = 0;
+        for (var port = 0; port < this.properties.nports; port += 1) {
+            this.draw_line(diagram,0,y,8,y);
+            this.draw_text(diagram,'A',9,y,3,diagram.property_font);
+            this.draw_line(diagram,56,y,64,y);
+            this.draw_text(diagram,'D',55,y,5,diagram.property_font);
+            this.draw_line(diagram,0,y+8,8,y+8);
+            this.draw_text(diagram,'OE',9,y+8,3,diagram.property_font);
+            this.draw_line(diagram,0,y+16,8,y+16);
+            this.draw_text(diagram,'WE',9,y+16,3,diagram.property_font);
+            this.draw_line(diagram,0,y+24,8,y+24);
+            this.draw_line(diagram,8,y+22,12,y+24);  // CLK triangle
+            this.draw_line(diagram,8,y+26,12,y+24);
+
+            this.draw_line(diagram,8,y+32,56,y+32);
+            y += 40;
+        }
+
+        // draw internal labels
+        this.draw_text(diagram,this.properties.name || 'Memory',32,-16,7,diagram.property_font);
+        var nlocns = 1 << this.properties.naddr;
+        this.draw_text(diagram,nlocns.toString()+"\u00D7"+this.properties.ndata,32,-16,1,diagram.property_font);
+    };
+
+    Memory.prototype.netlist = function(prefix) {
+        return undefined;
+    };
+
     ///////////////////////////////////////////////////////////////////////////////
     //
     //  Parts bin
