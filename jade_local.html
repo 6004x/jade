@@ -17,6 +17,8 @@
 <script type="text/javascript" src="cktsim.js"></script>
 <script type="text/javascript" src="gate_level.js"></script>
 <script type="text/javascript" src="gatesim.js"></script>
+<script type="text/javascript" src="analog.js"></script>
+<script type="text/javascript" src="gates.js"></script>
 <script>
 // see if jade's URL includes an arg of the form 'arg=value'
 jade.page_args = function () {
@@ -124,7 +126,6 @@ $(window).bind('beforeunload',function () {
 </head>
 <body>
 <div class="jade">{
-  "shared_modules": "analog,gates",
   "hierarchical": "true"
 }</div>
 </body>

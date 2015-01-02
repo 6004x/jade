@@ -9,12 +9,12 @@ module.exports = function(grunt) {
         copy: {
             jade_edx: {expand: true,
                        flatten: true,
-                       src: ['jade_edx.html', 'jade.css', 'files/analog', 'files/gates'],
+                       src: ['jade_edx.html', 'jade.css'],
                        dest: 'build/'
                        },
             jade_6004: {expand: true,
                            flatten: true,
-                           src: ['jade_6004.html', 'jade.css', 'files/analog', 'files/gates'],
+                           src: ['jade_6004.html', 'jade.css'],
                            dest: 'build/'
                           },
             jade: {expand: true,
@@ -24,7 +24,7 @@ module.exports = function(grunt) {
                   },
             font_awesome: {expand: true,
                            flatten: true,
-                           src:['font-awesome/4.2.0/fonts/*'],
+                           src:['fontawesome-webfont*','FontAwesome.otf'],
                            dest: 'build/'
                           }
         },
@@ -72,7 +72,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
 
     grunt.registerTask('jade_6004', ['copy:jade_6004', 'copy:font_awesome', 'useminPrepare:jade_6004', 'concat', 'uglify', 'usemin:jade_6004']);
-    grunt.registerTask('jade_edx', ['copy:jade_edx', 'copy:font_awesome', 'useminPrepare:jade_edx', 'concat', 'uglify', 'usemin:jade_edx']);
+    grunt.registerTask('jade_edx', ['copy:jade_edx', 'copy:font_awesome', 'useminPrepare:jade_edx', 'concat', 'usemin:jade_edx']);
     grunt.registerTask('jade', ['copy:jade', 'copy:font_awesome', 'useminPrepare:jade', 'concat', 'uglify', 'usemin:jade']);
 
     // Builds everything if just called as 'grunt'

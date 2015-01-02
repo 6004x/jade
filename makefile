@@ -104,10 +104,20 @@ run-bug:
 beta-json:
 	cat files/ward/beta | underscore print
 
-edx:
-	grunt jade_edx
-	cp build/jade_edx* build/analog build/gates build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6004x_mitx/static/
+analog.js: files/analog
+	-- echo "jade.model.load_json(" >analog.js
+	-- cat files/analog >>analog.js
+	-- echo ",true);" >>analog.js
 
-6004:
+gates.js: files/gates
+	-- echo "jade.model.load_json(" >gates.js
+	-- cat files/gates >>gates.js
+	-- echo ",true);" >>gates.js
+
+edx:	analog.js gates.js
+	grunt jade_edx
+	cp build/jade_edx* build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6.004_mitx/static/
+
+6004:	analog.js gates.js
 	grunt jade_6004
-	scp build/jade_6004* build/analog build/gates build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* 6004:coursewarex/
+	scp build/jade_6004* build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* 6004:coursewarex/

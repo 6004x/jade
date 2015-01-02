@@ -675,8 +675,8 @@ var jade = (function() {
 
         if (nscale < this.zoom_max) {
             // keep center of view unchanged
-            this.origin_x += (this.canvas.clientWidth / 2) * (1.0 / this.scale - 1.0 / nscale);
-            this.origin_y += (this.canvas.clientHeight / 2) * (1.0 / this.scale - 1.0 / nscale);
+            this.origin_x += ($(this.canvas).width() / 2) * (1.0 / this.scale - 1.0 / nscale);
+            this.origin_y += ($(this.canvas).height() / 2) * (1.0 / this.scale - 1.0 / nscale);
             this.scale = nscale;
             this.redraw_background();
         }
@@ -687,8 +687,8 @@ var jade = (function() {
 
         if (nscale > this.zoom_min) {
             // keep center of view unchanged
-            this.origin_x += (this.canvas.clientWidth / 2) * (1.0 / this.scale - 1.0 / nscale);
-            this.origin_y += (this.canvas.clientHeight / 2) * (1.0 / this.scale - 1.0 / nscale);
+            this.origin_x += (this.canvas.width / 2) * (1.0 / this.scale - 1.0 / nscale);
+            this.origin_y += (this.canvas.height / 2) * (1.0 / this.scale - 1.0 / nscale);
             this.scale = nscale;
             this.redraw_background();
         }
@@ -702,8 +702,8 @@ var jade = (function() {
         if (diagram_w === 0) this.scale = 1;
         else {
             // compute scales that would make diagram fit, choose smallest
-            var scale_x = this.canvas.clientWidth / diagram_w;
-            var scale_y = this.canvas.clientHeight / diagram_h;
+            var scale_x = this.canvas.width / diagram_w;
+            var scale_y = this.canvas.height / diagram_h;
             this.scale = Math.pow(this.zoom_factor,
                                   Math.ceil(Math.log(Math.min(scale_x, scale_y)) / Math.log(this.zoom_factor)));
             if (this.scale < this.zoom_min) this.scale = this.zoom_min;
@@ -711,8 +711,8 @@ var jade = (function() {
         }
 
         // center the diagram
-        this.origin_x = (this.bbox[2] + this.bbox[0]) / 2 - this.canvas.clientWidth / (2 * this.scale);
-        this.origin_y = (this.bbox[3] + this.bbox[1]) / 2 - this.canvas.clientHeight / (2 * this.scale);
+        this.origin_x = (this.bbox[2] + this.bbox[0]) / 2 - this.canvas.width / (2 * this.scale);
+        this.origin_y = (this.bbox[3] + this.bbox[1]) / 2 - this.canvas.height / (2 * this.scale);
 
         this.redraw_background();
     };
@@ -873,8 +873,8 @@ var jade = (function() {
     }
 
     Diagram.prototype.resize = function() {
-        var w = this.canvas.clientWidth;
-        var h = this.canvas.clientHeight;
+        var w = parseFloat($(this.canvas).css('width'));
+        var h = parseFloat($(this.canvas).css('height'));
 
         this.canvas.width = w*this.pixelRatio;
         this.canvas.height = h*this.pixelRatio;
@@ -904,15 +904,15 @@ var jade = (function() {
 
         // paint background color -- use color from style sheet
         c.fillStyle = this.show_grid ? this.background_style : 'white';
-        c.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
+        c.fillRect(0, 0, this.bg_image.width, this.bg_image.height);
 
         if (!this.diagram_only && this.show_grid) {
             // grid
             c.strokeStyle = this.grid_style;
             var first_x = this.origin_x;
-            var last_x = first_x + this.canvas.clientWidth / this.scale;
+            var last_x = first_x + this.bg_image.width / this.scale;
             var first_y = this.origin_y;
-            var last_y = first_y + this.canvas.clientHeight / this.scale;
+            var last_y = first_y + this.bg_image.height / this.scale;
             var i;
 
             for (i = this.grid * Math.ceil(first_x / this.grid); i < last_x; i += this.grid) {
@@ -954,8 +954,8 @@ var jade = (function() {
         var c = this.canvas.getContext('2d');
         this.c = c;
 
-        // put static image in the background
-        c.drawImage(this.bg_image, 0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
+        // put static image in the background.  Make sure we don't scale twice!
+        c.drawImage(this.bg_image, 0, 0, this.bg_image.width/this.pixelRatio, this.bg_image.height/this.pixelRatio);
 
         // selected components
         this.bbox = this.aspect.selected_bbox(this.unsel_bbox);
@@ -1306,6 +1306,7 @@ var jade = (function() {
             this.select_rect[2] = this.mouse_x;
             this.select_rect[3] = this.mouse_y;
         }
+        else return;
 
         // just redraw dynamic components
         this.redraw();
