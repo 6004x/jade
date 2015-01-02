@@ -1144,12 +1144,14 @@ jade.model = (function () {
                         }
                     }
                     else if (ptype == 'nlist') {
-                        var nlist = v.split(/\s+/);
-                        for (var j = 0; j < nlist.length; j += 1) {
-                            if (isNaN(jade.utils.parse_number(nlist[j]))) {
-                                error = true;
-                                pmsg.text('item '+(j+1).toString()+' not a valid number');
-                                break;
+                        if (v != '') {
+                            var nlist = v.split(/\s+/);
+                            for (var j = 0; j < nlist.length; j += 1) {
+                                if (isNaN(jade.utils.parse_number(nlist[j]))) {
+                                    error = true;
+                                    pmsg.text('item '+(j+1).toString()+' not a valid number');
+                                    break;
+                                }
                             }
                         }
                     }

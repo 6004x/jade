@@ -134,6 +134,11 @@ jade.schematic_view = (function() {
                                          insert_part_allowed);
             part_tool(part,this,'jumper');
 
+            part = this.toolbar.add_tool('memory', 'MEM',
+                                         'Multi-port memory: click and drag to insert', null,
+                                         insert_part_allowed);
+            part_tool(part,this,'memory');
+
             part = this.toolbar.add_tool('text', jade.icons.text_icon,
                                          'Text: click and drag to insert', null, 
                                          insert_part_allowed);
@@ -1064,16 +1069,21 @@ jade.schematic_view = (function() {
 
         // add connections for each port
         var y = 0;
+        var label;
         for (var port = 0; port < this.properties.nports; port += 1) {
-            this.add_connection(0,y,'A_'+port.toString()+'['+(this.properties.naddr-1).toString()+':0]');
-            this.add_connection(80,y,'D_'+port.toString()+'['+(this.properties.ndata-1).toString()+':0]');
+            label = 'A_'+port.toString()+'['+(this.properties.naddr-1).toString();
+            label += (this.properties.naddr > 1) ? ':0]' : ']';
+            this.add_connection(0,y,label);
+            label = 'D_'+port.toString()+'['+(this.properties.ndata-1).toString();
+            label += (this.properties.ndata > 1) ? ':0]' : ']';
+            this.add_connection(72,y,label);
             this.add_connection(0,y+8,'OE_'+port.toString());
             this.add_connection(0,y+16,'WE_'+port.toString());
             this.add_connection(0,y+24,'CLK_'+port.toString());
             y += 40;
         }
 
-        this.bounding_box = [0,-24,80,y-8];
+        this.bounding_box = [0,-24,72,y-8];
         this.update_coords();
     };
 
@@ -1100,29 +1110,32 @@ jade.schematic_view = (function() {
 
         // draw stubs for each port
         var y = 0;
-        var alabel = 'A['+(this.properties.naddr-1).toString()+':0]';
-        var dlabel = 'D['+(this.properties.ndata-1).toString()+':0]';
+        var alabel = 'A['+(this.properties.naddr-1).toString();
+        alabel += (this.properties.naddr > 1) ? ':0]' : ']';
+        var dlabel = 'D['+(this.properties.ndata-1).toString();
+        dlabel += (this.properties.ndata > 1) ? ':0]' : ']';
+        var lfont = '4pt sans-serif';
         for (var port = 0; port < this.properties.nports; port += 1) {
             this.draw_line(diagram,0,y,8,y);
-            this.draw_text(diagram,alabel,9,y,3,diagram.property_font);
-            this.draw_line(diagram,72,y,80,y);
-            this.draw_text(diagram,dlabel,71,y,5,diagram.property_font);
+            this.draw_text(diagram,alabel,9,y,3,lfont);
+            this.draw_line(diagram,64,y,72,y);
+            this.draw_text(diagram,dlabel,63,y,5,lfont);
             this.draw_line(diagram,0,y+8,8,y+8);
-            this.draw_text(diagram,'OE',9,y+8,3,diagram.property_font);
+            this.draw_text(diagram,'OE',9,y+8,3,lfont);
             this.draw_line(diagram,0,y+16,8,y+16);
-            this.draw_text(diagram,'WE',9,y+16,3,diagram.property_font);
+            this.draw_text(diagram,'WE',9,y+16,3,lfont);
             this.draw_line(diagram,0,y+24,8,y+24);
             this.draw_line(diagram,8,y+22,12,y+24);  // CLK triangle
             this.draw_line(diagram,8,y+26,12,y+24);
 
-            this.draw_line(diagram,8,y+32,72,y+32);
+            this.draw_line(diagram,8,y+32,64,y+32);
             y += 40;
         }
 
         // draw internal labels
-        this.draw_text(diagram,this.properties.name || 'Memory',40,-16,7,diagram.property_font);
+        this.draw_text(diagram,this.properties.name || 'Memory',36,-16,7,diagram.property_font);
         var nlocns = 1 << this.properties.naddr;
-        this.draw_text(diagram,nlocns.toString()+"\u00D7"+this.properties.ndata,40,-16,1,diagram.property_font);
+        this.draw_text(diagram,nlocns.toString()+"\u00D7"+this.properties.ndata,36,-16,1,diagram.property_font);
     };
 
     Memory.prototype.netlist = function(prefix) {
