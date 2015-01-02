@@ -1149,7 +1149,7 @@ jade.schematic_view = (function() {
                 context.msBackingStorePixelRatio ||
                 context.oBackingStorePixelRatio ||
                 context.backingStorePixelRatio || 1;
-        this.pixelRatio = devicePixelRatio / backingStoreRatio;
+        this.pixelRatio = 1; //devicePixelRatio / backingStoreRatio;
 
         this.canvas[0].width = part_w * this.pixelRatio;
         this.canvas[0].height = part_h * this.pixelRatio;

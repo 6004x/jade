@@ -570,7 +570,7 @@ var jade = (function() {
             context.msBackingStorePixelRatio ||
             context.oBackingStorePixelRatio ||
             context.backingStorePixelRatio || 1;
-        this.pixelRatio = devicePixelRatio / backingStoreRatio;
+        this.pixelRatio = 1; //devicePixelRatio / backingStoreRatio;
 
         this.sctl_r = 16; // scrolling control parameters
         this.sctl_x = this.sctl_r + 8; // upper left
