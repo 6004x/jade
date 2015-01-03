@@ -1,4 +1,5 @@
-// JADE: JAvascript Design Environment
+// Copyright (C) 2011-2015 Massachusetts Institute of Technology
+// Chris Terman
 
 // Model:
 //  Module := {aname: Aspect, properties: {pname: Property, ...}}
@@ -6,7 +7,7 @@
 //  Aspect :=  [Component, ...]
 //  Component := [type [x, y, rotation, ...] {property: value, ... }]
 
-jade.model = (function () {
+jade_defs.model = function (jade) {
 
     var AUTOSAVE_TRIGGER = 25;  // number edits that triggers an autosave
     var edit_counter = 0;
@@ -1252,6 +1253,13 @@ jade.model = (function () {
         return area === 0;
     }
 
+    // helper function for grabbing json
+    jade.json = function (mname) {
+        var m = modules[mname];
+        if (m) m = JSON.stringify(m.json());
+        return m;
+    };
+
     ///////////////////////////////////////////////////////////////////////////////
     //
     // Module exports
@@ -1277,12 +1285,4 @@ jade.model = (function () {
         ConnectionPoint: ConnectionPoint,
         connection_point_radius: connection_point_radius
     };
-}());
-
-// helper function for grabbing json
-jade.json = function (mname) {
-    var m = jade.model.modules[mname];
-    if (m) m = JSON.stringify(m.json());
-    return m;
 };
-

@@ -1,17 +1,35 @@
-// Copyright (C) 2011-2014 Massachusetts Institute of Technology
+// Copyright (C) 2011-2015 Massachusetts Institute of Technology
 // Chris Terman
 
-// View/Controller:
-//  Editor -- library management toolbar, tabbed display of aspect editors, status
-//  Aspect editors (Schematic, Icon, ...) -- toolbar, diagram, parts bin if appropriate
-//  Toolbar -- object with Tool attributes, support for adding, enabling, disabling tools
-//  Diagram -- view for editing a given Aspect, support for editing gestures, pop-up windows
-//  PartsBin -- view for selecting library/module to include as instance
+// pollute the global namespace with a single variable
+var jade_defs = {};
 
-// make jslint happy
-//var JSON,$;
+// "new jade_defs.jade()" will build a self-contained jade object so we can
+// have multiple instances on the same webpage that don't share any
+// state.
+jade_defs.jade = function() {
+    var j = this;
 
-var jade = (function() {
+    $.extend(j,jade_defs.top_level(j));
+
+    j.model = jade_defs.model(j);
+    jade_defs.netlist(j);
+    jade_defs.icons(j);
+    j.schematic_view = jade_defs.schematic_view(j);
+    j.icon_view = jade_defs.icon_view(j);
+    j.property_view = jade_defs.property_view(j);
+    j.test_view = jade_defs.test_view(j);
+    j.utils = jade_defs.utils(j);
+    j.plot = jade_defs.plot(j);
+    j.device_level = jade_defs.device_level(j);
+    j.cktsim = jade_defs.cktsim(j);
+    j.gate_level = jade_defs.gate_level(j);
+    j.gatesim = jade_defs.gatesim(j);
+    jade_defs.analog(j);
+    jade_defs.gates(j);
+};
+
+jade_defs.top_level = function(jade) {
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -25,6 +43,7 @@ var jade = (function() {
 
     function Jade(owner) {
         owner.jade = this;
+        this.jade = jade;
         this.parent = owner;
         this.module = undefined;
 
@@ -1732,6 +1751,7 @@ var jade = (function() {
     //////////////////////////////////////////////////////////////////////
 
     return {
+        Jade: Jade,
         Diagram: Diagram,
         diagram_toggle_grid: diagram_toggle_grid,
         diagram_undo: diagram_undo,
@@ -1760,4 +1780,4 @@ var jade = (function() {
         window_close: window_close
     };
 
-}());
+};

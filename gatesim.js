@@ -1,13 +1,13 @@
+// Copyright (C) 2013-2015 Massachusetts Institute of Technology
+// Chris Terman
+
 //////////////////////////////////////////////////////////////////////////////
 //
 //  Gate-level simulation
 //
 //////////////////////////////////////////////////////////////////////////////
 
-// Copyright (C) 2013 Massachusetts Institute of Technology
-// Chris Terman
-
-jade.gatesim = (function() {
+jade_defs.gatesim = function(jade) {
     var last_network;  // remember most recent network
     function get_last_network() { return last_network; }
 
@@ -1942,4 +1942,5 @@ jade.gatesim = (function() {
         'get_last_network': get_last_network
     };
     return module;
-}());
+};
+

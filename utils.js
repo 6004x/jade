@@ -1,4 +1,7 @@
-jade.utils = (function () {
+// Copyright (C) 2011-2015 Massachusetts Institute of Technology
+// Chris Terman
+
+jade_defs.utils = function (jade) {
     //////////////////////////////////////////////////////////////////////
     //
     // utilities
@@ -483,4 +486,5 @@ jade.utils = (function () {
         signal_equals: signal_equals
     };
 
-}());
+};
+

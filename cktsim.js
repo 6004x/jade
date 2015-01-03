@@ -1,13 +1,13 @@
- /////////////////////////////////////////////////////////////////////////////
+// Copyright (C) 2011-2015 Massachusetts Institute of Technology
+// Chris Terman and Jacob White
+
+/////////////////////////////////////////////////////////////////////////////
 //
 //  Circuit simulator
 //
 //////////////////////////////////////////////////////////////////////////////
 
-// Copyright (C) 2011-2013 Massachusetts Institute of Technology
-// Chris Terman and Jacob White
-
-jade.cktsim = (function() {
+jade_defs.cktsim = function(jade) {
 
     // JSON circuit description: [{type: device_type,
     //                             connections: {port_name: signal, ...},
@@ -2109,4 +2109,5 @@ jade.cktsim = (function() {
         print_netlist: print_netlist
     };
     return module;
-}());
+};
+

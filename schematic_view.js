@@ -1,11 +1,7 @@
-// Copyright (C) 2011-2014 Massachusetts Institute of Technology
+// Copyright (C) 2011-2015 Massachusetts Institute of Technology
 // Chris Terman
 
-// keep jslint happy
-//var console,JSON;
-//var $,jade,cktsim,plot;
-
-jade.schematic_view = (function() {
+jade_defs.schematic_view = function(jade) {
     //////////////////////////////////////////////////////////////////////
     //
     // Schematic editor
@@ -1173,7 +1169,7 @@ jade.schematic_view = (function() {
         var parts_bin = this;
         var bin = $(this.top_level);
         bin.empty();
- 
+        
         // figure out all the parts to appear in parts bin
         var plist = [];
         var p = this.parts_wanted || '.*';
@@ -1433,4 +1429,4 @@ jade.schematic_view = (function() {
         text_bbox: text_bbox
     };
 
-}());
+};

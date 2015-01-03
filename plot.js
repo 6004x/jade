@@ -1,4 +1,7 @@
-jade.plot = (function() {
+// Copyright (C) 2011-2015 Massachusetts Institute of Technology
+// Chris Terman
+
+jade_defs.plot = function(jade) {
 
     ///////////////////////////////////////////////////////////////////////////////
     //
@@ -813,4 +816,4 @@ jade.plot = (function() {
         tick_interval: tick_interval
         //engineering_notation: engineering_notation
     };
-}());
+};

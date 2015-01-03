@@ -105,14 +105,14 @@ beta-json:
 	cat files/ward/beta | underscore print
 
 analog.js: files/analog
-	-- echo "jade.model.load_json(" >analog.js
+	-- echo "jade_defs.analog = function (jade) { jade.model.load_json(" >analog.js
 	-- cat files/analog >>analog.js
-	-- echo ",true);" >>analog.js
+	-- echo ",true);};" >>analog.js
 
 gates.js: files/gates
-	-- echo "jade.model.load_json(" >gates.js
+	-- echo "jade_defs.gates = function (jade) { jade.model.load_json(" >gates.js
 	-- cat files/gates >>gates.js
-	-- echo ",true);" >>gates.js
+	-- echo ",true);};" >>gates.js
 
 edx:	analog.js gates.js
 	grunt jade_edx

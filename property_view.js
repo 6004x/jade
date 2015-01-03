@@ -1,11 +1,7 @@
-// Copyright (C) 2011-2014 Massachusetts Institute of Technology
+// Copyright (C) 2011-2015 Massachusetts Institute of Technology
 // Chris Terman
 
-// keep jslint happy
-//var console,JSON;
-//var $,jade,cktsim,plot;
-
-jade.property_view = (function() {
+jade_defs.property_view = function(jade) {
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -147,4 +143,5 @@ jade.property_view = (function() {
 
     return {
     };
-}());
+};
+

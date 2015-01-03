@@ -1,7 +1,7 @@
-// Copyright (C) 2011-2014 Massachusetts Institute of Technology
+// Copyright (C) 2011-2015 Massachusetts Institute of Technology
 // Chris Terman
 
-jade.device_level = (function() {
+jade_defs.device_level = function(jade) {
 
     ///////////////////////////////////////////////////////////////////////////////
     //
@@ -813,4 +813,5 @@ jade.device_level = (function() {
         interpolate: interpolate
     };
 
-}());
+};
+
