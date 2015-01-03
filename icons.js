@@ -115,4 +115,8 @@ jade_defs.icons = function(jade) {
 
     jade.icons.readonly = '<i class="fa fa-ban" style="color:red;"></i>';
 
+    jade.icons.download_icon = '<span class="fa fw-fw fa-download"></span>';
+
+    jade.icons.upload_icon = '<span class="fa fw-fw fa-upload"></span>';
+
 };

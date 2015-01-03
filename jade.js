@@ -52,7 +52,7 @@ jade_defs.top_level = function(jade) {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.10 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.11 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -66,6 +66,8 @@ jade_defs.top_level = function(jade) {
         this.module_tools.append(this.module_tool(jade.icons.edit_module_icon,'edit-module','Edit/create module',edit_module));
         this.module_tools.append(this.module_tool(jade.icons.copy_module_icon,'copy-module','Copy current module',copy_module));
         this.module_tools.append(this.module_tool(jade.icons.delete_module_icon,'delete-module','Delete current module',delete_module));
+        this.module_tools.append(this.module_tool(jade.icons.download_icon,'download-modules','Save modules to local storage',download_modules));
+        this.module_tools.append(this.module_tool(jade.icons.upload_icon,'upload-modules','Select modules to load from local storage',upload_modules));
 
         $('#module-select',this.module_tools).on('change',function () {
             owner.jade.edit($(this).val());
@@ -369,40 +371,9 @@ jade_defs.top_level = function(jade) {
 
     //////////////////////////////////////////////////////////////////////
     //
-    // Settings handlers
+    // Module tools
     //
     //////////////////////////////////////////////////////////////////////
-
-    /*
-    function jade_settings(diagram) {
-        var jade = diagram.editor.jade;
-        var settings = jade.settings;
-
-        // determine pop-up position: below toolbar of active tab
-        var div = $('.jade-toolbar',$('.jade-tab-body-active',jade.top_level));
-        var offset = div.offset();
-        offset.top += div.outerHeight();
-        settings.css(offset);
-
-        // enable/disable settings tools
-        $('#edit_module',settings).removeClass('jade-setting-enabled');
-        $('#delete_module',settings).removeClass('jade-setting-enabled');
-        $('#copy_module',settings).removeClass('jade-setting-enabled');
-        $('#copy_library',settings).removeClass('jade-setting-enabled');
-        if (jade.configuration.hierarchical) {
-            $('#edit_module',settings).addClass('jade-setting-enabled');
-            $('#copy_module',settings).addClass('jade-setting-enabled');
-            $('#copy_library',settings).addClass('jade-setting-enabled');
-            if (!diagram.aspect.read_only()) {
-                $('#delete_module',settings).addClass('jade-setting-enabled');
-            }
-        }
-
-        settings[0].diagram = diagram;  // remember diagram being viewed
-
-        settings.toggle();   // toggle visibility
-    }
-     */
 
     function edit_module(j) {
         var offset = {top: 10, left: 10};
@@ -502,6 +473,54 @@ jade_defs.top_level = function(jade) {
 
         dialog('Copy Module',content,copy,offset);
     }
+
+    function download_modules(j) {
+        var modules = jade.model.json_modules().json;
+        localStorage.setItem('jade_saved_modules',JSON.stringify(modules));
+    };
+
+    function upload_modules(j) {
+        // get modules from localStorage
+        var modules = JSON.parse(localStorage.getItem('jade_saved_modules'));
+        var mnames = Object.keys(modules).sort();
+
+        // build checkbox selector for each available module
+        var select = [];
+        $.each(mnames,function (index,mname) {
+            var cbox = $('<input type="checkbox" value=""></input>').attr('name',mname);
+            select.push($('<div class="jade-module-select"></div>').append(cbox,mname));
+        });
+
+        // build a dialog using up to 3 columns to list modules
+        var row = $('<tr></tr>');
+        var ncols = Math.max(3,Math.ceil(select.length/10));
+        var nitems = Math.ceil(select.length/ncols);
+        var col,index=0,i;
+        while (ncols--) {
+            col = $('<td></td>');
+            for (i = 0; i < nitems; i += 1)
+                col.append(select[index++]);
+            row.append(col);
+        }
+        var contents = $('<table></table>').append(row);
+
+        // find checked items and load them
+        function upload () {
+            $.each(select,function (index,item) {
+                var input = $('input',item);
+                var mname = input.attr('name');
+                if (input[0].checked) {
+                    //console.log(mname + ' is checked');
+                    jade.model.find_module(mname,modules[mname]);
+                }
+            });
+
+            j.edit(j.module);  // trigger rebuild of module list
+        }
+
+        // let user choose
+        dialog('Select modules to load',contents,upload,{top: 10, left:10});
+    };
 
     /*
     function copy_library(diagram) {
