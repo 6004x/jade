@@ -38,54 +38,56 @@ jade_defs.icon_view = function(jade) {
 
         this.toolbar = new jade.Toolbar(this.diagram);
 
-        this.toolbar.add_tool('actions', jade.icons.actions_icon,
-                              'Edit/copy/delete modules; change settings', jade.jade_settings);
-        this.toolbar.add_spacer();
+        if (!parent.configuration.readonly) {
 
-        this.toolbar.add_tool('undo', jade.icons.undo_icon, 'Undo: undo effect of previous action', jade.diagram_undo,
-                              function(diagram) {
-                                  return diagram.aspect && diagram.aspect.can_undo();
-                              });
-        this.toolbar.add_tool('redo', jade.icons.redo_icon, 'redo: redo effect of next action', jade.diagram_redo,
-                              function(diagram) {
-                                  return diagram.aspect && diagram.aspect.can_redo();
-                              });
+            this.toolbar.add_tool('grid', jade.icons.grid_icon,
+                                  'Toggle schematic grid', jade.diagram_toggle_grid);
+            this.toolbar.add_spacer();
 
-        function has_selections(diagram) {
-            return diagram.aspect && !diagram.aspect.read_only() && diagram.aspect.selections();
+            this.toolbar.add_tool('undo', jade.icons.undo_icon, 'Undo: undo effect of previous action', jade.diagram_undo,
+                                  function(diagram) {
+                                      return diagram.aspect && diagram.aspect.can_undo();
+                                  });
+            this.toolbar.add_tool('redo', jade.icons.redo_icon, 'redo: redo effect of next action', jade.diagram_redo,
+                                  function(diagram) {
+                                      return diagram.aspect && diagram.aspect.can_redo();
+                                  });
+
+            function has_selections(diagram) {
+                return diagram.aspect && !diagram.aspect.read_only() && diagram.aspect.selections();
+            }
+            
+            this.toolbar.add_tool('cut', jade.icons.cut_icon, 'Cut: move selected components from diagram to the clipboard', jade.diagram_cut, has_selections);
+            this.toolbar.add_tool('copy', jade.icons.copy_icon, 'Copy: copy selected components into the clipboard', jade.diagram_copy, has_selections);
+            this.toolbar.add_tool('paste', jade.icons.paste_icon, 'Paste: copy clipboard into the diagram', jade.diagram_paste,
+                                  function(diagram) {
+                                      return diagram.aspect && !diagram.aspect.read_only() &&
+                                          jade.clipboards[diagram.editor.editor_name].length > 0;
+                                  });
+            this.toolbar.add_tool('fliph', jade.icons.fliph_icon, 'Flip Horizontally: flip selection horizontally', jade.diagram_fliph, has_selections);
+            this.toolbar.add_tool('flipv', jade.icons.flipv_icon, 'Flip Vertically: flip selection vertically', jade.diagram_flipv, has_selections);
+            this.toolbar.add_tool('rotcw', jade.icons.rotcw_icon, 'Rotate Clockwise: rotate selection clockwise', jade.diagram_rotcw, has_selections);
+            this.toolbar.add_tool('rotccw', jade.icons.rotccw_icon, 'Rotate Counterclockwise: rotate selection counterclockwise', jade.diagram_rotccw, has_selections);
+
+            this.toolbar.add_spacer();
+
+            // add tools for creating icon components
+            function insert_part_allowed() {
+                return this.diagram && this.diagram.aspect && !this.diagram.aspect.read_only(); 
+            };
+
+            this.modes = {};
+            this.modes.select = this.toolbar.add_tool('select', jade.icons.select_icon, 'Select mode', icon_select,insert_part_allowed);
+            this.set_mode('select');
+            this.modes.line = this.toolbar.add_tool('line', jade.icons.line_icon, 'Icon line mode', icon_line,insert_part_allowed);
+            this.modes.arc = this.toolbar.add_tool('arc', jade.icons.arc_icon, 'Icon arc mode', icon_arc,insert_part_allowed);
+            this.modes.circle = this.toolbar.add_tool('circle', jade.icons.circle_icon, 'Icon circle mode', icon_circle,insert_part_allowed);
+            this.modes.text = this.toolbar.add_tool('text', jade.icons.text_icon, 'Icon text mode', icon_text,insert_part_allowed);
+            this.modes.terminal = this.toolbar.add_tool('terminal', jade.icons.terminal_icon, 'Icon terminal mode', icon_terminal,insert_part_allowed);
+            this.modes.property = this.toolbar.add_tool('property', jade.icons.property_icon, 'Icon property mode', icon_property,insert_part_allowed);
+
+            this.toolbar.add_spacer();
         }
-        
-        this.toolbar.add_tool('cut', jade.icons.cut_icon, 'Cut: move selected components from diagram to the clipboard', jade.diagram_cut, has_selections);
-        this.toolbar.add_tool('copy', jade.icons.copy_icon, 'Copy: copy selected components into the clipboard', jade.diagram_copy, has_selections);
-        this.toolbar.add_tool('paste', jade.icons.paste_icon, 'Paste: copy clipboard into the diagram', jade.diagram_paste,
-                              function(diagram) {
-                                  return diagram.aspect && !diagram.aspect.read_only() &&
-                                         jade.clipboards[diagram.editor.editor_name].length > 0;
-                              });
-        this.toolbar.add_tool('fliph', jade.icons.fliph_icon, 'Flip Horizontally: flip selection horizontally', jade.diagram_fliph, has_selections);
-        this.toolbar.add_tool('flipv', jade.icons.flipv_icon, 'Flip Vertically: flip selection vertically', jade.diagram_flipv, has_selections);
-        this.toolbar.add_tool('rotcw', jade.icons.rotcw_icon, 'Rotate Clockwise: rotate selection clockwise', jade.diagram_rotcw, has_selections);
-        this.toolbar.add_tool('rotccw', jade.icons.rotccw_icon, 'Rotate Counterclockwise: rotate selection counterclockwise', jade.diagram_rotccw, has_selections);
-
-        this.toolbar.add_spacer();
-
-        // add tools for creating icon components
-        function insert_part_allowed() {
-            return this.diagram && this.diagram.aspect && !this.diagram.aspect.read_only(); 
-        };
-
-        this.modes = {};
-        this.modes.select = this.toolbar.add_tool('select', jade.icons.select_icon, 'Select mode', icon_select,insert_part_allowed);
-        this.set_mode('select');
-        this.modes.line = this.toolbar.add_tool('line', jade.icons.line_icon, 'Icon line mode', icon_line,insert_part_allowed);
-        this.modes.arc = this.toolbar.add_tool('arc', jade.icons.arc_icon, 'Icon arc mode', icon_arc,insert_part_allowed);
-        this.modes.circle = this.toolbar.add_tool('circle', jade.icons.circle_icon, 'Icon circle mode', icon_circle,insert_part_allowed);
-        this.modes.text = this.toolbar.add_tool('text', jade.icons.text_icon, 'Icon text mode', icon_text,insert_part_allowed);
-        this.modes.terminal = this.toolbar.add_tool('terminal', jade.icons.terminal_icon, 'Icon terminal mode', icon_terminal,insert_part_allowed);
-        this.modes.property = this.toolbar.add_tool('property', jade.icons.property_icon, 'Icon property mode', icon_property,insert_part_allowed);
-
-        this.toolbar.add_spacer();
-
         // add external tools
         for (var i = 0; i < icon_tools.length; i += 1) {
             var info = icon_tools[i]; // [name,icon,tip,callback,enable_check]
@@ -363,11 +365,13 @@ jade_defs.icon_view = function(jade) {
         var diagram = event.target.diagram;
         diagram.event_coords(event);
 
-        // see if we double-clicked a component.  If so, edit it's properties
-        diagram.aspect.map_over_components(function(c) {
-            if (c.edit_properties(diagram, diagram.aspect_x, diagram.aspect_y)) return true;
-            return false;
-        });
+        if (diagram.aspect && !diagram.aspect.read_only()) {
+            // see if we double-clicked a component.  If so, edit it's properties
+            diagram.aspect.map_over_components(function(c) {
+                if (c.edit_properties(diagram, diagram.aspect_x, diagram.aspect_y)) return true;
+                return false;
+            });
+        }
 
         event.preventDefault();
         return false;
