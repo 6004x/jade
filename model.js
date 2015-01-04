@@ -1095,7 +1095,8 @@ jade_defs.model = function (jade) {
                 if (mprop.type == 'menu') input = jade.build_select(mprop.choices, this.properties[p]);
                 else {
                     var v = this.properties[p];
-                    input = jade.build_input('text', Math.max(10, (v === undefined ? 1 : v.length) + 5), this.properties[p]);
+                    var type = (mprop.type == 'string' || mprop.type == 'nlist') ? 'string' : 'text';
+                    input = jade.build_input(type, Math.max(10, (v === undefined ? 1 : v.length) + 5), this.properties[p]);
                 }
                 // provide an element to hold an error message
                 var xinput = $('<span></span>').append(input).append('<span class="jade-pmsg"></span>')[0];
@@ -1148,6 +1149,7 @@ jade_defs.model = function (jade) {
                         if (v != '') {
                             var nlist = v.split(/\s+/);
                             for (var j = 0; j < nlist.length; j += 1) {
+                                if (nlist[j] == '') continue;
                                 if (isNaN(jade.utils.parse_number(nlist[j]))) {
                                     error = true;
                                     pmsg.text('item '+(j+1).toString()+' not a valid number');

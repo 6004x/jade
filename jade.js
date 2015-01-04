@@ -1459,9 +1459,12 @@ jade_defs.top_level = function(jade) {
             field.dialog = dialog[0]; // help event handler find us...
 
             // if user hits enter, it counts as clicking OK
-            f.keypress(function (event) {
-                if (event.keyCode == 13) dialog.find('#ok').trigger('click');
-            });
+            if (!f.hasClass('newline-allowed')) {
+                f.keypress(function (event) {
+                    if (event.keyCode == 13) dialog.find('#ok').trigger('click');
+                });
+            }
+
             // select entire contents of <input> when it gets focus
             f.focus(function () {
                 f.select();
@@ -1515,8 +1518,9 @@ jade_defs.top_level = function(jade) {
     // build an input field
     function build_input(type, size, value) {
         var input;
-        if (type == 'text') {
+        if (type == 'text' || type == 'string') {
             input = $('<textarea class="property" autocorrect="off" autocapitalize="off" rows="1"></textarea>');
+            if (type == 'string') input.addClass('newline-allowed');
         } else {
             input = $('<input class="property" autocorrect="off" autocapitalize="off"></input>').attr('type',type).attr('size',size);
         }
