@@ -45,7 +45,7 @@ jade_defs.cktsim = function(jade) {
     //   throws a string to report errors
     function dc_analysis(netlist, sweep1, sweep2, options) {
         if (netlist.length > 0) {
-            var ckt = new Circuit(netlist, options);
+            var ckt = new Circuit(netlist, options || {});
 
             var source1, start1, stop1, step1, source1_saved_src;
             var source2, start2, stop2, step2, source2_saved_src;
@@ -152,7 +152,7 @@ jade_defs.cktsim = function(jade) {
         var npts = 50;
 
         if (netlist.length > 0) {
-            var ckt = new Circuit(netlist, options);
+            var ckt = new Circuit(netlist, options || {});
             return ckt.ac(npts, fstart, fstop, ac_source_name);
         }
         return undefined;
@@ -171,7 +171,7 @@ jade_defs.cktsim = function(jade) {
     function transient_analysis(netlist, tstop, probe_names, progress_callback, options) {
         if (netlist.length > 0 && tstop !== undefined) {
             try {
-                var ckt = new Circuit(netlist, options);
+                var ckt = new Circuit(netlist, options || {});
             }
             catch (e) {
                 if (e instanceof Error) e = e.stack.split('\n').join('<br>');

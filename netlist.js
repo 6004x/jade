@@ -140,7 +140,7 @@ jade_defs.netlist = function(jade) {
             c = this.components[i];
             if (c.module.name === undefined) continue; // filter out built-in components
             name = c.name;
-            if (name === '' || name === undefined) {
+            if (name == '' || name === undefined) {
                 var base = c.module.name.toLowerCase().split('/').pop();
                 do { name = gen_name(base); } while (name in cnames);
                 c.name = name; // remember name assignment for next time
@@ -283,16 +283,14 @@ jade_defs.netlist = function(jade) {
                 var props = this.clone_properties(false);
                 props.name = prefix + this.name;
                 // start generated names with index at MSB
-                if (ninstances > 1) props.name += '[' + (ninstances -1 - i).toString() + ']';
+                if (ninstances > 1) props.name += '[' + (ninstances - 1 - i).toString() + ']';
                 netlist.push([this.type(), port_map, props]);
-                continue;
             }
-
-            if (this.has_aspect('schematic')) {
+            else if (this.has_aspect('schematic')) {
                 var sch = this.module.aspect('schematic');
                 // extract component's schematic, add to our netlist
                 var p = prefix + this.name;
-                if (ninstances > 1) p += '[' + i.toString() + ']';
+                if (ninstances > 1) p += '[' + (ninstances - 1 - i).toString() + ']';
                 p += '.'; // hierarchical name separator
                 var result = sch.netlist(mlist, globals, p, port_map, mstack);
                 netlist.push.apply(netlist, result);

@@ -764,7 +764,9 @@ jade_defs.model = function (jade) {
     };
 
     Component.prototype.add_connection = function(offset_x, offset_y, name) {
-        this.connections.push(new ConnectionPoint(this, offset_x, offset_y, name));
+        var cp = new ConnectionPoint(this, offset_x, offset_y, name);
+        this.connections.push(cp);
+        return cp;
     };
 
     Component.prototype.update_coords = function() {
@@ -1146,15 +1148,13 @@ jade_defs.model = function (jade) {
                         }
                     }
                     else if (ptype == 'nlist') {
-                        if (v != '') {
-                            var nlist = v.split(/\s+/);
-                            for (var j = 0; j < nlist.length; j += 1) {
-                                if (nlist[j] == '') continue;
-                                if (isNaN(jade.utils.parse_number(nlist[j]))) {
-                                    error = true;
-                                    pmsg.text('item '+(j+1).toString()+' not a valid number');
-                                    break;
-                                }
+                        var nlist = v.split(/\s+/);
+                        for (var j = 0; j < nlist.length; j += 1) {
+                            if (nlist[j] == '') continue;
+                            if (isNaN(jade.utils.parse_number(nlist[j]))) {
+                                error = true;
+                                pmsg.text('item '+(j+1).toString()+' not a valid number');
+                                break;
                             }
                         }
                     }

@@ -187,7 +187,7 @@ jade_defs.utils = function (jade) {
         // dc(v)
         if (src.fun == 'dc') {
             v1 = arg_value(src.args, 0, 0);
-            src.args = [v];
+            src.args = [v1];
             src.value = function(t) {
                 return v1;
             }; // closure

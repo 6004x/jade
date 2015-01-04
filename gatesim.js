@@ -30,7 +30,7 @@ jade_defs.gatesim = function(jade) {
     // network object is returned so UI can access event history for each node
     function transient_analysis(netlist, tstop, probe_names, progress_callback, options) {
         if (netlist.length > 0 && tstop !== undefined) {
-            var network = new Network(netlist, options);
+            var network = new Network(netlist, options || {});
 
             var progress = {};
             progress.update_interval = 250; // in milliseconds

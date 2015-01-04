@@ -36,7 +36,7 @@ jade_defs.gate_level = function(jade) {
     function gate_netlist(aspect,globals) {
         // extract netlist and convert to form suitable for new cktsim.js
         // use modules in the gates library as the leafs
-        var mlist = ['ground','jumper','/analog/v_source','/analog/v_probe'];
+        var mlist = ['ground','jumper','memory','/analog/v_source','/analog/v_probe'];
         jade.model.map_modules(/^\/gates\/.*/,function(m) {
             mlist.push(m.get_name());
         });
@@ -87,6 +87,11 @@ jade_defs.gate_level = function(jade) {
                                       connections: c,
                                       properties: {name: props.name, color: props.color, offset: jade.utils.parse_number(props.offset)}
                                      });
+            else if (type == 'memory')
+                revised_netlist.push({type: 'memory',
+                                      connections: c,
+                                      properties: props
+                                      });
         });
 
         //console.log(JSON.stringify(netlist));
@@ -145,7 +150,7 @@ jade_defs.gate_level = function(jade) {
                 var progress = jade.progress_report();
                 diagram.window('Progress', progress); // display progress bar
 
-                cktsim.transient_analysis(netlist,tstop,probe_names,function(percent_complete,results) {
+                gatesim.transient_analysis(netlist,tstop,probe_names,function(percent_complete,results) {
                     if (results === undefined) {
                         progress[0].update_progress(percent_complete);
                         return progress[0].stop_requested;

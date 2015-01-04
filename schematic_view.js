@@ -716,7 +716,7 @@ jade_defs.schematic_view = function(jade) {
         // wires don't participate in this
     };
 
-    Wire.prototype.netlist = function(prefix) {
+    Wire.prototype.netlist = function(mlist, globals, prefix, mstack) {
         // no netlist entry for wires
         return undefined;
     };
@@ -757,7 +757,7 @@ jade_defs.schematic_view = function(jade) {
         this.draw_line(diagram,6,8,0,14);
     };
 
-    Ground.prototype.netlist = function(prefix) {
+    Ground.prototype.netlist = function(mlist, globals, prefix, mstack) {
         return [["ground",{"gnd":"gnd"},{}]];
     };
 
@@ -796,7 +796,7 @@ jade_defs.schematic_view = function(jade) {
         this.draw_text(diagram,this.properties.global_signal,0,-10,7,diagram.property_font);
     };
 
-    Vdd.prototype.netlist = function(prefix) {
+    Vdd.prototype.netlist = function(mlist, globals, prefix, mstack) {
         return undefined;
     };
 
@@ -887,7 +887,7 @@ jade_defs.schematic_view = function(jade) {
         }
     };
 
-    Port.prototype.netlist = function(prefix) {
+    Port.prototype.netlist = function(mlist, globals, prefix, mstack) {
         return undefined;
     };
 
@@ -1026,7 +1026,7 @@ jade_defs.schematic_view = function(jade) {
         });
     };
 
-    Text.prototype.netlist = function(prefix) {
+    Text.prototype.netlist = function(mlist, globals, prefix, mstacks) {
         return undefined;
     };
 
@@ -1042,6 +1042,7 @@ jade_defs.schematic_view = function(jade) {
     Memory.prototype.type = function () { return 'memory'; };
     jade.model.built_in_components.memory = Memory;
     var memory_module = {
+        name: 'memory',
         get_name: function () { return 'memory'; },
         has_aspect: function () { return false; },
         properties: {
@@ -1066,16 +1067,20 @@ jade_defs.schematic_view = function(jade) {
         // add connections for each port
         var y = 0;
         var label;
+        this.ports = [];
+        var p;
         for (var port = 0; port < this.properties.nports; port += 1) {
+            p = {};   // keep track of connections for each port
+            this.ports.push(p);
             label = 'A_'+port.toString()+'['+(this.properties.naddr-1).toString();
             label += (this.properties.naddr > 1) ? ':0]' : ']';
-            this.add_connection(0,y,label);
+            p.addr = this.add_connection(0,y,label);
             label = 'D_'+port.toString()+'['+(this.properties.ndata-1).toString();
             label += (this.properties.ndata > 1) ? ':0]' : ']';
-            this.add_connection(72,y,label);
-            this.add_connection(0,y+8,'OE_'+port.toString());
-            this.add_connection(0,y+16,'WE_'+port.toString());
-            this.add_connection(0,y+24,'CLK_'+port.toString());
+            p.data = this.add_connection(72,y,label);
+            p.oe = this.add_connection(0,y+8,'OE_'+port.toString());
+            p.wen = this.add_connection(0,y+16,'WE_'+port.toString());
+            p.clk = this.add_connection(0,y+24,'CLK_'+port.toString());
             y += 40;
         }
 
@@ -1134,8 +1139,45 @@ jade_defs.schematic_view = function(jade) {
         this.draw_text(diagram,nlocns.toString()+"\u00D7"+this.properties.ndata,36,-16,1,diagram.property_font);
     };
 
-    Memory.prototype.netlist = function(prefix) {
-        return undefined;
+    // netlist entry: ["type", {terminal:signal, ...}, {property: value, ...}]
+    Memory.prototype.netlist = function(mlist, globals, prefix, mstack) {
+        if (mlist.indexOf('memory') == -1) return undefined;
+
+        // fill in port data structure, ensuring we have the correct number of
+        // connections for each terminal of each port
+        var plist = [];
+        var connections = {};
+        $.each(this.ports,function (pindex,port) {
+            var p = {};
+            $.each(['addr','data','oe','wen','clk'],function (index,terminal) {
+                var c = port[terminal];
+                var got = c.label.length;
+                var expected = c.nlist.length;
+                if (got != expected) {
+                    this.selected = true;
+                    throw "Expected " + expected + "connections for terminal " + c.name + " of memory " + prefix + this.name + ", got" + got;
+                }
+                for (var i = 0; i < got; i += 1) {
+                    connections[c.nlist[i]] = c.label[i];
+                }
+                p[terminal] = c.label;
+            });
+            plist.push(p);
+        });
+        
+        // turn contents properties into an array of integers
+        var contents = [];
+        $.each(this.properties.contents.split(/\s+/), function (index,v) {
+            if (v) contents.push(Math.floor(jade.utils.parse_number(v)));
+        });
+
+        return [['memory', connections, {
+            name: this.name,
+            ports: plist,
+            width: this.properties.ndata,
+            nlocations: 1 << this.properties.naddr,
+            contents: contents
+        }]];
     };
 
     ///////////////////////////////////////////////////////////////////////////////
