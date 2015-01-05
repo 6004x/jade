@@ -735,7 +735,7 @@ jade_defs.icon_view = function(jade) {
         has_aspect: function () { return false; },
         properties: {
             "name": {
-                "type": "string",
+                "type": "signal",
                 "label": "Terminal name",
                 "value": "???",
                 "edit": "yes"
