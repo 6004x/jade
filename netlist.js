@@ -144,7 +144,7 @@ jade_defs.netlist = function(jade) {
                 var base = c.module.name.toLowerCase().split('/').pop();
                 do { name = gen_name(base); } while (name in cnames);
                 c.name = name; // remember name assignment for next time
-                c.set_property('name',name);   // add property to component
+                // c.set_property('name',name);   // add property to component
                 cnames[name] = c; // add to our list
             }
         }
