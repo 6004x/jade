@@ -266,6 +266,7 @@ jade_defs.test_view = function(jade) {
                 }
             }
             else if (line[0] == '.plotdef') {
+                line = source[k].split(/\s+/);  // reparse as whitespace-separated text
                 // .plotdef name val0 val1 ...
                 if (line.length < 3) {
                     errors.push('Malformed .plotdef statement: '+source[k]);
