@@ -1,5 +1,7 @@
 import sys,random
 
+cycle = 0   # used to count test cycles
+
 # output TEST aspect representation for a value of the specified width
 # specify choices as '01' for inputs
 # specify choices as 'LH' for outputs
@@ -17,12 +19,16 @@ def field(f,width,value,choices,suffix=' '):
 ##################################################
 
 def bool_test_cycle(f,fn,a,b,y):
+    global cycle
+    cycle += 1
     field(f,4,fn,'01')
     field(f,32,a,'01')
     field(f,32,b,'01')
-    field(f,32,y,'LH',suffix='\n')
+    field(f,32,y,'LH')
+    f.write('// {:2d}: fn={:#06b}, a={:#010X}, b={:#010X}, y={:#010X}\n'.format(cycle,fn,a & 0xFFFFFFFF,b & 0xFFFFFFFF,y & 0xFFFFFFFF))
 
 def bool_test(f):
+    cycle = 0
     a = 0xFF00FF00
     b = 0xFFFF0000
     bool_test_cycle(f,0b0000,a,b,0)
@@ -42,18 +48,24 @@ def bool_test(f):
     bool_test_cycle(f,0b1110,a,b,a | b)
     bool_test_cycle(f,0b1111,a,b,-1)
 
-# bool_test(sys.stdout)
+#bool_test(sys.stdout)
 
 ##################################################
 ##  cmp
 ##################################################
 
 def cmp_test_cycle(f,fn,z,v,n,y):
+    global cycle
+    cycle += 1
     field(f,2,fn,'01')
     field(f,3,(z << 2)+(v << 1)+n,'01')
-    field(f,32,y,'LH',suffix='\n')
+    field(f,32,y,'LH')
+    fn = ['CMPEQ','CMPLT','CMPLE'][fn]
+    f.write('// {:2d}: fn={:s}, z={:d}, v={:d}, n={:d}, y={:d}\n'.format(cycle,fn,z,v,n,y & 1))
 
 def cmp_test(f):
+    global cycle
+    cycle = 0
     for zvn in xrange(7):
         z = (zvn >> 2) & 1
         v = (zvn >> 1) & 1
@@ -69,11 +81,14 @@ def cmp_test(f):
 ##################################################
 
 def arith_test_cycle(f,fn,a,b,y,z,v,n):
+    global cycle
+    cycle += 1
     field(f,1,fn,'01')
     field(f,32,a,'01')
     field(f,32,b,'01')
     field(f,32,y,'LH')
-    field(f,3,(z << 2)+(v << 1)+n,'LH',suffix='\n')
+    field(f,3,(z << 2)+(v << 1)+n,'LH')
+    f.write('// {:2d}: fn={:d}, a={:#010X}, b={:#010X}, y={:#010X}\n'.format(cycle,fn,a & 0xFFFFFFFF,b & 0xFFFFFFFF,y & 0xFFFFFFFF))
 
 def arith_result(fn,a,b):
     amsb = (a >> 31) & 1;
@@ -91,6 +106,8 @@ def arith_result(fn,a,b):
     return (y,z,v,n)
 
 def arith_test(f):
+    global cycle
+    cycle = 0
     for fn in (0,1):
         for a in (0,1,-1,0xAAAAAAAA,0x55555555):
             for b in (0,1,-1,0xAAAAAAAA,0x55555555):
@@ -104,13 +121,19 @@ def arith_test(f):
 ##################################################
 
 def shift_test_cycle(f,fn,a,b,y):
+    global cycle
+    cycle += 1
     field(f,2,fn,'01')
     field(f,32,a,'01')
     field(f,5,b,'01')
-    field(f,32,y,'LH',suffix='\n')
+    field(f,32,y,'LH')
+    op = ['SHL','SHR','???','SRA'][fn]
+    f.write('// {:3d}: fn={:s}, a={:#010X}, b={:2d}, y={:#010X}\n'.format(cycle,op,a & 0xFFFFFFFF,b,y & 0xFFFFFFFF))
 
 def shift_test(f):
-    for a in (0,1,0xFFFFFFFF,0x12345678,0xFEDCAB98):
+    global cycle
+    cycle = 0
+    for a in (0,1,0xFFFFFFFF,0x12345678,0xFEDCBA98):
         for b in (0,1,2,4,8,16,31):
             shift_test_cycle(f,0b00,a,b,a << b)
             shift_test_cycle(f,0b01,a,b,a >> b)
@@ -122,8 +145,6 @@ def shift_test(f):
 ##  alu
 ##################################################
 
-cycle = 0
-
 op = [
     "ADD", "SUB", "MUL", "???", "???", "CMPEQ", "???", "CMPLT",
     "SHL", "SHR", "???", "SRA", "???", "CMPLE", "???", "???",
@@ -134,14 +155,13 @@ op = [
 def alu_test_cycle(f,fn,a,b,y):
     global cycle
     cycle += 1
-    f.write('// test %d: fn=%s, a=0x%08x, b=0x%08x, expect y=0x%08x\n' % (cycle,op[fn],a,b,y))
-
     aluy,z,v,n = arith_result(fn & 1,a,b)
     field(f,5,fn,'01')
     field(f,32,a,'01')
     field(f,32,b,'01')
     field(f,32,y,'LH')
-    field(f,3,(z << 2)+(v<<1)+n,'LH',suffix='\n')
+    field(f,3,(z << 2)+(v<<1)+n,'LH')
+    f.write('// %3d: fn=%5s, a=0x%08x, b=0x%08x, y=0x%08x\n' % (cycle,op[fn],a,b,y & 0xFFFFFFFF))
 
 def alu_test(f):
     global cycle
@@ -202,7 +222,7 @@ def alu_test(f):
     alu_test_cycle(f,0b00111,0x7FFFFFFF,0xFFFFFFFF,0) # z=0, v=1, n=1  CMPLT
     alu_test_cycle(f,0b01101,0x7FFFFFFF,0xFFFFFFFF,0) # z=0, v=1, n=1  CMPLE
 
-alu_test(sys.stdout)
+#alu_test(sys.stdout)
 
 ##################################################
 ##  regfile
