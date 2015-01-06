@@ -138,6 +138,7 @@ jade_defs.model = function (jade) {
 
     Module.prototype.clear_modified = function() {
         for (var a in this.aspects) this.aspects[a].clear_modified();
+        this.modified = false;
     };
 
     Module.prototype.property_value = function(pname) {
@@ -1254,13 +1255,6 @@ jade_defs.model = function (jade) {
         var area = p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y);
         return area === 0;
     }
-
-    // helper function for grabbing json
-    jade.json = function (mname) {
-        var m = modules[mname];
-        if (m) m = JSON.stringify(m.json());
-        return m;
-    };
 
     ///////////////////////////////////////////////////////////////////////////////
     //

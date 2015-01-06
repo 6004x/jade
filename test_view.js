@@ -452,7 +452,7 @@ jade_defs.test_view = function(jade) {
                 else if (action[0] == 'sample') {
                     $.each(groups[action[1]],function(index,sindex) {
                         if ("HL".indexOf(test[sindex]) != -1)
-                            sampled_signals[signals[sindex]].push([time,test[sindex]]);
+                            sampled_signals[signals[sindex]].push({t: time,v: test[sindex],i: tindex+1});
                     });
                 }
                 else if (action[0] == 'set') {
@@ -580,7 +580,7 @@ jade_defs.test_view = function(jade) {
                 var tests = [];
                 $.each(sampled_signals,function(node,tvlist) {
                     $.each(tvlist,function(index,tvpair) {
-                        tests.push({n: node, t: tvpair[0], v: tvpair[1]});
+                        tests.push({n: node, t: tvpair.t, v: tvpair.v, i: tvpair.i});
                     });
                 });
                 tests.sort(function(t1,t2) {
@@ -599,9 +599,9 @@ jade_defs.test_view = function(jade) {
                 for (var i = 0; i < tests.length; i += 1) {
                     var test = tests[i];
 
-                    // if we've detected errors at an earlier time, we're done
+                    // if we've detected errors at an earlier test, we're done
                     // -- basically just report all the errors for the first failing test
-                    if (t_error && t_error < test.t) break;
+                    if (t_error && t_error < test.i) break;
 
                     // retrieve history for this node
                     var history = hcache[test.n];
@@ -612,23 +612,23 @@ jade_defs.test_view = function(jade) {
 
                     // check observed value vs. expected value
                     if (mode == 'device') {
-                        v = jade.device_level.interpolate(test.t, history.xvalues, history.yvalues);
+                        v = history === undefined ? undefined : jade.device_level.interpolate(test.t, history.xvalues, history.yvalues);
                         if (v === undefined ||
                             (test.v == 'L' && v > thresholds.Vil) ||
                             (test.v == 'H' && v < thresholds.Vih)) {
-                            errors.push('Expected signal '+test.n+' to be a valid '+test.v+
-                                        ' at time '+jade.utils.engineering_notation(test.t,2)+'s.');
-                            t_error = test.t;
+                            errors.push('Test '+test.i.toString()+': Expected '+test.n+'='+test.v+
+                                        ' at '+jade.utils.engineering_notation(test.t,2)+'s.');
+                            t_error = test.i;
                         }
                     }
                     else if (mode == 'gate') {
-                        v = jade.gate_level.interpolate(test.t, history.xvalues, history.yvalues);
+                        v = history === undefined ? undefined : jade.gate_level.interpolate(test.t, history.xvalues, history.yvalues);
                         if (v === undefined ||
                             (test.v == 'L' && v != 0) ||
                             (test.v == 'H' && v != 1)) {
-                            errors.push('Expected signal '+test.n+' to be a valid '+test.v+
-                                        ' at time '+jade.utils.engineering_notation(test.t,2)+'s.');
-                            t_error = test.t;
+                            errors.push('Test '+test.i.toString()+': Expected '+test.n+'='+test.v+
+                                        ' at '+jade.utils.engineering_notation(test.t,2)+'s.');
+                            t_error = test.i;
                         }
                     }
                     else throw 'Unrecognized simulation mode: '+mode;
