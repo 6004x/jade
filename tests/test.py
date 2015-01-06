@@ -15,6 +15,26 @@ def field(f,width,value,choices,suffix=' '):
     f.write(suffix)
 
 ##################################################
+##  lab2
+##################################################
+
+def lab2_test_cycle(f,a,b,y):
+    global cycle
+    cycle += 1
+    field(f,3,a,'01')
+    field(f,3,b,'01')
+    field(f,4,y,'LH')
+    f.write('// {:2d}: a={:d}, b={:d}, y={:d}\n'.format(cycle,a,b,y))
+
+def lab2_test(f):
+    cycle = 0
+    for a in xrange(8):
+        for b in xrange(8):
+            lab2_test_cycle(f,a,b,a+b)
+
+lab2_test(sys.stdout)
+
+##################################################
 ##  bool
 ##################################################
 
@@ -231,7 +251,7 @@ def alu_test(f):
     alu_test_cycle(f,CMPLT,0x7FFFFFFF,0xFFFFFFFF,0) # z=0, v=1, n=1
     alu_test_cycle(f,CMPLE,0x7FFFFFFF,0xFFFFFFFF,0) # z=0, v=1, n=1
 
-alu_test(sys.stdout)
+#alu_test(sys.stdout)
 
 ##################################################
 ##  regfile
