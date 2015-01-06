@@ -52,7 +52,7 @@ jade_defs.top_level = function(jade) {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.11 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.12 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -119,8 +119,8 @@ jade_defs.top_level = function(jade) {
             // we're full screen, so resize when window resizes
             $(window).on('resize',function() {
                 var body = $('body');
-                win_w = $(window).width() - (body.outerWidth(true) - body.width()) - 8;
-                win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 8;
+                var win_w = $(window).width() - (body.outerWidth(true) - body.width()) - 8;
+                var win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 8;
                 me.resize(win_w,win_h);
             });
         }
@@ -143,6 +143,18 @@ jade_defs.top_level = function(jade) {
         });
 
         return tool;
+    };
+
+    // helper function for grabbing json
+    Jade.prototype.json = function (mname) {
+        var p = new RegExp(mname);
+        var result = {};
+        $.each(jade.model.modules,function (mname,module) {
+            if (p.test(mname)) {
+                result[mname] = module.json();
+            }
+        });
+        return JSON.stringify(result);
     };
 
     // initialize editor from configuration object
@@ -1635,15 +1647,18 @@ jade_defs.top_level = function(jade) {
             var dx = event.pageX - drag_x;
             var dy = event.pageY - drag_y;
 
-            // move window by dx,dy
-            var offset = $(win).offset();
-            offset.top += dy;
-            offset.left += dx;
-            $(win).offset(offset);
-
             // update reference point
             drag_x += dx;
             drag_y += dy;
+
+            // move window by dx,dy
+            var offset = $(win).offset();
+            if (offset) {
+                offset.top += dy;
+                offset.left += dx;
+                $(win).offset(offset);
+            }
+
             return false;
         }
 
@@ -1803,4 +1818,24 @@ jade_defs.top_level = function(jade) {
         window_close: window_close
     };
 
+};
+
+// check for leaking globals by comparing the top-level environment
+// of our window with that of a blank iframe
+jade_defs.global_check = function () {
+    var ignoreList = "$,jQuery,jade_defs".split(',');
+
+    var iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    iframe.src = 'about:blank';
+    iframe = iframe.contentWindow || iframe.contentDocument;
+
+    var differences = [];
+    for (var i in window) {
+        if (typeof iframe[i] != 'undefined') continue;
+        if (ignoreList.indexOf(i) != -1) continue;
+        differences.push(i);
+    }
+    return differences;
 };

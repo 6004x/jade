@@ -130,10 +130,13 @@ jade_defs.schematic_view = function(jade) {
                                          insert_part_allowed);
             part_tool(part,this,'jumper');
 
-            part = this.toolbar.add_tool('memory', 'MEM',
-                                         'Multi-port memory: click and drag to insert', null,
-                                         insert_part_allowed);
-            part_tool(part,this,'memory');
+            // built-in memory component.  Initially hidden, will be enabled if requested
+            // as a wanted part
+            this.memory_part = this.toolbar.add_tool('memory', 'MEM',
+                                                     'Multi-port memory: click and drag to insert', null,
+                                                     insert_part_allowed);
+            part_tool(this.memory_part,this,'memory');
+            this.memory_part.hide();
 
             part = this.toolbar.add_tool('text', jade.icons.text_icon,
                                          'Text: click and drag to insert', null, 
@@ -1217,8 +1220,14 @@ jade_defs.schematic_view = function(jade) {
         var p = this.parts_wanted || '.*';
         if (p) {
             $.each(p.split(','),function (index,p) {
+                var pattern = new RegExp(p);
+
+                // see if we should give access to built-in memory component
+                if (pattern.test('memory'))
+                    parts_bin.editor.memory_part.show();
+
                 // add all matching modules to parts list
-                jade.model.map_modules(new RegExp(p), function (m) {
+                jade.model.map_modules(pattern, function (m) {
                     var name = m.get_name();
                     // only include each module once!
                     if (plist.indexOf(name) == -1) plist.push(name);
