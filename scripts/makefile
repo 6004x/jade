@@ -2,6 +2,9 @@
 
 doit:		pcoff-test
 
+ctlrom:		ctlrom.py
+		python $<
+
 alu-bool-test:	alu-bool-test.py
 		python $<
 
