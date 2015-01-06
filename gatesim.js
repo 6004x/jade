@@ -45,14 +45,17 @@ jade_defs.gatesim = function(jade) {
                     progress.stop_requested = true;
             };
 
-            network.initialize(progress, tstop);
-            try {
-                network.simulate(new Date().getTime() + network.progress.update_interval);
-            }
-            catch (e) {
-                if (typeof e == 'string') progress.finish(e);
-                else throw e;
-            }
+            // give system time to show progress bar before we start simulation
+            setTimeout(function() {
+                try {
+                    network.initialize(progress, tstop);
+                    network.simulate(new Date().getTime() + network.progress.update_interval);
+                }
+                catch (e) {
+                    if (typeof e == 'string') progress.finish(e);
+                    else throw e;
+                }
+            }, 1);
         }
     }
 

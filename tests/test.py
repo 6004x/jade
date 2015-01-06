@@ -28,9 +28,10 @@ def lab2_test_cycle(f,a,b,y):
 
 def lab2_test(f):
     cycle = 0
-    for a in xrange(8):
-        for b in xrange(8):
-            lab2_test_cycle(f,a,b,a+b)
+    for a,b in ((0,1), (1,1), (2, 2), (4, 4), (0, 0), (1, 7), (2, 5), (7,7)):
+        lab2_test_cycle(f,a,b,a+b)
+        if a != b: 
+            lab2_test_cycle(f,b,a,a+b)
 
 lab2_test(sys.stdout)
 

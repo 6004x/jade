@@ -192,13 +192,19 @@ jade_defs.cktsim = function(jade) {
                 if (progress_callback(percent_complete, undefined)) progress.stop_requested = true;
             };
 
-            try {
-                ckt.tran_start(progress, 100, 0, tstop);
-            }
-            catch (e) {
-                if (e instanceof Error) e = e.stack.split('\n').join('<br>');
-                progress.finish(e);
-            }
+            // give system time to show progress bar before we start simulation
+            setTimeout(function() {
+                try {
+                    ckt.tran_start(progress, 100, 0, tstop);
+                }
+                catch (e) {
+                    if (e instanceof Error) e = e.stack.split('\n').join('<br>');
+                    progress.finish(e);
+                }
+            }, 1);
+
+            // simulator will handle the rest...
+            return undefined;
         }
         return undefined;
     }

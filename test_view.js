@@ -576,8 +576,65 @@ jade_defs.test_view = function(jade) {
                     return undefined;
                 }
 
+                // order test by time
+                var tests = [];
+                $.each(sampled_signals,function(node,tvlist) {
+                    $.each(tvlist,function(index,tvpair) {
+                        tests.push({n: node, t: tvpair[0], v: tvpair[1]});
+                    });
+                });
+                tests.sort(function(t1,t2) {
+                    // sort by time, then by name
+                    if (t1.t == t2.t) {
+                        if (t1.n < t2.n) return -1;
+                        else if (t1.n > t2.n) return 1;
+                        else return 0;
+                    } else return t1.t - t2.t;
+                });
+
                 // check the sampled node values for each test cycle
+                var hcache = {};  // cache histories we retrieve
                 var errors = [];
+                var t_error;
+                for (var i = 0; i < tests.length; i += 1) {
+                    var test = tests[i];
+
+                    // if we've detected errors at an earlier time, we're done
+                    // -- basically just report all the errors for the first failing test
+                    if (t_error && t_error < test.t) break;
+
+                    // retrieve history for this node
+                    var history = hcache[test.n];
+                    if (history === undefined) {
+                        history = results._network_.history(test.n);
+                        hcache[test.n] = history;
+                    }
+
+                    // check observed value vs. expected value
+                    if (mode == 'device') {
+                        v = jade.device_level.interpolate(test.t, history.xvalues, history.yvalues);
+                        if (v === undefined ||
+                            (test.v == 'L' && v > thresholds.Vil) ||
+                            (test.v == 'H' && v < thresholds.Vih)) {
+                            errors.push('Expected signal '+test.n+' to be a valid '+test.v+
+                                        ' at time '+jade.utils.engineering_notation(test.t,2)+'s.');
+                            t_error = test.t;
+                        }
+                    }
+                    else if (mode == 'gate') {
+                        v = jade.gate_level.interpolate(test.t, history.xvalues, history.yvalues);
+                        if (v === undefined ||
+                            (test.v == 'L' && v != 0) ||
+                            (test.v == 'H' && v != 1)) {
+                            errors.push('Expected signal '+test.n+' to be a valid '+test.v+
+                                        ' at time '+jade.utils.engineering_notation(test.t,2)+'s.');
+                            t_error = test.t;
+                        }
+                    }
+                    else throw 'Unrecognized simulation mode: '+mode;
+                }
+
+                /*
                 $.each(sampled_signals,function(node,tvlist) {
                     var history = results._network_.history(node);
                     var times = history.xvalues;
@@ -586,14 +643,16 @@ jade_defs.test_view = function(jade) {
                         var v;
                         if (mode == 'device') {
                             v = jade.device_level.interpolate(tvpair[0], times, observed);
-                            if ((tvpair[1] == 'L' && v > thresholds.Vil) ||
+                            if (v === undefined ||
+                                (tvpair[1] == 'L' && v > thresholds.Vil) ||
                                 (tvpair[1] == 'H' && v < thresholds.Vih)) 
                                 errors.push('Expected signal '+node+' to be a valid '+tvpair[1]+
                                             ' at time '+jade.utils.engineering_notation(tvpair[0],2)+'s.');
                         }
                         else if (mode == 'gate') {
                             v = jade.gate_level.interpolate(tvpair[0], times, observed);
-                            if ((tvpair[1] == 'L' && v != 0) ||
+                            if (v === undefined ||
+                                (tvpair[1] == 'L' && v != 0) ||
                                 (tvpair[1] == 'H' && v != 1)) 
                                 errors.push('Expected signal '+node+' to be a valid '+tvpair[1]+
                                             ' at time '+jade.utils.engineering_notation(tvpair[0],2)+'s.');
@@ -601,6 +660,7 @@ jade_defs.test_view = function(jade) {
                         else throw 'Unrecognized simulation mode: '+mode;
                     });
                 });
+                 */
 
                 // construct a data set for {signals: [sig...], dfunction: string, name: string}
                 var plot_colors = ['#268bd2','#dc322f','#859900','#b58900','#6c71c4','#d33682','#2aa198'];
