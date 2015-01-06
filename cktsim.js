@@ -382,7 +382,7 @@ jade_defs.cktsim = function(jade) {
                 for (j = 1; j < connections.length; j += 1) {
                     c = connections[j];
                     while (aliases[c] !== undefined) c = aliases[c];  // follow alias chain
-                    aliases[c] = cname;
+                    if (cname != c) aliases[c] = cname;
                 }
             }
         }
