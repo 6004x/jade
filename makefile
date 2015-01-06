@@ -114,6 +114,11 @@ gates.js: files/gates
 	-- cat files/gates >>gates.js
 	-- echo ",true);};" >>gates.js
 
+gates_icononly.js: files/gates_icononly
+	-- echo "jade_defs.gates = function (jade) { jade.model.load_json(" >gates_icononly.js
+	-- cat files/gates_icononly >>gates_icononly.js
+	-- echo ",true);};" >>gates_icononly.js
+
 edx:	analog.js gates.js
 	grunt jade_edx
 	cp build/jade_edx* build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6.004_mitx/static/

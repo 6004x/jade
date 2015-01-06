@@ -178,7 +178,9 @@ jade_defs.top_level = function(jade) {
 
         // load module files, including those for user?
         if (configuration.modules) {
-            jade.model.load_modules(configuration.modules,false);
+            $.each(configuration.modules.split(','),function (index,mfile) {
+                jade.model.load_modules(mfile,false);
+            });
         }
 
         // display module tools if allowing hierarchy
@@ -486,9 +488,11 @@ jade_defs.top_level = function(jade) {
         dialog('Copy Module',content,copy,offset);
     }
 
+    // add our non-shared modules to localStorage
     function download_modules(j) {
-        var modules = jade.model.json_modules().json;
-        localStorage.setItem('jade_saved_modules',JSON.stringify(modules));
+        var saved_modules = JSON.parse(localStorage.getItem('jade_saved_modules') || "{}");
+        $.extend(saved_modules,jade.model.json_modules().json);
+        localStorage.setItem('jade_saved_modules',JSON.stringify(saved_modules));
     };
 
     function upload_modules(j) {
@@ -504,7 +508,7 @@ jade_defs.top_level = function(jade) {
         });
 
         // build a dialog using up to 3 columns to list modules
-        var row = $('<tr></tr>');
+        var row = $('<tr valign="top"></tr>');
         var ncols = Math.max(3,Math.ceil(select.length/10));
         var nitems = Math.ceil(select.length/ncols);
         var col,index=0,i;
