@@ -771,7 +771,8 @@ jade_defs.test_view = function(jade) {
                 if (plots.length > 0) {
                     var dataseries = []; // plots we want
                     $.each(plots,function(index,plist) {
-                        dataseries.push(new_dataset(plist));
+                        var dataset = new_dataset(plist);
+                        if (dataset) dataseries.push(dataset);
                     });
 
                     // callback to use if user wants to add a new plot

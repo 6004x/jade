@@ -52,8 +52,7 @@ jade_defs.gatesim = function(jade) {
                     network.simulate(new Date().getTime() + network.progress.update_interval);
                 }
                 catch (e) {
-                    if (typeof e == 'string') progress.finish(e);
-                    else throw e;
+                    progress.finish(e);
                 }
             }, 1);
         }
