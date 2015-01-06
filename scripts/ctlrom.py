@@ -133,15 +133,16 @@ def head():
     print "// ..OPC. Z Q SEL L L L L. ..FN. r F L E"
 
 # print CTLROM values for test vector:
-def pctl(ctl):
+def pctl(a, ctl):
+#    print "pctl(0x%x)" % ctl
 
-    opc = ctl >> 2
-    irq = (ctl >> 1) & 1
-    z = ctl & 1
+    opc = a >> 2
+    irq = (a >> 1) & 1
+    z = a & 1
 
     def f(pos, w=1):
         v = (ctl >> pos ) & ((1<<w)-1)
-        return bin(v, w)
+        return lh(v, w)
 
     print "  ", bin(opc, 6), bin(z, 1), bin(irq, 1),
     print f(14,w=3), f(13), f(12), f(11), f(9, w=2), f(4, w=5),
@@ -151,7 +152,7 @@ def pctl(ctl):
 head()
 
 for a in range(1<<IWIDTH):
-    pctl(CTLROM[a])
+    pctl(a, CTLROM[a])
 
 
 
