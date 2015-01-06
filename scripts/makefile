@@ -1,6 +1,6 @@
 # Scripts to generate Jade input tests
 
-doit:		pcoff-test
+doit:		ctlrom
 
 ctlrom:		ctlrom.py
 		python $<
