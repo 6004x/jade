@@ -150,7 +150,7 @@ jade_defs.schematic_view = function(jade) {
         var tools = parent.configuration.tools || [];
         for (var i = 0; i < schematic_tools.length; i += 1) {
             var info = schematic_tools[i]; // [name,icon,tip,callback,enable_check]
-            if (tools !== undefined && $.inArray(info[0],tools) == -1)
+            if (tools.length > 0 && $.inArray(info[0],tools) == -1)
                 continue;  // skip tool if it's not on the list
             this.toolbar.add_tool(info[0], info[1], info[2], info[3], info[4]);
         }
