@@ -53,7 +53,7 @@ jade_defs.top_level = function(jade) {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.14 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.15 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -64,11 +64,11 @@ jade_defs.top_level = function(jade) {
         // set up module tools at the very top
         this.module_tools = this.top_level.find('#module-tools');
         this.module_tools.append('<span>Module:</span><select id="module-select"></select>');
-        this.module_tools.append(this.module_tool(jade.icons.edit_module_icon,'edit-module','Edit/create module',edit_module));
-        this.module_tools.append(this.module_tool(jade.icons.copy_module_icon,'copy-module','Copy current module',copy_module));
-        this.module_tools.append(this.module_tool(jade.icons.delete_module_icon,'delete-module','Delete current module',delete_module));
+        this.module_tools.append(this.module_tool(jade.icons.edit_module_icon,'edit-module','Edit/create module',edit_module,'hierarchy-tool'));
+        this.module_tools.append(this.module_tool(jade.icons.copy_module_icon,'copy-module','Copy current module',copy_module,'hierarchy-tool'));
+        this.module_tools.append(this.module_tool(jade.icons.delete_module_icon,'delete-module','Delete current module',delete_module,'hierarchy-tool'));
         this.module_tools.append(this.module_tool(jade.icons.download_icon,'download-modules','Save modules to local storage',download_modules));
-        this.module_tools.append(this.module_tool(jade.icons.upload_icon,'upload-modules','Select modules to load from local storage',upload_modules));
+        this.module_tools.append(this.module_tool(jade.icons.upload_icon,'upload-modules','Select modules to load from local storage',upload_modules,'hierarchy-tool'));
 
         $('#module-select',this.module_tools).on('change',function () {
             owner.jade.edit($(this).val());
@@ -127,8 +127,9 @@ jade_defs.top_level = function(jade) {
         }
     }
 
-    Jade.prototype.module_tool = function (icon,id,tip,action) {
+    Jade.prototype.module_tool = function (icon,id,tip,action,extra_classes) {
         var tool = $('<span></span>').append(icon).addClass('jade-module-tool jade-tool-enabled').attr('id',id);
+        if (extra_classes) tool.addClass(extra_classes);
 
         var j = this;  // for closure
         tool.on('click',function () {
@@ -171,27 +172,27 @@ jade_defs.top_level = function(jade) {
 
         // load any shared modules from specified files
         if (configuration.shared_modules) {
-            var filenames = configuration.shared_modules.split(',');
-            $.each(filenames,function (index,filename) {
+            $.each(configuration.shared_modules,function (index,filename) {
                 jade.model.load_modules(filename,true);
             });
         }
 
         // load module files, including those for user?
         if (configuration.modules) {
-            $.each(configuration.modules.split(','),function (index,mfile) {
+            if (typeof configuration.modules == 'string')
+                configuration.modules = configuration.modules.split(',');
+            $.each(configuration.modules,function (index,mfile) {
                 jade.model.load_modules(mfile,false);
             });
         }
 
-        // display module tools if allowing hierarchy
-        this.module_tools.toggle(configuration.hierarchical === 'true');
+        $('.hierarchy-tool',this.top_level).toggle(configuration.hierarchical == 'true');
 
         // setup editor panes
         var elist;
         if (configuration.editors) {
             elist = [];
-            $.each(configuration.editors.split(','),function(index,value) {
+            $.each(configuration.editors,function(index,value) {
                 // look through list of defined editors to see if we have a match
                 $.each(editors,function(eindex,evalue) {
                     if (evalue.prototype.editor_name == value) elist.push(evalue);
@@ -314,7 +315,14 @@ jade_defs.top_level = function(jade) {
         this.module = module;
 
         // update list of available modules
-        build_select(Object.keys(jade.model.modules).sort(),module.get_name(),$('#module-select',this.module_tools));
+        var pattern_list = (this.configuration.parts || ['.*']).map(function (p) { return new RegExp(p); });
+        var mlist = [];
+        jade.model.map_modules(pattern_list,function (m) {
+            var name = m.get_name();
+            // only include each module once!
+            if (mlist.indexOf(name) == -1) mlist.push(name);
+        });
+        build_select(mlist.sort(),module.get_name(),$('#module-select',this.module_tools));
 
         if (module.shared) {
             $('#delete-module',this.module_tools).removeClass('jade-tool-enabled');
@@ -362,9 +370,9 @@ jade_defs.top_level = function(jade) {
         var w_extra = e.outerWidth(true) - e.width();
         var h_extra = e.outerHeight(true) - e.height();
         w -= w_extra;
-        h -= h_extra + $('.jade-tabs-div',e).outerHeight(true) + $('.jade-status',e).outerHeight(true);
-        if (this.configuration.hierarchical == 'true')
-            h -= $('#module-tools').outerHeight(true);
+        h -= h_extra + $('#module-tools').outerHeight(true) + 
+            $('.jade-tabs-div',e).outerHeight(true) +
+            $('.jade-status',e).outerHeight(true);
 
         // adjust size of all the tab bodies
         for (var tab in this.tabs) {
@@ -498,7 +506,7 @@ jade_defs.top_level = function(jade) {
 
     function upload_modules(j) {
         // get modules from localStorage
-        var modules = JSON.parse(localStorage.getItem('jade_saved_modules'));
+        var modules = JSON.parse(localStorage.getItem('jade_saved_modules') || '{}');
         var mnames = Object.keys(modules).sort();
 
         // build checkbox selector for each available module

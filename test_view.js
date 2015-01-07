@@ -780,7 +780,7 @@ jade_defs.test_view = function(jade) {
 
                     // graph the result and display in a window
                     var graph1 = jade.plot.graph(dataseries);
-                    var win = jade.window('Test Results',graph1,offset);
+                    var win = jade.window('Test Results: '+(errors.length>0 ? 'errors detected':'passed'),graph1,offset);
 
                     // resize window to 75% of test pane
                     var win_w = Math.floor(0.75*$(diagram.canvas).width());
