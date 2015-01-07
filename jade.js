@@ -3,10 +3,11 @@
 
 // pollute the global namespace with a single variable
 var jade_defs = {};
+var jade_json;   // function for grabbing JSON dumps of modules
 
 // "new jade_defs.jade()" will build a self-contained jade object so we can
 // have multiple instances on the same webpage that don't share any
-// state.
+// state stored in shared variables.
 jade_defs.jade = function() {
     var j = this;
 
@@ -145,8 +146,8 @@ jade_defs.top_level = function(jade) {
         return tool;
     };
 
-    // helper function for grabbing json
-    Jade.prototype.json = function (mname) {
+    // helper function for grabbing json -- make accessible at top level
+    jade_json = function (mname) {
         var p = new RegExp(mname);
         var result = {};
         $.each(jade.model.modules,function (mname,module) {
