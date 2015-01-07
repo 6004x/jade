@@ -261,7 +261,15 @@ jade_defs.cktsim = function(jade) {
     Circuit.prototype.history = function(node) {
         if (this.result === undefined || this.result[node] === undefined)
             return undefined;
-        return {xvalues: this.result._xvalues_, yvalues: this.result[node]};
+        var yvalues = this.result[node];
+        if (typeof yvalues == 'number') {
+            // change a single numeric value into an array of that value
+            var y = yvalues;
+            yvalues = this.result._xvalues_.slice();
+            for (var i = 0; i < yvalues.length; i += 1) yvalues[i] = y;
+            this.result[node] = yvalues;
+        }
+        return {xvalues: this.result._xvalues_, yvalues: yvalues};
     };
 
     Circuit.prototype.result_type = function() { return 'analog'; };

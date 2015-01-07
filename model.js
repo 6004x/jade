@@ -87,10 +87,16 @@ jade_defs.model = function (jade) {
         }
     };
 
-    // apply function to matching modules
-    function map_modules(pattern,f) {
-        $.each(modules,function(mname,module) {
-            if (pattern.test(mname)) f(module);
+    // apply function to matching modules. plist can be an
+    // array of patterns; each pattern should either be
+    // a RegExp or a string that can be converted to one.
+    function map_modules(plist,f) {
+        if (!(plist instanceof Array)) plist = [plist];
+        $.each(plist,function (pindex,p) {
+            if (!(p instanceof RegExp)) p = new RegExp(p);
+            $.each(modules,function(mname,module) {
+                if (p.test(mname)) f(module);
+            });
         });
     }
 

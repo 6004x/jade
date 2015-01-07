@@ -147,8 +147,7 @@ jade_defs.schematic_view = function(jade) {
         }
 
         // add external tools
-        var tools = parent.configuration.tools;
-        if (tools !== undefined) tools = tools.split(',');
+        var tools = parent.configuration.tools || [];
         for (var i = 0; i < schematic_tools.length; i += 1) {
             var info = schematic_tools[i]; // [name,icon,tip,callback,enable_check]
             if (tools !== undefined && $.inArray(info[0],tools) == -1)
@@ -1216,24 +1215,18 @@ jade_defs.schematic_view = function(jade) {
         bin.empty();
         
         // figure out all the parts to appear in parts bin
+        var pattern_list = (this.parts_wanted || ['.*']).map(function (p) { return new RegExp(p); });
         var plist = [];
-        var p = this.parts_wanted || '.*';
-        if (p) {
-            $.each(p.split(','),function (index,p) {
-                var pattern = new RegExp(p);
-
-                // see if we should give access to built-in memory component
-                if (pattern.test('memory'))
-                    parts_bin.editor.memory_part.show();
-
-                // add all matching modules to parts list
-                jade.model.map_modules(pattern, function (m) {
-                    var name = m.get_name();
-                    // only include each module once!
-                    if (plist.indexOf(name) == -1) plist.push(name);
-                });
-            });
-        }
+        jade.model.map_modules(pattern_list,function (m) {
+            var name = m.get_name();
+            // only include each module once!
+            if (plist.indexOf(name) == -1) plist.push(name);
+        });
+        // see if memory part was specified
+        $.each(pattern_list,function (index,p) {
+            if (p.test('memory'))
+                parts_bin.editor.memory_part.show();
+        });
 
         plist.sort();   // arrange alphabetically
 
