@@ -1149,10 +1149,9 @@ jade_defs.model = function (jade) {
                         }
                     }
                     else if (ptype == 'nlist') {
-                        var nlist = v.split(/\s+/);
+                        var nlist = jade.utils.parse_nlist(v);
                         for (var j = 0; j < nlist.length; j += 1) {
-                            if (nlist[j] == '') continue;
-                            if (isNaN(jade.utils.parse_number(nlist[j]))) {
+                            if (isNaN(nlist[j])) {
                                 error = true;
                                 pmsg.text('item '+(j+1).toString()+' not a valid number');
                                 break;

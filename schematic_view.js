@@ -617,8 +617,8 @@ jade_defs.schematic_view = function(jade) {
             }
             else {
                 // draw label at center of wire
-                if (dx === 0) align = 3;
-                else if (dy === 0) align = 7;
+                if (dx === 0) { align = 3; dx += 4; }
+                else if (dy === 0) { align = 7; dy -= 4; }
                 else if (dy / dx > 0) align = 6;
                 else align = 8;
                 this.draw_text(diagram, name, dx >> 1, dy >> 1, align, diagram.property_font);
@@ -1168,11 +1168,11 @@ jade_defs.schematic_view = function(jade) {
             plist.push(p);
         });
         
-        // turn contents properties into an array of integers
-        var contents = [];
-        $.each(this.properties.contents.split(/\s+/), function (index,v) {
-            if (v) contents.push(Math.floor(jade.utils.parse_number(v)));
-        });
+        // turn contents property into an array of integers
+        var contents = jade.utils.parse_nlist(this.properties.contents || '');
+        for (var i = 0; i < contents.length; i += 1) {
+            contents[i] = Math.floor(contents[i]);
+        }
 
         return [['memory', connections, {
             name: this.name,
