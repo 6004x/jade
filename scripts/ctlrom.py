@@ -2,6 +2,18 @@
 
 from testvecutils import *
 
+BETAOP = [
+    "???", "???", "???", "???", "???", "???", "???", "???",
+    "???", "???", "???", "???", "???", "???", "???", "???",
+    "???", "???", "???", "???", "???", "???", "???", "???",
+    "LD",  "ST",  "???", "JMP", "BEQ", "BNE", "???", "LDR",
+    "ADD", "SUB", "MUL", "DIV", "CMPEQ", "CMPLT", "CMPLE", "???", 
+    "AND", "OR",  "XOR", "XNOR","SHL", "SHR", "SRA", "???",
+    "ADDC", "SUBC", "MULC", "DIVC", "CMPEQC", "CMPLTC", "CMPLEC", "???",
+    "ANDC", "ORC", "XORC", "XNORC", "SHLC", "SHRC", "SRAC", "???"
+    ]
+
+
 ################################################################################
 ### Part I: Generate binary CTLROM contents
 ################################################################################
@@ -92,7 +104,7 @@ def BuildCTL():
         # Branches:
         SetCtl(opc=0b011100, z=z, irq=0, # BEQ
                werf=1, wdsel=0, wr=0, wasel=0,
-               pcsel = 1 ^ z)
+               pcsel = z)
         SetCtl(opc=0b011101, z=z, irq=0, # BNE
                werf=1, wdsel=0, wr=0, wasel=0,
                pcsel = 1 ^ z)
@@ -106,14 +118,25 @@ def BuildCTL():
         SetCtl(opc=0b011011, z=z, irq=0,
                werf=1, wdsel=0, wr=0, pcsel=2, wasel=0)
         
+        # LD:
+        SetCtl(opc=0b011000, z=z, irq=0,
+               alufn=0b00000,
+               werf=1, bsel=1, wdsel=2, wr=0, pcsel=0, asel=0, wasel=0)
+
+
+        # ST:
+        SetCtl(opc=0b011001, z=z, irq=0,
+               alufn=0b00000, werf=0, bsel=1, wr=1, pcsel=0, asel=0)
+
 
 BuildCTL()
 print 80*'#'
 print "Control ROM Contents:\n"
-for a in range(0, 1<<IWIDTH, 8):
-    for b in range(8):
+for a in range(0, 1<<IWIDTH, 4):
+    for b in range(4):
+        opc = a >> 2
         print " 0x%05x" % CTLROM[a+b],
-    print
+    print "  // ", BETAOP[opc]
 
 print 80*'#'
 
@@ -146,7 +169,8 @@ def pctl(a, ctl):
 
     print "  ", bin(opc, 6), bin(z, 1), bin(irq, 1),
     print f(14,w=3), f(13), f(12), f(11), f(9, w=2), f(4, w=5),
-    print f(3), f(2), f(1), f(0)
+    print f(3), f(2), f(1), f(0),
+    print " // " + BETAOP[opc]
 
 
 head()
