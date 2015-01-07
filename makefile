@@ -91,7 +91,7 @@ run-bugs:
 # ad-hoc run commands to show various examples:
 
 run-beta:
-	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/beta/vanilla"
+	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/beta/testjig"
 
 run-mul32:
 	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/mul/mul32"
