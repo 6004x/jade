@@ -17,6 +17,9 @@
 #savelibs {
     margin-right: 10px;
 }
+.jade-module-select {
+    padding: 3px;
+}
 .jade-settings-popup {
     display: none;
     position: absolute;

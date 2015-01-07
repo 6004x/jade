@@ -88,6 +88,24 @@ jade_defs.utils = function (jade) {
         return v;
     }
 
+    // parse list of numeric values
+    function parse_nlist(s) {
+        // remove multiline comments, in-line comments
+        s = s.replace(/\/\*(.|\n)*?\*\//g,'');   // multi-line using slash-star
+        s = s.replace(/\/\/.*\n/g,'\n');
+ 
+        // remove various formatting chars
+        s = s.replace(/[+_]/g,'');
+
+        var nlist = s.split(/\s+/);
+        var result = [];
+        for (var i = 0; i < nlist.length; i += 1) {
+            if (nlist[i] == '') continue;
+            result.push(parse_number(nlist[i]));
+        }
+        return result;
+    }
+
     function engineering_notation(n, nplaces, trim) {
         if (n === 0) return '0';
         if (n === undefined) return 'undefined';
@@ -478,6 +496,7 @@ jade_defs.utils = function (jade) {
     return {
         parse_number: parse_number,
         parse_number_alert: parse_number_alert,
+        parse_nlist: parse_nlist,
         engineering_notation: engineering_notation,
         validate_name: validate_name,
         validate_signal: validate_signal,

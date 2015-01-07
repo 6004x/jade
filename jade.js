@@ -3,10 +3,11 @@
 
 // pollute the global namespace with a single variable
 var jade_defs = {};
+var jade_json;   // function for grabbing JSON dumps of modules
 
 // "new jade_defs.jade()" will build a self-contained jade object so we can
 // have multiple instances on the same webpage that don't share any
-// state.
+// state stored in shared variables.
 jade_defs.jade = function() {
     var j = this;
 
@@ -52,7 +53,7 @@ jade_defs.top_level = function(jade) {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.13 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.14 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -145,8 +146,8 @@ jade_defs.top_level = function(jade) {
         return tool;
     };
 
-    // helper function for grabbing json
-    Jade.prototype.json = function (mname) {
+    // helper function for grabbing json -- make accessible at top level
+    jade_json = function (mname) {
         var p = new RegExp(mname);
         var result = {};
         $.each(jade.model.modules,function (mname,module) {
@@ -178,7 +179,9 @@ jade_defs.top_level = function(jade) {
 
         // load module files, including those for user?
         if (configuration.modules) {
-            jade.model.load_modules(configuration.modules,false);
+            $.each(configuration.modules.split(','),function (index,mfile) {
+                jade.model.load_modules(mfile,false);
+            });
         }
 
         // display module tools if allowing hierarchy
@@ -486,9 +489,11 @@ jade_defs.top_level = function(jade) {
         dialog('Copy Module',content,copy,offset);
     }
 
+    // add our non-shared modules to localStorage
     function download_modules(j) {
-        var modules = jade.model.json_modules().json;
-        localStorage.setItem('jade_saved_modules',JSON.stringify(modules));
+        var saved_modules = JSON.parse(localStorage.getItem('jade_saved_modules') || "{}");
+        $.extend(saved_modules,jade.model.json_modules().json);
+        localStorage.setItem('jade_saved_modules',JSON.stringify(saved_modules));
     };
 
     function upload_modules(j) {
@@ -504,7 +509,7 @@ jade_defs.top_level = function(jade) {
         });
 
         // build a dialog using up to 3 columns to list modules
-        var row = $('<tr></tr>');
+        var row = $('<tr valign="top"></tr>');
         var ncols = Math.max(3,Math.ceil(select.length/10));
         var nitems = Math.ceil(select.length/ncols);
         var col,index=0,i;
