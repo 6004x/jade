@@ -126,4 +126,4 @@ edx:	analog.js gates.js
 
 6004:	analog.js gates.js
 	grunt jade_6004
-	scp build/jade_6004* build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* 6004:coursewarex/
+	scp build/jade_6004.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* 6004:coursewarex/
