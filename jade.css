@@ -286,6 +286,8 @@
 .plot-container {
   background-color: #EEEEEE;
   line-height: 1;
+}
+.plot-waveforms {
   overflow-x: hidden;
   overflow-y: auto;
 }

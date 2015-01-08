@@ -81,6 +81,9 @@ jade_defs.plot = function(jade) {
 
         container.append(toolbar);
 
+        var waveforms = $('<div class="plot-waveforms"></div>');
+        container.append(waveforms);
+
         // set up scroll bar
         container.append('<div class="plot-scrollbar-wrapper"><div class="plot-scrollbar"><div class="plot-scrollbar-thumb"></div></div></div>');
 
@@ -203,8 +206,8 @@ jade_defs.plot = function(jade) {
 
                     // replot remaining datasets
                     do_plot(container[0],container.width(),container.height());
+                    event.preventDefault();
                 }
-                event.preventDefault();
             });
 
             // double-click zooms in, shift double-click zooms out
@@ -218,8 +221,8 @@ jade_defs.plot = function(jade) {
                     var xrange = dataset.dataseries.xend - dataset.dataseries.xstart;
                     if (event.shiftKey) do_zoom(xrange*2,gx);
                     else do_zoom(xrange/2,gx);
+                    event.preventDefault();
                 }
-                event.preventDefault();
             });
 
             // use arrow keys to pan (ie, move the scrollbar thumb)  [doesn't work?]
@@ -242,8 +245,8 @@ jade_defs.plot = function(jade) {
                     gy >= dataset.top && gy <= dataset.top + dataset.hplot) {
                     event.preventDefault();
                     move_thumb(event.originalEvent.wheelDelta > 0 ? -1 : 1);
+                    event.preventDefault();
                 }
-                event.preventDefault();
             });
 
             // dragging in plot creates a selection region
@@ -258,6 +261,7 @@ jade_defs.plot = function(jade) {
                     dataseries.sel0 = dataseries.cursor;   // remember start of region
                     dataseries.sel1 = undefined;
                     dataseries.sel = true;
+                    event.preventDefault();
                 }
 
                 $(document).on('mouseup',function (event) {
@@ -267,7 +271,6 @@ jade_defs.plot = function(jade) {
                     event.preventDefault();
                 });
 
-                event.preventDefault();
             });
 
             // track mouse to display vertical cursor & measurements
@@ -281,10 +284,12 @@ jade_defs.plot = function(jade) {
                     gy >= dataset.top && gy <= dataset.top + dataset.hplot) {
                     dataseries.cursor = Math.floor(gx) + 0.5;
                     if (dataseries.sel) dataseries.sel1 = dataseries.cursor;
-                } else dataseries.cursor = undefined;
-
-                graph_redraw(dataseries);
-                event.preventDefault();
+                    graph_redraw(dataseries);
+                    event.preventDefault();
+                } else if (dataseries.cursor) {
+                    dataseries.cursor = undefined;
+                    graph_redraw(dataseries);
+                }
             });
 
             dataset.bg_image = $('<canvas></canvas>');
@@ -299,7 +304,9 @@ jade_defs.plot = function(jade) {
                     context.backingStorePixelRatio || 1;
             dataset.pixelRatio = devicePixelRatio / backingStoreRatio;
 
-            dataset.canvas.insertBefore(container.find('.plot-scrollbar-wrapper'));
+            waveforms.append(dataset.canvas);
+            //dataset.canvas.insertBefore(container.find('.plot-scrollbar-wrapper'));
+
         }
 
         // compute value bounds, set up canvas
@@ -388,6 +395,7 @@ jade_defs.plot = function(jade) {
 
         $(container).width(w);
         $(container).height(h);
+        $('.plot-waveforms',container).height(h - 60);
 
         $.each(dataseries,function (index,dataset) {
             dataset.canvas.width(w);
