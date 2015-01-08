@@ -209,6 +209,7 @@ jade_defs.test_view = function(jade) {
         source = source.replace(/\/\/.*\n/g,'\n');
 
         var i,j,k,v;
+        var repeat = 1;
         var mode = 'device';  // which simulation to run
         var plots = [];     // list of signals to plot
         var tests = [];     // list of test lines
@@ -332,6 +333,13 @@ jade_defs.test_view = function(jade) {
                     break;
                 }
             }
+            else if (line[0] == '.repeat') {
+                repeat = parseInt(line[1]);
+                if (isNaN(repeat) || repeat < 1) {
+                    errors.push('Expected positive integer for .repeat: '+line[1]);
+                    repeat = 1;
+                }
+            }
             else if (line[0][0] == '.') {
                 errors.push('Unrecognized control statment: '+source[k]);
             }
@@ -349,7 +357,9 @@ jade_defs.test_view = function(jade) {
                         break;
                     }
                 }
-                tests.push(test);
+                // repeat the test the request number of times, leave repeat at 1
+                while (repeat--) tests.push(test);
+                repeat = 1;
             }
         };
 
@@ -913,7 +923,7 @@ jade_defs.test_view = function(jade) {
         $.each(driven_signals,function(node) {
             netlist.push({type:'tristate',
                           connections:{e:node+'_enable', a:node+'_data', z:node},
-                          properties:{name: node+'_input_driver', tcd: 0, tpd: 100e-12, tr: 5000, tf: 5000, cin:0, size:0}});
+                          properties:{name: node+'_input_driver', tcd: 0, tpd: 100e-12, tr: 0, tf: 0, cin:0, size:0}});
         });
 
 
