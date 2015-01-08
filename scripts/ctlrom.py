@@ -126,7 +126,7 @@ def BuildCTL():
 
         # ST:
         SetCtl(opc=0b011001, z=z, irq=0,
-               alufn=0b00000, werf=0, bsel=1, wr=1, pcsel=0, asel=0)
+               alufn=0b00000, werf=0, bsel=1, wr=1, ra2sel=1, pcsel=0, asel=0)
 
 
 BuildCTL()
