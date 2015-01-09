@@ -204,6 +204,9 @@ jade_defs.test_view = function(jade) {
         test_results[module.get_name()] = 'Error detected: test did not yield a result.';
         var msg;
 
+        var md5sum = jade.utils.md5(source);  // for server-side verification
+        jade_defs.md5sum = md5sum;
+
         // remove multiline comments, in-line comments
         source = source.replace(/\/\*(.|\n)*?\*\//g,'');   // multi-line using slash-star
         source = source.replace(/\/\/.*\n/g,'\n');
@@ -813,7 +816,7 @@ jade_defs.test_view = function(jade) {
                     test_results[module.get_name()] = 'Error detected: '+msg;
                 } else {
                     diagram.message('Test succesful!');
-                    test_results[module.get_name()] = 'passed';
+                    test_results[module.get_name()] = 'passed '+md5sum;
                 }
 
                 return undefined;
