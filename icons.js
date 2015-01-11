@@ -5,12 +5,6 @@ jade_defs.icons = function(jade) {
 
     jade.icons = {};
 
-    jade.icons.edit_module_icon = '<span class="fa fa-fw fa-pencil-square-o fa-lg"></span>';
-
-    jade.icons.copy_module_icon = '<span class="fa fa-fw fa-copy fa-lg"></span>';
-
-    jade.icons.delete_module_icon = '<span class="fa fa-fw fa-trash-o fa-lg"></span>';
-
     jade.icons.grid_icon = '<span class="fa fa-fw fa-th"></span>';
 
     jade.icons.actions_icon = '<span class="fa fa-file-o"></span>';
@@ -113,12 +107,20 @@ jade_defs.icons = function(jade) {
         '<path d="M 0 4 h 6 M 0 12 h 6 M 6 2 v 12 M 12 8 h 4 M 6 2 C 6 2 12 0 12 8 M 6 14 C 6 15 12 14 12 8" stroke="black" fill="none"/>' +
         '</svg></span>';
 
+    jade.icons.timing_icon = '<span class="fa fa-fw fa-lg fa-clock-o"></span>';
+
+    jade.icons.edit_module_icon = '<span class="fa fa-fw fa-lg fa-pencil-square-o fa-lg"></span>';
+
+    jade.icons.copy_module_icon = '<span class="fa fa-fw fa-lg fa-copy fa-lg"></span>';
+
+    jade.icons.delete_module_icon = '<span class="fa fa-fw fa-lg fa-trash-o fa-lg"></span>';
+
     jade.icons.readonly = '<i class="fa fa-ban" style="color:red;"></i>';
 
-    jade.icons.download_icon = '<span class="fa fw-fw fa-download"></span>';
+    jade.icons.download_icon = '<span class="fa fa-fw fa-lg fa-download"></span>';
 
-    jade.icons.upload_icon = '<span class="fa fw-fw fa-upload"></span>';
+    jade.icons.upload_icon = '<span class="fa fa-fw fa-lg fa-upload"></span>';
 
-    jade.icons.recycle_icon = '<span class="fa fw-fw fa-recycle"></span>';
+    jade.icons.recycle_icon = '<span class="fa fa-fw fa-lg fa-recycle"></span>';
 
 };

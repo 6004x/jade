@@ -699,7 +699,7 @@ jade_defs.test_view = function(jade) {
                                     xv.push(history.xvalues);
                                     yv.push(history.yvalues);
                                     t.push(results._network_.result_type());
-                                }
+                                } else throw "No node named "+sig;
                             });
 
                             // merge multibit xvalues and yvalues into xvalues and integers
@@ -748,7 +748,7 @@ jade_defs.test_view = function(jade) {
                                     yvalues.push(history.yvalues);
                                     name.push(sig);
                                     type.push(results._network_.result_type());
-                                }
+                                } else throw "No node named "+sig;
                             });
                         }
                     });
@@ -767,15 +767,19 @@ jade_defs.test_view = function(jade) {
 
                 // called by plot.graph when user wants to plot another signal
                 function add_plot(signal) {
-                    // construct data set for requested signal
-                    var line = signal.match(/([A-Za-z0-9_.:\[\]]+|=|-|,|\(|\))/g);
-                    var errors = [];
-                    var plist = parse_plot(line,errors);
-                    if (errors.length === 0)
-                        dataseries.push(new_dataset(plist));
-                    else {
-                        msg = '<ul><li>'+errors.join('<li>')+'</ul>';
-                        diagram.message(msg);
+                    try {
+                        // construct data set for requested signal
+                        var line = signal.match(/([A-Za-z0-9_.:\[\]]+|=|-|,|\(|\))/g);
+                        var errors = [];
+                        var plist = parse_plot(line,errors);
+                        if (errors.length > 0)
+                            throw '<li>'+errors.join('<li>');
+                        var dataset = new_dataset(plist);
+                        if (dataset) dataseries.push(dataset);
+                    } catch (e) {
+                        jade.window("Error in Add Plot",
+                                    $('<div class="jade-alert"></div>').html(e),
+                                    offset);
                     }
                 }
 
@@ -784,7 +788,11 @@ jade_defs.test_view = function(jade) {
                 if (plots.length > 0) {
                     var dataseries = []; // plots we want
                     $.each(plots,function(index,plist) {
-                        var dataset = new_dataset(plist);
+                        try {
+                            var dataset = new_dataset(plist);
+                        } catch (e) {
+                            errors.push(e);
+                        }
                         if (dataset) dataseries.push(dataset);
                     });
 
@@ -793,6 +801,19 @@ jade_defs.test_view = function(jade) {
 
                     // graph the result and display in a window
                     var graph1 = jade.plot.graph(dataseries);
+
+                    // provide option for a brief report of stats, if supported
+                    if (results.report) {
+                        var b = $('<button style="margin-left:10px">Stats</button>');
+                        b.on('click',function () {
+                            var offset = $(diagram.canvas).offset();
+                            offset.top += 30;
+                            offset.left += 30;
+                            jade.window('Circuit statistics',results.report(),offset);
+                        });
+                        $('.plot-toolbar',graph1).append(b);
+                    }
+
                     var win = jade.window('Test Results: '+(errors.length>0 ? 'errors detected':'passed'),graph1,offset);
 
                     // resize window to 75% of test pane

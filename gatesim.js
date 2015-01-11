@@ -59,9 +59,9 @@ jade_defs.gatesim = function(jade) {
     }
 
     // return string describing timing results
-    function timing_analysis(netlist,options,maxpaths) {
+    function timing_analysis(netlist,maxpaths) {
         if (maxpaths === undefined) maxpaths = 10;
-        var network = new Network(netlist, options);
+        var network = new Network(netlist, {timing_analysis: true});
 
         var analysis;
         try {
@@ -74,7 +74,7 @@ jade_defs.gatesim = function(jade) {
         function describe_tpd(from,to,tpd,result) {
             if (tpd.length == 0) return result;
 
-            result += '<p><hr><p>';
+            if (result) result += '<p><hr><p>';
             result += 'Worst-case t<sub>PD</sub> from '+from+' to '+to+'\n';
 
             // sort by pd_sum, longest first
@@ -113,7 +113,7 @@ jade_defs.gatesim = function(jade) {
 
             // report hold-time violations, if any
             if (th_violations.length > 0) {
-                result += '<p><hr><p>';
+                if (result) result += '<p><hr><p>';
                 result += 'Hold-time violations for '+clk.name+'\u2191:\n';
                 $.each(th_violations,function (index,tinfo) {
                     result += '\n  tCD from '+tinfo.get_tcd_source().name+" to "+tinfo.cd_link.name+" violates hold time by "+(tinfo.cd_sum*1e9).toFixed(3)+"ns:\n";
@@ -308,7 +308,7 @@ jade_defs.gatesim = function(jade) {
 
     Network.prototype.report = function() {
         var network = this;
-        var result = $('<div></div>');
+        var result = $('<div style="padding:5px"></div>');
 
         // Benmark = 1e-10/(size_in_m**2 * simulation_time_in_s)
         var benmark = 1e-10/((network.size*1e-12) * network.time);
@@ -332,7 +332,7 @@ jade_defs.gatesim = function(jade) {
         }
 
         // table of component counts and sizes
-        var tbl = $('<table class="size-table"><tr><th>Component</th><th>Count</th><th>Size (\u03BC\u00B2)</th></tr></table>');
+        var tbl = $('<table class="size-table" border="1" cellpadding="3" style="border-collapse:collapse"><tr><th>Component</th><th>Count</th><th>Size (\u03BC\u00B2)</th></tr></table>');
         tbl.append('<tr><td><i>nodes</i></td><td class="number">'+this.N+'</td><td></td></tr>');
 
         var total = 0;
@@ -730,7 +730,8 @@ jade_defs.gatesim = function(jade) {
             if (nfanouts > 0) {
 	        // SAW 10/3/14: I used this to track down a missing connection...
 	        // console.log('Node ', this, ' is not connected to any output.');
-                throw 'Node ' + this.name + ' is not connected to any output.';
+                if (!this.network.options.timing_analysis)
+                    throw 'Node ' + this.name + ' is not connected to any output.';
             } else return;  // no drivers, no fanouts... not interesting :)  
         }
         if (this.capacitance === 0) this.capacitance = c_intercept + c_slope * (ndrivers + nfanouts);
@@ -743,7 +744,7 @@ jade_defs.gatesim = function(jade) {
             this.capacitance += this.fanouts[i].capacitance(this);
 
         // if there is only 1 driver then that device is the driver for this node
-        if (ndrivers == 1) {
+        if (ndrivers <= 1) {
             this.driver = this.drivers[0];
             this.drivers = undefined;
             return;
@@ -1091,6 +1092,7 @@ jade_defs.gatesim = function(jade) {
         'and3': [['a', 'b', 'c'], 'z', AndTable],
         'and4': [['a', 'b', 'c', 'd'], 'z', AndTable],
         'buffer': [['a'], 'z', AndTable],
+        'buffer_h': [['a'], 'z', AndTable],
         'inverter': [['a'], 'z', NandTable],
         'mux2': [['s', 'd0', 'd1'], 'y', Mux2Table],
         'mux4': [['s[0]', 's[1]', 'd0', 'd1', 'd2', 'd3'], 'y', Mux4Table],
@@ -1377,14 +1379,17 @@ jade_defs.gatesim = function(jade) {
             if (event.type != PROPAGATE) return;  // no contamination events allowed!
 
             // if CLK is 0, master latch (ie, state) follows D input
-            if (this.clk.v == V0) this.state = this.d.v;
+            if (this.clk.v == V0) {
+                this.state = this.d.v;
+                this.edge_possible = true;   // remember clk value so we can detect rising edges
+            }
             // otherwise we only care about event if CLK is changing
             else if (this.clk == cause) {
                 if (this.clk.v == V1) {  // rising clock edge!
                     // track minimum setup time we see
                     var now = this.network.time;
                     var d_time = this.d.last_event_time();
-                    if (d_time !== undefined) {
+                    if (d_time !== undefined && this.edge_possible) {
                         if (now > 0) {
                             var tsetup = now - d_time;
                             if (this.min_setup === undefined || tsetup < this.min_setup) {
@@ -1394,6 +1399,7 @@ jade_defs.gatesim = function(jade) {
                         }
                     }
                     // report setup time violations?
+                    this.edge_possible = false;
 
                     // for lenient dreg's, q output is contaminated only
                     // when new output value differs from current one

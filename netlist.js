@@ -281,17 +281,21 @@ jade_defs.netlist = function(jade) {
             if (mlist.indexOf(this.type()) != -1) {
                 // if leaf, create netlist entry
                 var props = this.clone_properties(false);
-                props.name = prefix + this.name;
-                // start generated names with index at MSB
-                if (ninstances > 1) props.name += '[' + (ninstances - 1 - i).toString() + ']';
+                if (this.name !== undefined) {
+                    props.name = prefix + this.name.toLowerCase();
+                    // start generated names with index at MSB
+                    if (ninstances > 1) props.name += '[' + (ninstances - 1 - i).toString() + ']';
+                }
                 netlist.push([this.type(), port_map, props]);
             }
             else if (this.has_aspect('schematic')) {
                 var sch = this.module.aspect('schematic');
                 // extract component's schematic, add to our netlist
-                var p = prefix + this.name;
-                if (ninstances > 1) p += '[' + (ninstances - 1 - i).toString() + ']';
-                p += '.'; // hierarchical name separator
+                if (this.name !== undefined) {
+                    var p = prefix + this.name.toLowerCase();
+                    if (ninstances > 1) p += '[' + (ninstances - 1 - i).toString() + ']';
+                    p += '.'; // hierarchical name separator
+                }
                 var result = sch.netlist(mlist, globals, p, port_map, mstack);
                 netlist.push.apply(netlist, result);
             }
@@ -382,9 +386,9 @@ jade_defs.netlist = function(jade) {
         $.each(netlist,function(index,device){
             if (device.type != 'ground')
                 for (var c in device.connections)
-                    nodes[device.connections[c]] = null;  // add to dictionary
+                    nodes[device.connections[c].toLowerCase()] = null;  // add to dictionary
             else
-                nodes[device.connections[0]] = null;
+                nodes[device.connections[0].toLowerCase()] = null;
         });
 
         return Object.keys(nodes);

@@ -33,7 +33,7 @@ def lab2_test(f):
         if a != b: 
             lab2_test_cycle(f,b,a,a+b)
 
-lab2_test(sys.stdout)
+#lab2_test(sys.stdout)
 
 ##################################################
 ##  bool
@@ -253,6 +253,103 @@ def alu_test(f):
     alu_test_cycle(f,CMPLE,0x7FFFFFFF,0xFFFFFFFF,0) # z=0, v=1, n=1
 
 #alu_test(sys.stdout)
+
+##################################################
+##  alu timing
+##################################################
+
+last_y = None
+
+def alu_timing_test_cycle(f,fn,a,b,y):
+    global cycle,last_y
+    cycle += 1
+    field(f,6,fn,'01')
+    field(f,32,a,'01')
+    field(f,32,b,'01')
+    field(f,32,last_y,'LH')
+    if last_y is None:
+        ytxt = 'not checked'
+    else:
+        ytxt = '0x%08x' % (last_y & 0xFFFFFFFF)
+    f.write('// %3d: fn=%5s, a=0x%08x, b=0x%08x, y=%s\n' % (cycle,op[fn],a,b,ytxt))
+    last_y = y
+
+def alu_timing_test(f):
+    global cycle,last_y
+    cycle = 0
+    last_y = None
+
+    # test boole
+    BOOL = 0b100000
+    a = 0xFF00FF00
+    b = 0xFFFF0000
+    alu_timing_test_cycle(f,BOOL + 0b0000,a,b,0)
+    alu_timing_test_cycle(f,BOOL + 0b0001,a,b,~(a | b))
+    alu_timing_test_cycle(f,BOOL + 0b0010,a,b,a & ~b)
+    alu_timing_test_cycle(f,BOOL + 0b0011,a,b,~b)
+    alu_timing_test_cycle(f,BOOL + 0b0100,a,b,~a & b)
+    alu_timing_test_cycle(f,BOOL + 0b0101,a,b,~a)
+    alu_timing_test_cycle(f,BOOL + 0b0110,a,b,a ^ b)
+    alu_timing_test_cycle(f,BOOL + 0b0111,a,b,~(a & b))
+    alu_timing_test_cycle(f,BOOL + 0b1000,a,b,a & b)
+    alu_timing_test_cycle(f,BOOL + 0b1001,a,b,~(a ^ b))
+    alu_timing_test_cycle(f,BOOL + 0b1010,a,b,a)
+    alu_timing_test_cycle(f,BOOL + 0b1011,a,b,a | ~b)
+    alu_timing_test_cycle(f,BOOL + 0b1100,a,b,b)
+    alu_timing_test_cycle(f,BOOL + 0b1101,a,b,~a | b)
+    alu_timing_test_cycle(f,BOOL + 0b1110,a,b,a | b)
+    alu_timing_test_cycle(f,BOOL + 0b1111,a,b,-1)
+
+    # test shift
+    SHL = 0b110000
+    SHR = 0b110001
+    SRA = 0b110011
+    for a in (0,1,0xFFFFFFFF,0x12345678,0xFEDCAB98):
+        for b in (0,1,2,4,8,16,31):
+            alu_timing_test_cycle(f,SHL,a,b,a << b)
+            alu_timing_test_cycle(f,SHR,a,b,a >> b)
+            alu_timing_test_cycle(f,SRA,a,b,(a if a < 0x80000000 else 0xFFFFFFFF00000000+a) >> b)
+
+    # test arith
+    ADD = 0b010000
+    SUB = 0b010001
+    for fn in (ADD, SUB):
+        for a in (0,1,-1,0xAAAAAAAA,0x55555555):
+            for b in (0,1,-1,0xAAAAAAAA,0x55555555):
+                y,z,v,n = arith_result(fn,a,b)
+                alu_timing_test_cycle(f,fn,a,b,y)
+
+    # test cmp
+    CMPEQ = 0b000011
+    CMPLT = 0b000101
+    CMPLE = 0b000111
+    alu_timing_test_cycle(f,CMPEQ,0x00000005,0xDEADBEEF,0) # z=0, v=0, n=0
+    alu_timing_test_cycle(f,CMPLT,0x00000005,0xDEADBEEF,0) # z=0, v=0, n=0
+    alu_timing_test_cycle(f,CMPLE,0x00000005,0xDEADBEEF,0) # z=0, v=0, n=0
+
+    alu_timing_test_cycle(f,CMPEQ,0x12345678,0x12345678,1) # z=1, v=0, n=0
+    alu_timing_test_cycle(f,CMPLT,0x12345678,0x12345678,0) # z=1, v=0, n=0
+    alu_timing_test_cycle(f,CMPLE,0x12345678,0x12345678,1) # z=1, v=0, n=0
+
+    alu_timing_test_cycle(f,CMPEQ,0x80000000,0x00000001,0) # z=0, v=1, n=0
+    alu_timing_test_cycle(f,CMPLT,0x80000000,0x00000001,1) # z=0, v=1, n=0
+    alu_timing_test_cycle(f,CMPLE,0x80000000,0x00000001,1) # z=0, v=1, n=0
+
+    alu_timing_test_cycle(f,CMPEQ,0xDEADBEEF,0x00000005,0) # z=0, v=0, n=1
+    alu_timing_test_cycle(f,CMPLT,0xDEADBEEF,0x00000005,1) # z=0, v=0, n=1
+    alu_timing_test_cycle(f,CMPLE,0xDEADBEEF,0x00000005,1) # z=0, v=0, n=1
+
+    alu_timing_test_cycle(f,CMPEQ,0x7FFFFFFF,0xFFFFFFFF,0) # z=0, v=1, n=1
+    alu_timing_test_cycle(f,CMPLT,0x7FFFFFFF,0xFFFFFFFF,0) # z=0, v=1, n=1
+    alu_timing_test_cycle(f,CMPLE,0x7FFFFFFF,0xFFFFFFFF,0) # z=0, v=1, n=1
+
+    # worst-case timing
+    alu_timing_test_cycle(f,1,0,0,None)
+    alu_timing_test_cycle(f,CMPLT,0x7FFFFFFF,0xFFFFFFFF,0) # z=0, v=1, n=1
+    alu_timing_test_cycle(f,0,0,0,None)
+    alu_timing_test_cycle(f,0,0,0,None)
+
+alu_timing_test(sys.stdout)
 
 ##################################################
 ##  regfile

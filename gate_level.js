@@ -150,7 +150,7 @@ jade_defs.gate_level = function(jade) {
                 var progress = jade.progress_report();
                 diagram.window('Progress', progress); // display progress bar
 
-                gatesim.transient_analysis(netlist,tstop,probe_names,function(percent_complete,results) {
+                jade.gatesim.transient_analysis(netlist,tstop,probe_names,function(percent_complete,results) {
                     if (results === undefined) {
                         progress[0].update_progress(percent_complete);
                         return progress[0].stop_requested;
@@ -214,6 +214,48 @@ jade_defs.gate_level = function(jade) {
         }
         return undefined;
     }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    //
+    // Timing analysis
+    //
+    //////////////////////////////////////////////////////////////////////////////
+
+    function do_timing(diagram) {
+        // use modules in the gates library as the leafs
+        var netlist;
+        try {
+            netlist = diagram_gate_netlist(diagram,[]);
+        }
+        catch (e) {
+            jade.window('Errors extracting netlist',
+                        $('<div class="jade-alert"></div>').html(e),
+                        $(diagram.canvas).offset());
+            return;
+        }
+
+        var timing;
+        try {
+            timing = jade.gatesim.timing_analysis(netlist);
+            timing = $('<pre style="width:600px;height:400px;padding:5px;overflow-y:auto;overflow-x:hidden;"></pre>').append(timing);
+            timing = timing[0];
+
+            timing.resize = function(me,w,h) {
+                $(me).height(h);
+                $(me).width(w);
+            };
+
+            jade.window('Timing analysis',timing,$(diagram.canvas).offset());
+        }
+        catch (e) {
+            jade.window('Errors during timing analysis',
+                        $('<div class="jade-alert"></div>').html(e),
+                        $(diagram.canvas).offset());
+        }
+    }
+
+    // add timing analysis to tool bar
+    jade.schematic_view.schematic_tools.push(['timing', jade.icons.timing_icon, 'Gate-level timing analysis', do_timing]);
 
     ///////////////////////////////////////////////////////////////////////////////
     //
