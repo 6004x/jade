@@ -119,4 +119,6 @@ jade_defs.icons = function(jade) {
 
     jade.icons.upload_icon = '<span class="fa fw-fw fa-upload"></span>';
 
+    jade.icons.recycle_icon = '<span class="fa fw-fw fa-recycle"></span>';
+
 };

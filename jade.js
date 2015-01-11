@@ -69,6 +69,7 @@ jade_defs.top_level = function(jade) {
         this.module_tools.append(this.module_tool(jade.icons.delete_module_icon,'delete-module','Delete current module',delete_module,'hierarchy-tool'));
         this.module_tools.append(this.module_tool(jade.icons.download_icon,'download-modules','Save modules to local storage',download_modules));
         this.module_tools.append(this.module_tool(jade.icons.upload_icon,'upload-modules','Select modules to load from local storage',upload_modules,'hierarchy-tool'));
+        this.module_tools.append(this.module_tool(jade.icons.recycle_icon,'start-over','Discard all work on this problem and start over',start_over));
 
         $('#module-select',this.module_tools).on('change',function () {
             owner.jade.edit($(this).val());
@@ -166,6 +167,8 @@ jade_defs.top_level = function(jade) {
 
         // remember who we are
         this.id = configuration.id;
+
+        $('#start-over',this.module_tools).toggle(configuration.state && configuration.initial_state);
 
         // initialize object for recording test results
         if (configuration.tests === undefined) configuration.tests = {};
@@ -546,6 +549,18 @@ jade_defs.top_level = function(jade) {
         // let user choose
         dialog('Select modules to load',contents,upload,{top: 10, left:10});
     };
+
+    function start_over(j) {
+        function restart() {
+            delete j.configuration.state;
+            delete j.configuration.tests;
+            j.initialize(j.configuration);
+        }
+
+        dialog('Start over?',
+               $('<span>Click OK to discard all work on this problem and start over again.</span>'),
+               restart,{top: 10, left:10});
+    }
 
     /*
     function copy_library(diagram) {

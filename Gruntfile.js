@@ -71,7 +71,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
 
     grunt.registerTask('jade_6004', ['copy:jade_6004', 'copy:font_awesome', 'useminPrepare:jade_6004', 'concat', 'uglify', 'usemin:jade_6004']);
-    grunt.registerTask('jade_edx', ['copy:jade_edx', 'copy:font_awesome', 'useminPrepare:jade_edx', 'concat', 'uglify', 'usemin:jade_edx']);
+    grunt.registerTask('jade_edx', ['copy:jade_edx', 'copy:font_awesome', 'useminPrepare:jade_edx', 'concat', 'usemin:jade_edx']);
     grunt.registerTask('jade_local', ['copy:jade_local', 'copy:font_awesome', 'useminPrepare:jade_local', 'concat', 'uglify', 'usemin:jade_local']);
 
     // Builds everything if just called as 'grunt'

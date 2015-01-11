@@ -95,6 +95,16 @@ jade_defs.services = function (jade) {
 
         // skip if this div has already been configured
         if (div.jade === undefined) {
+            // if this Jade needs to save state, make sure user
+            // doesn't navigate away unintentionally
+            if ($(div).hasClass('jade-save-state'))
+                jade.unsaved_changes = function(which) {
+                    if (which && $('body').attr('data-dirty') === undefined)
+                        $('body').attr('data-dirty','true');
+                    else if (!which && $('body').attr('data-dirty') !== undefined)
+                        $('body').removeAttr('data-dirty');
+                };
+
             var config = {};
 
             // use text from jade.div, if any
@@ -128,4 +138,11 @@ $(document).ready(function () {
             jade.getGrade = j.getGrade;
         }
     });
+});
+
+// notify user of unsaved changes
+$(window).bind('beforeunload',function () {
+    if ($('body').attr('data-dirty') !== undefined)
+        return 'You have unsaved changes on this page.';
+    return undefined;
 });
