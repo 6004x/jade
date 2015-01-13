@@ -37,7 +37,7 @@ def SetCtl(opc=0,                       # OPC[5:0]
            ra2sel=0,
            pcsel=0,
            wasel=0,
-           moe=1):
+           moe=0):
 
     global CTLROM
 
@@ -112,7 +112,7 @@ def BuildCTL():
         # LDR:
         SetCtl(opc=0b011111, z=z, irq=0,
                alufn=0b11010,
-               werf=1, wdsel=2, wr=0, pcsel=0, asel=1, wasel=0)
+               werf=1, wdsel=2, wr=0, pcsel=0, asel=1, wasel=0, moe=1)
 
         # JMP:
         SetCtl(opc=0b011011, z=z, irq=0,
@@ -121,7 +121,7 @@ def BuildCTL():
         # LD:
         SetCtl(opc=0b011000, z=z, irq=0,
                alufn=0b00000,
-               werf=1, bsel=1, wdsel=2, wr=0, pcsel=0, asel=0, wasel=0)
+               werf=1, bsel=1, wdsel=2, wr=0, pcsel=0, asel=0, wasel=0, moe=1)
 
 
         # ST:
@@ -130,8 +130,8 @@ def BuildCTL():
 
 
 BuildCTL()
-print 80*'#'
-print "Control ROM Contents:\n"
+print 80*'#'+'\n'
+print "// Control ROM Contents:\n"
 for a in range(0, 1<<IWIDTH, 4):
     for b in range(4):
         opc = a >> 2
