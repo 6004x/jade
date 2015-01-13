@@ -402,7 +402,7 @@ jade_defs.top_level = function(jade) {
     //////////////////////////////////////////////////////////////////////
 
     function edit_module(j) {
-        var offset = {top: 10, left: 10};
+        var offset = $('.jade-tabs-div',j.top_level).offset();
 
         var content = $('<div style="margin:10px;"><div id="msg" style="display:none;color:red;margin-bottom:10px;"></div></div>');
         content.append('Module name:');
@@ -437,7 +437,7 @@ jade_defs.top_level = function(jade) {
     }
 
     function delete_module(j) {
-        var offset = {top: 10, left:10};
+        var offset = $('.jade-tabs-div',j.top_level).offset();
 
         var content = $('<div style="margin:10px;width:300px;">Click OK to confirm the deletion of module <span id="mname"></span>.  Note that this action cannot be undone.</div>');
         $('#mname',content).text(j.module.get_name());
@@ -454,7 +454,7 @@ jade_defs.top_level = function(jade) {
     }
 
     function copy_module(j) {
-        var offset = {top: 10, left:10};
+        var offset = $('.jade-tabs-div',j.top_level).offset();
         
         var content = $('<div style="margin:10px;"><div id="msg" style="display:none;color:red;margin-bottom:10px;"></div></div>');
         content.append('New module name:');
@@ -547,7 +547,8 @@ jade_defs.top_level = function(jade) {
         }
 
         // let user choose
-        dialog('Select modules to load',contents,upload,{top: 10, left:10});
+        var offset = $('.jade-tabs-div',j.top_level).offset();
+        dialog('Select modules to load',contents,upload,offset);
     };
 
     function start_over(j) {
@@ -557,9 +558,10 @@ jade_defs.top_level = function(jade) {
             j.initialize(j.configuration);
         }
 
+        var offset = $('.jade-tabs-div',j.top_level).offset();
         dialog('Start over?',
                $('<span>Click OK to discard all work on this problem and start over again.</span>'),
-               restart,{top: 10, left:10});
+               restart,offset);
     }
 
     /*
