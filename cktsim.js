@@ -51,7 +51,7 @@ jade_defs.cktsim = function(jade) {
             var source2, start2, stop2, step2, source2_saved_src;
 
             if (sweep1.source) {
-                source1 = ckt.device_map[sweep1.source];
+                source1 = ckt.device_map[sweep1.source.toLowerCase()];
                 if (source1 instanceof VSource) sweep1.units= 'V';
                 else if (source1 instanceof ISource) sweep1.units= 'A';
                 else throw "Device 1 not independent source in DC sweep: " + sweep1.source;
@@ -66,7 +66,7 @@ jade_defs.cktsim = function(jade) {
             }
 
             if (sweep2.source) {
-                source2 = ckt.device_map[sweep2.source];
+                source2 = ckt.device_map[sweep2.source.toLowerCase()];
                 if (source2 instanceof VSource) sweep2.units= 'V';
                 else if (source2 instanceof ISource) sweep2.units= 'A';
                 else throw "Device 2 not independent source in DC sweep: " + sweep2.source;
@@ -973,6 +973,7 @@ jade_defs.cktsim = function(jade) {
         var matrixac = mat_make(2 * N, (2 * N) + 1);
 
         // Get the source used for ac
+        source_name = source_name.toLowerCase();
         if (this.device_map[source_name] === undefined) {
             throw 'AC analysis refers to unknown source ' + source_name;
         }
