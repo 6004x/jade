@@ -20,6 +20,14 @@ jade_defs.model = function (jade) {
 
     var modules = {};
 
+    function get_modules() {
+        return modules;
+    }
+
+    function clear_modules() {
+        modules = {};
+    }
+
     // grab file from server, load all the modules it contains
     function load_modules(filename,shared) {
         jade.load_from_server(filename,shared,function(json) {
@@ -41,13 +49,14 @@ jade_defs.model = function (jade) {
     }
 
     // return json for all non-shared modules + modified flag
-    function json_modules() {
+    function json_modules(dirty_only) {
         var modified = false;
         var save = {};
         $.each(modules,function(mname,module) {
             modified |= module.modified;
             if (!module.shared) {
-                save[mname] = module.json();
+                var json = module.json(dirty_only);
+                if (Object.keys(json).length > 0) save[mname] = json;
             }
         });
         return {
@@ -66,6 +75,12 @@ jade_defs.model = function (jade) {
         jade.unsaved_changes(false);
         $.each(modules,function(mname,module) {
             if (!module.shared) module.clear_modified();
+        });
+    }
+
+    function set_clean() {
+        $.each(modules,function(mname,module) {
+            module.set_clean();
         });
     }
 
@@ -107,6 +122,7 @@ jade_defs.model = function (jade) {
             "name":{"edit":"yes","type":"name","value":"","label":"Name"}
         };
         this.modified = false;
+        this.properties_clean = false;
 
         // list of callbacks when load is complete
         this.loaded = false;
@@ -132,6 +148,11 @@ jade_defs.model = function (jade) {
         $.each(this.listeners,function (index,callback) { callback(msg); });
     };
 
+    Module.prototype.set_clean = function() {
+        this.properties_clean = true;
+        for (var a in this.aspects) this.aspects[a].clean = true;
+    };
+
     Module.prototype.set_modified = function() {
         this.modified = true;
         jade.unsaved_changes(true);
@@ -155,8 +176,10 @@ jade_defs.model = function (jade) {
 
     Module.prototype.set_property = function(prop, v) {
         if (v != this.properties[prop]) {
+            this.properties_clean = false;
             this.properties[prop] = v;
             this.set_modified();
+            this.properties_clean = false;
         }
     };
 
@@ -170,6 +193,7 @@ jade_defs.model = function (jade) {
         if (v != prop[attr]) {
             prop[attr] = v;
             this.set_modified();
+            this.properties_clean = false;
         }
     };
 
@@ -177,6 +201,7 @@ jade_defs.model = function (jade) {
         if (prop in this.properties) {
             delete this.properties[prop];
             this.set_modified();
+            this.properties_clean = false;
         }
     };
 
@@ -192,7 +217,6 @@ jade_defs.model = function (jade) {
 
         // a newly loaded module starts as unmodified
         this.clear_modified();
-
         this.loaded = true;
         for (var i = this.listeners.length - 1; i >= 0; i -= 1) {
             this.listeners[i]('load');
@@ -215,15 +239,17 @@ jade_defs.model = function (jade) {
     };
 
     // produce JSON representation of a module
-    Module.prototype.json = function() {
-        var aspects = {properties: this.properties};
-        for (var a in this.aspects) {
-            var json = this.aspects[a].json();
+    Module.prototype.json = function(dirty_only) {
+        var aspects = {};
+        if (!dirty_only || !this.properties_clean)
+            aspects.properties = this.properties;
+        for (var aname in this.aspects) {
+            var a = this.aspects[aname];
+            if (dirty_only && a.clean) continue;
+            var json = a.json();
             // weed out empty aspects
-            if (json.length > 0) aspects[a] = json;
+            if (json.length > 0) aspects[aname] = json;
         }
-
-        //return [aspects, this.properties];
         return aspects;
     };
 
@@ -238,6 +264,10 @@ jade_defs.model = function (jade) {
         this.name = name;
         this.components = [];
         this.modified = false;
+
+        // set clean after loading shared module info
+        // clear clean on any subsequent modification
+        this.clean = false;
 
         this.connection_points = {}; // location string => list of cp's
 
@@ -261,10 +291,12 @@ jade_defs.model = function (jade) {
             c.add(this);
         }
         this.clear_modified();
+        this.clean = false;
     };
 
     Aspect.prototype.set_modified = function() {
         this.modified = true;
+        this.clean = false;
         if (this.module)
             this.module.set_modified();
     };
@@ -1268,11 +1300,13 @@ jade_defs.model = function (jade) {
     //////////////////////////////////////////////////////////////////////////////
 
     return {
-        modules: modules,
+        get_modules: get_modules,
+        clear_modules: clear_modules,
         load_modules: load_modules,
         load_json: load_json,
         save_modules: save_modules,
         clear_modified: clear_modified,
+        set_clean: set_clean,
         json_modules: json_modules,
         find_module: find_module,
         remove_module: remove_module,

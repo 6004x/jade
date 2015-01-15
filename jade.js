@@ -152,7 +152,7 @@ jade_defs.top_level = function(jade) {
     jade_json = function (mname) {
         var p = new RegExp(mname);
         var result = {};
-        $.each(jade.model.modules,function (mname,module) {
+        $.each(jade.model.get_modules(),function (mname,module) {
             if (p.test(mname)) {
                 result[mname] = module.json();
             }
@@ -241,9 +241,14 @@ jade_defs.top_level = function(jade) {
             this.resize($(this.parent).width(),$(this.parent).height());
         else $(window).trigger('resize');  // let editors know their size
 
-        // load state (dictionary of module_name:json)
-        var state = configuration.state || configuration.initial_state || {};
-        jade.model.load_json(state);
+        // load state (dictionary of module_name:json).  Start with initial_state
+        // then overwrite with user's state
+        if (configuration.initial_state) {
+            jade.model.load_json(configuration.initial_state);
+            jade.model.set_clean();  // mark current module content as clean
+        }
+        if (configuration.state)
+            jade.model.load_json(configuration.state);
 
         // starting module?
         var edit = configuration.edit || '/user/untitled';
@@ -255,16 +260,18 @@ jade_defs.top_level = function(jade) {
     Jade.prototype.get_state = function() {
         // start with all the ancillary information
         var state = $.extend({},this.configuration);
+        delete state.initial_state;  // don't save as part of user state
 
-        // gather up json for all non-shared modules
+        // gather up json for all non-shared modules.  Only ask
+        // for aspects which are dirty.
         if (this.configuration.hierarchical)
-            state.state = jade.model.json_modules().json;
+            state.state = jade.model.json_modules(true).json;
         else if (this.configuration.edit) {
             // just save the module we're editing
-            var m = jade.model.modules[this.configuration.edit];
+            var m = jade.model.get_modules()[this.configuration.edit];
             if (m) { 
                 state.state = {};
-                state.state[this.configuration.edit] = m.json();
+                state.state[this.configuration.edit] = m.json(true);
             }
         };
 
@@ -481,7 +488,7 @@ jade_defs.top_level = function(jade) {
                 return;
             }
 
-            if (name in jade.model.modules) {
+            if (name in jade.model.get_modules()) {
                 try_again('Module already exists: '+name);
                 return;
             }
