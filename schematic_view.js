@@ -1051,7 +1051,7 @@ jade_defs.schematic_view = function(jade) {
             "name":{"label":"Name","type":"name","value":"","edit":"yes","choices":[""]},
             "nports":{"label":"Number of ports","type":"menu","value":"1","edit":"yes","choices":["1","2","3"]},
             "naddr":{"label":"Width of address (1..20)","type":"custom","value":"1","edit":"yes","choices":[""]},
-            "ndata":{"label":"Width of data (1.128)","type":"custom","value":"1","edit":"yes","choices":[""]},
+            "ndata":{"label":"Width of data (1..128)","type":"custom","value":"1","edit":"yes","choices":[""]},
             "contents":{"label":"Contents","type":"custom","value":"","edit":"yes","choices":[""]}
         }
     };
