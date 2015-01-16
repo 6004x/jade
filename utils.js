@@ -23,12 +23,12 @@ jade_defs.utils = function (jade) {
     // does the proposed signal name meet our rules?
     function validate_signal(name) {
         if (name == '') return true;
-        if (numeric_constant.test(name)) return true;
 
         // look for comma separated list of valid names
         var nlist = name.split(',');
         for (var i = 0; i < nlist.length; i += 1) {
-            if (!valid_signal.test(nlist[i].trim())) return false;
+            var n = nlist[i].trim();
+            if (!valid_signal.test(n) && !numeric_constant.test(n)) return false;
         }
         return true;
     }

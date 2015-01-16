@@ -349,7 +349,7 @@ def alu_timing_test(f):
     alu_timing_test_cycle(f,0,0,0,None)
     alu_timing_test_cycle(f,0,0,0,None)
 
-alu_timing_test(sys.stdout)
+#alu_timing_test(sys.stdout)
 
 ##################################################
 ##  regfile
@@ -363,9 +363,14 @@ def regfile_test_cycle(f,ra2sel,wasel,werf,ra,rb,rc,wdata,radata,rbdata):
     field(f,5,rc,'01')
     field(f,32,wdata,'01')
     field(f,32,radata,'LH')
-    field(f,32,rbdata,'LH',suffix='\n')
+    field(f,32,rbdata,'LH')
+    f.write(' // Ra[%s]==%s, %s[%s]==%s' % (ra,radata,'Rc' if ra2sel else 'Rb',rb,rbdata))
+    if werf:
+        f.write(' Reg[%s]=%s' % (30 if wasel else rc,wdata))
+    f.write('\n')
 
 def regfile_test(f):
+    # write registers with their number, test read ports
     for i in xrange(34):
         ra2sel = 0
         wasel = 0
@@ -378,5 +383,11 @@ def regfile_test(f):
         rbdata = None if i < 2 else rb if rb != 31 else 0
         regfile_test_cycle(f,ra2sel,wasel,werf,ra,rb,rc,wdata,radata,rbdata)
 
-# regfile_test(sys.stdout)
+    regfile_test_cycle(f,1,0,0,1,2,3,0,1,3)  # test ra2sel
+    regfile_test_cycle(f,1,0,0,1,2,31,0,1,0) # read with Rc=31
+
+    regfile_test_cycle(f,0,1,1,1,2,3,12345678,1,2) # test wasel
+    regfile_test_cycle(f,1,0,0,30,2,30,0,12345678,12345678)  # see if we wrote R30
+
+regfile_test(sys.stdout)
 
