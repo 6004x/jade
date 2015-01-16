@@ -1050,9 +1050,9 @@ jade_defs.schematic_view = function(jade) {
         properties: {
             "name":{"label":"Name","type":"name","value":"","edit":"yes","choices":[""]},
             "nports":{"label":"Number of ports","type":"menu","value":"1","edit":"yes","choices":["1","2","3"]},
-            "naddr":{"label":"Width of address","type":"number","value":"1","edit":"yes","choices":[""]},
-            "ndata":{"label":"Width of data","type":"number","value":"1","edit":"yes","choices":[""]},
-            "contents":{"label":"Contents","type":"nlist","value":"","edit":"yes","choices":[""]}
+            "naddr":{"label":"Width of address (1..20)","type":"custom","value":"1","edit":"yes","choices":[""]},
+            "ndata":{"label":"Width of data (1.128)","type":"custom","value":"1","edit":"yes","choices":[""]},
+            "contents":{"label":"Contents","type":"custom","value":"","edit":"yes","choices":[""]}
         }
     };
 
@@ -1096,6 +1096,42 @@ jade_defs.schematic_view = function(jade) {
         this.default_properties(); // add any missing properties
 
         this.rebuild_connections();
+    };
+
+    Memory.prototype.validate_property = function(pmsg,name,value) {
+        var v,j,nlist;
+        if (name == 'naddr') {
+            v = jade.utils.parse_number(value);
+            if (isNaN(v)) {
+                pmsg.text('not a valid number');
+                return false;
+            }
+            if (v < 1 || v > 20) {
+                pmsg.text('not in range 1..20');
+                return false;
+            }
+        }
+        else if (name == 'ndata') {
+            v = jade.utils.parse_number(value);
+            if (isNaN(v)) {
+                pmsg.text('not a valid number');
+                return false;
+            }
+            if (v < 1 || v > 128) {
+                pmsg.text('not in range 1..128');
+                return false;
+            }
+        }
+        else if (name == 'contents') {
+            nlist = jade.utils.parse_nlist(value);
+            for (j = 0; j < nlist.length; j += 1) {
+                if (isNaN(nlist[j])) {
+                    pmsg.text('item '+(j+1).toString()+' not a valid number');
+                    return false;
+                }
+            }
+        }
+        return true;
     };
 
     Memory.prototype.update_properties = function(new_properties) {

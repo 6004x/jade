@@ -1123,6 +1123,10 @@ jade_defs.model = function (jade) {
         }
     };
 
+    Component.prototype.validate_property = function(pmsg,name,value) {
+        return false;  // return true if invalid, fill in pmsg
+    };
+
     Component.prototype.edit_properties = function(diagram, x, y, callback) {
         if (this.near(x, y) /*&& Object.keys(this.properties).length > 0*/) {
             // make the appropriate input widget for each property
@@ -1186,15 +1190,9 @@ jade_defs.model = function (jade) {
                             pmsg.text('not a valid signal');
                         }
                     }
-                    else if (ptype == 'nlist') {
-                        var nlist = jade.utils.parse_nlist(v);
-                        for (var j = 0; j < nlist.length; j += 1) {
-                            if (isNaN(nlist[j])) {
-                                error = true;
-                                pmsg.text('item '+(j+1).toString()+' not a valid number');
-                                break;
-                            }
-                        }
+                    else if (ptype == 'custom') {
+                        if (!component.validate_property(pmsg,fields[i].prop_name,v))
+                            error = true;
                     }
 
                     new_properties[fields[i].prop_name] = v;
