@@ -389,5 +389,34 @@ def regfile_test(f):
     regfile_test_cycle(f,0,1,1,1,2,3,12345678,1,2) # test wasel
     regfile_test_cycle(f,1,0,0,30,2,30,0,12345678,12345678)  # see if we wrote R30
 
-regfile_test(sys.stdout)
+#regfile_test(sys.stdout)
 
+##################################################
+##  PC
+##################################################
+
+def pc_test_cycle(f,reset,pcsel,id,jt,pc,comment=''):
+    field(f,1,reset,'01')
+    field(f,3,pcsel,'01')
+    field(f,16,id & 0xFFFF,'01')
+    field(f,32,jt & 0xFFFFFFFF,'01')
+
+    offset = (id - 0x10000) if id >= 0x8000 else id   # sign extension
+    pc_inc = (pc & 0x80000000) + ((pc + 4) & 0x7FFFFFFC)
+    pc_offset = (pc & 0x80000000) + ((pc + 4 + 4*offset) & 0x7FFFFFFC)
+
+    field(f,32,pc,'LH')
+    field(f,32,pc_inc,'LH')
+    field(f,32,pc_offset,'LH',suffix=' // '+comment+'\n')
+
+def pc_test(f):
+    # test reset, illop, xadr
+    pc_test_cycle(f,1,3,0,0,0x80000000,'reset, PC==0x80000000')
+    pc_test_cycle(f,1,4,0,0,0x80000000,'reset, PC==0x80000000')
+    pc_test_cycle(f,0,3,0x7FFF,0,0x80000004,'illop, PC==0x80000004, offset=0x7fff')
+    pc_test_cycle(f,0,4,-2,0,0x80000008,'xadr, PC==0x80000008, offset=-2')
+
+    pc_test_cycle(f,0,2,0x8000,0x7FFFFFFF,0x7FFFFFFC,'jmp to user mode, PC==0x7FFFFFFC, offset=0x8000')
+    pc_test_cycle(f,0,2,-9,0x87654321,0x87654320,'jmp to super mode?, PC==0x77654320, offset=-9')
+
+pc_test(sys.stdout)
