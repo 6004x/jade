@@ -416,7 +416,24 @@ def pc_test(f):
     pc_test_cycle(f,0,3,0x7FFF,0,0x80000004,'illop, PC==0x80000004, offset=0x7fff')
     pc_test_cycle(f,0,4,-2,0,0x80000008,'xadr, PC==0x80000008, offset=-2')
 
+    # test JMP w/ and w/o supervisor bit
     pc_test_cycle(f,0,2,0x8000,0x7FFFFFFF,0x7FFFFFFC,'jmp to user mode, PC==0x7FFFFFFC, offset=0x8000')
-    pc_test_cycle(f,0,2,-9,0x87654321,0x87654320,'jmp to super mode?, PC==0x77654320, offset=-9')
+    pc_test_cycle(f,0,2,-9,0x87654321,0x07654320,'jmp to super mode?, PC==0x77654320, offset=-9')
+
+    # test increment (use JMP set PC, followed by inc cycle)
+    pc_test_cycle(f,0,2,0,0x00000004,0x00000004,'jmp, PC==0x0')
+    pc_test_cycle(f,0,0,0,0,0x00000008,'inc')
+    pc_test_cycle(f,0,0,0,0,0x0000000C,'inc')
+    pc_test_cycle(f,0,0,0,0,0x00000010,'inc')
+    pc_test_cycle(f,0,2,0,0x0000001C,0x0000001C,'jmp, PC==0x1C')
+    pc_test_cycle(f,0,0,0,0,0x00000020,'inc')
+    pc_test_cycle(f,0,2,0,0x0000003C,0x0000003C,'jmp, PC==0x3C')
+    pc_test_cycle(f,0,0,0,0,0x00000040,'inc')
+    pc_test_cycle(f,0,2,0,0x0000007C,0x0000007C,'jmp, PC==0x7C')
+    pc_test_cycle(f,0,0,0,0,0x00000080,'inc')
+    pc_test_cycle(f,0,2,0,0x0000FFFC,0x0000FFFC,'jmp, PC==0xFFFC')
+    pc_test_cycle(f,0,0,0,0,0x00010000,'inc')
+    pc_test_cycle(f,0,2,0,0x00FFFFFC,0x00FFFFFC,'jmp, PC==0xFFFFFC')
+    pc_test_cycle(f,0,0,0,0,0x01000000,'inc')
 
 pc_test(sys.stdout)

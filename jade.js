@@ -3,7 +3,8 @@
 
 // pollute the global namespace with a single variable
 var jade_defs = {};
-var jade_json;   // function for grabbing JSON dumps of modules
+var jade_dump_json;   // function for grabbing JSON dumps of modules
+var jade_load_json;   // function for loading JSON dumps of modules
 
 // "new jade_defs.jade()" will build a self-contained jade object so we can
 // have multiple instances on the same webpage that don't share any
@@ -148,8 +149,8 @@ jade_defs.top_level = function(jade) {
         return tool;
     };
 
-    // helper function for grabbing json -- make accessible at top level
-    jade_json = function (mname) {
+    // helper function for dumping json for modules -- make accessible at top level
+    jade_dump_json = function (mname) {
         var p = new RegExp(mname);
         var result = {};
         $.each(jade.model.get_modules(),function (mname,module) {
@@ -158,6 +159,11 @@ jade_defs.top_level = function(jade) {
             }
         });
         return JSON.stringify(result);
+    };
+
+    // helper function for loading json -- make accessible at top level
+    jade_load_json = function (json) {
+        jade.model.load_json(JSON.parse(json));
     };
 
     // initialize editor from configuration object
