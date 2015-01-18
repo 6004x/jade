@@ -1665,21 +1665,19 @@ jade_defs.gatesim = function(jade) {
         for (i = 0; i < this.width; i += 1) this.update_from_node(port.data[i]);
     };
 
-    // compute address from a port's addr signals, -1 if invalid.
-    // set update to true to update min setup time
-    Memory.prototype.address = function(port) {
-        var addr = 0;
+    // compute value from array of nodes, MSB first.
+    // returns undefined if invalid
+    Memory.prototype.value = function(narray) {
+        var value = 0;
         var node,v;
-        for (var i = 0; i < this.naddr; i += 1) {
-            node = port.addr[i];
+        for (var i = 0; i < narray.length; i += 1) {
+            node = narray[i];
             v = node.v;
-            if (v == VX || v == VZ) addr = -1;
-            else if (addr >= 0) {
-                addr *= 2;  // logical operations limit result to 32 bits
-                if (v == V1) addr += 1;
-            }
+            if (v == VX || v == VZ) return undefined;
+            value *= 2;  // logical operations limit result to 32 bits
+            if (v == V1) value += 1;
         }
-        return addr;
+        return value;
     };
 
     // return true if this a read port that is affecting its outputs
@@ -1696,12 +1694,12 @@ jade_defs.gatesim = function(jade) {
 
     // schedule propagtion events for data terminals of a read port
     Memory.prototype.update_read_port = function(port) {
-        var addr = this.address(port);
+        var addr = this.value(port.addr);
         var table = TristateBufferTable[port.oe.v];  // model of tristate driver
         for (var i = 0; i < this.width; i += 1) {
             // MSB of data comes first in the array of data nodes
             var bit = (this.width - 1) - i;
-            var v = (addr < 0 || addr >= this.nlocations) ? VX : this.bits[addr*this.width + bit];
+            var v = (addr === undefined || addr >= this.nlocations) ? VX : this.bits[addr*this.width + bit];
             v = table[v][4];   // run it through the tristate driver, get result
             var drive,tpd;
             if (v == V1) { tpd = this.tpdr; drive = this.tr; }
@@ -1717,9 +1715,9 @@ jade_defs.gatesim = function(jade) {
         for (var i = 0; i < this.ports.length; i += 1) {
             var port = this.ports[i];
             if (port.read_port && port.oe.v != V0) {
-                var paddr = this.address(port);
+                var paddr = this.value(port.addr);
                 // check for address match (X's always match)
-                if (addr < 0 || paddr < 0 || paddr == addr)
+                if (addr === undefined || paddr < 0 || paddr == addr)
                     this.update_read_port(port);
             }
         };
@@ -1730,8 +1728,13 @@ jade_defs.gatesim = function(jade) {
         // make sure it's a write port
         if (!port.write_port) return false;
 
-        if (this.network.time === 0) return false;
-        if (cause == port.clk && port.clk.v != V0 && port.wen.v != V0) return true;
+        if (cause == port.clk) {
+            if (port.clk.v == V0) port.edge_possible = true;
+            else if (port.clk.v == V1 && port.edge_possible) {
+                port.edge_possible = false;
+                if (port.wen.v != V0) return true;
+            }
+        }
         return false;
     };
 
@@ -1787,14 +1790,14 @@ jade_defs.gatesim = function(jade) {
                 }
 
                 if (this.active_write_port(port,cause)) {
-                    var addr = this.address(port);
-                    // will write store a value or X?
-                    var valid = (port.clk.v == V1) && (port.wen.v == V1);
+                    var addr = this.value(port.addr);
+                    //console.log('memory '+this.name+'['+addr+']='+this.value(port.data)+' @ '+this.network.time);
                     // write appropriate location(s)
-                    if (addr < 0) this.clear_memory();
-                    else if (addr < this.nlocations) {
+                    if (addr === undefined) {
+                        this.clear_memory();
+                    } else if (addr < this.nlocations) {
                         for (bit = 0; bit < this.width; bit += 1) {
-                            var v = valid ? port.data[bit].v : VX;
+                            var v = (port.wen.v == V1) ? port.data[bit].v : VX;
                             // MSB of data comes first in the array of data nodes
                             this.bits[addr*this.width + (this.width - 1) - bit] = v;
                         }

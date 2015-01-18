@@ -283,6 +283,9 @@
     height: 100%;
     background-color: #dc322f;
 }
+.property {
+    font-family: monospace;
+}
 .plot-container {
   background-color: #EEEEEE;
   line-height: 1;

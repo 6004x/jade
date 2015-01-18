@@ -1140,7 +1140,7 @@ jade_defs.model = function (jade) {
                 if (mprop.type == 'menu') input = jade.build_select(mprop.choices, this.properties[p]);
                 else {
                     var v = this.properties[p];
-                    var type = (mprop.type == 'string' || mprop.type == 'nlist') ? 'string' : 'text';
+                    var type = (mprop.type == 'string' || mprop.type == 'custom') ? 'string' : 'text';
                     input = jade.build_input(type, Math.max(10, (v === undefined ? 1 : v.length) + 5), this.properties[p]);
                 }
                 // provide an element to hold an error message

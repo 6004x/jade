@@ -92,7 +92,7 @@ jade_defs.utils = function (jade) {
     function parse_nlist(s) {
         // remove multiline comments, in-line comments
         s = s.replace(/\/\*(.|\n)*?\*\//g,'');   // multi-line using slash-star
-        s = s.replace(/\/\/.*\n/g,'\n');
+        s = s.replace(/\/\/.*/g,'');  // single-line comment
  
         // remove various formatting chars
         s = s.replace(/[+_]/g,'');
