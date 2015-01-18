@@ -411,10 +411,15 @@ def pc_test_cycle(f,reset,pcsel,id,jt,pc,comment=''):
 
 def pc_test(f):
     # test reset, illop, xadr
-    pc_test_cycle(f,1,3,0,0,0x80000000,'reset, PC==0x80000000')
+    pc_test_cycle(f,1,3,-1,0,0x80000000,'reset, PC==0x80000000')
     pc_test_cycle(f,1,4,0,0,0x80000000,'reset, PC==0x80000000')
     pc_test_cycle(f,0,3,0x7FFF,0,0x80000004,'illop, PC==0x80000004, offset=0x7fff')
     pc_test_cycle(f,0,4,-2,0,0x80000008,'xadr, PC==0x80000008, offset=-2')
+    pc_test_cycle(f,0,2,0,0xFFFFFFF0,0xFFFFFFF0,'jmp, pc==0XFFFFFFF0')
+    pc_test_cycle(f,0,0,-1,0,0xFFFFFFF4,'inc, pc==0xFFFFFFF4, offset=-1')
+    pc_test_cycle(f,0,0,-2,0,0xFFFFFFF8,'inc, pc==0xFFFFFFF8, offset=-1')
+    pc_test_cycle(f,0,0,-3,0,0xFFFFFFFC,'inc, pc==0xFFFFFFFC, offset=-1')
+    pc_test_cycle(f,0,0,-4,0,0x80000000,'inc, pc==0x80000000, offset=-1')
 
     # test JMP w/ and w/o supervisor bit
     pc_test_cycle(f,0,2,0x8000,0x7FFFFFFF,0x7FFFFFFC,'jmp to user mode, PC==0x7FFFFFFC, offset=0x8000')
@@ -435,5 +440,7 @@ def pc_test(f):
     pc_test_cycle(f,0,0,0,0,0x00010000,'inc')
     pc_test_cycle(f,0,2,0,0x00FFFFFC,0x00FFFFFC,'jmp, PC==0xFFFFFC')
     pc_test_cycle(f,0,0,0,0,0x01000000,'inc')
+    pc_test_cycle(f,0,2,0,0x7FFFFFFC,0x7FFFFFFC,'jmp, PC==0x7FFFFFFC')
+    pc_test_cycle(f,0,0,-2,0,0x00000000,'inc')
 
 pc_test(sys.stdout)

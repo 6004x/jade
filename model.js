@@ -748,7 +748,7 @@ jade_defs.model = function (jade) {
         // update properties from module's default values
         this.default_properties();
         this.name = this.properties.name; // used when extracting netlists
-        if (this.name) this.name.toLowerCase();
+        if (this.name) this.name = this.name.toLowerCase();
 
         this.icon = this.module.aspect('icon');
         if (this.icon === undefined) return;

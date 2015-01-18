@@ -225,7 +225,7 @@ jade_defs.gate_level = function(jade) {
         // use modules in the gates library as the leafs
         var netlist;
         try {
-            netlist = diagram_gate_netlist(diagram,[]);
+            netlist = diagram_gate_netlist(diagram,['gnd','vdd']);
         }
         catch (e) {
             jade.window('Errors extracting netlist',

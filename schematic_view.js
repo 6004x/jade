@@ -1057,6 +1057,9 @@ jade_defs.schematic_view = function(jade) {
     };
 
     Memory.prototype.rebuild_connections = function() {
+        this.name = this.properties.name;
+        if (this.name) this.name = this.name.toLowerCase();
+
         // clear out old connection points if any
         var aspect = this.aspect;   // for closures
         if (aspect) {
@@ -1210,7 +1213,7 @@ jade_defs.schematic_view = function(jade) {
         }
 
         return [['memory', connections, {
-            name: this.name,
+            name: prefix + this.name,
             ports: plist,
             width: this.properties.ndata,
             nlocations: 1 << this.properties.naddr,

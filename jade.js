@@ -54,7 +54,7 @@ jade_defs.top_level = function(jade) {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.18 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.19 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -1245,6 +1245,10 @@ jade_defs.top_level = function(jade) {
     // process keystrokes, consuming those that are meaningful to us
     Diagram.prototype.key_down = function(event) {
         var code = event.keyCode;
+
+        // ignore modifier keys (shift, ctrl, alt, caps lock, window/cmd keys)
+        if (code==16 || code==17 || code==18 || code==20 || code==91 || code==92)
+            return true;
 
         // cmd/ctrl a: select all
         if ((event.ctrlKey || event.metaKey) && code == 65) {

@@ -1510,10 +1510,10 @@ jade_defs.gatesim = function(jade) {
         // by default memories are lenient
         mem.lenient = (properties.lenient === undefined) ? true : properties.lenient !== 0;
         mem.cout = properties.cout || options.mem_cout || 0;
-        mem.cin = properties.cin || options.mem_cin || .1e-12;
-        mem.tcd = properties.tcd || options.mem_tcd || .2e-9;
+        mem.cin = properties.cin || options.mem_cin || .005e-12;
+        mem.tcd = properties.tcd || options.mem_tcd || 20e-12;
         mem.tr = properties.tr || options.mem_tr || 1000;
-        mem.tf = properties.tf || options.mem_tf || 1000;
+        mem.tf = properties.tf || options.mem_tf || 500;
         mem.ts = properties.ts || options.mem_ts || (2*mem.tcd);
         mem.th = properties.th || options.mem_th || mem.tcd;
 
@@ -1523,17 +1523,17 @@ jade_defs.gatesim = function(jade) {
             mem.tpdf = properties.tpdf || properties.tpd ||
                 options.mem_tpdf_dram || options.mem_tpd_dram || 40e-9;
             mem.tpdr = properties.tpdr || properties.tpd ||
-                options.mem_tpdr_dram || options.mem_tpd_dram || 40e-8;
+                options.mem_tpdr_dram || options.mem_tpd_dram || 40e-9;
         } else if (mem.nlocations > 128) {   // sram
             mem.tpdf = properties.tpdf || properties.tpd ||
-                options.mem_tpdf_sram || options.mem_tpd_sram || 2e-9;
+                options.mem_tpdf_sram || options.mem_tpd_sram || 4e-9;
             mem.tpdr = properties.tpdr || properties.tpd ||
-                options.mem_tpdr_sram || options.mem_tpd_sram || 2e-9;
+                options.mem_tpdr_sram || options.mem_tpd_sram || 4e-9;
         } else {                             // regfile
             mem.tpdf = properties.tpdf || properties.tpd ||
-                options.mem_tpdf_regfile || options.mem_tpd_regfile || .1e-9;
+                options.mem_tpdf_regfile || options.mem_tpd_regfile || 2e-9;
             mem.tpdr = properties.tpdr || properties.tpd ||
-                options.mem_tpdr_regfile || options.mem_tpd_regfile || .1e-9;
+                options.mem_tpdr_regfile || options.mem_tpd_regfile || 2e-9;
         }
 
         // set up fanouts and drivers
@@ -1587,7 +1587,7 @@ jade_defs.gatesim = function(jade) {
         // size of address buffers
         mem.size += mem.ports.length * mem.naddr * (options.mem_size_address_buffer || 20);
         // size of address decoders (assuming 4-input ands)
-        mem.size += mem.ports.length * mem.naddr * (options.mem_size_address_decoder || 20);
+        mem.size += mem.ports.length * mem.naddr * (options.mem_size_address_decoder || 4);
         // size of tristate output drivers
         mem.size += mem.n_read_ports * mem.width * (options.mem_size_output_buffer || 30);
         // size of write data drivers
