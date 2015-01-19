@@ -1,4 +1,4 @@
-import sys,random
+import sys,random,re
 
 cycle = 0   # used to count test cycles
 
@@ -12,6 +12,12 @@ def field(f,width,value,choices,suffix=' '):
             f.write('-')
         else:
             f.write(choices[1] if (1 << (width-1-i)) & value else choices[0])
+    f.write(suffix)
+
+def xfield(f,width,s,choices,suffix=' '):
+    for i in xrange(width):
+        v = '-' if ((s is None) or s[i]=='?') else choices[0] if s[i]=='0' else choices[1]
+        f.write(v)
     f.write(suffix)
 
 ##################################################
@@ -356,6 +362,9 @@ def alu_timing_test(f):
 ##################################################
 
 def regfile_test_cycle(f,ra2sel,wasel,werf,ra,rb,rc,wdata,radata,rbdata):
+    global cycle
+    cycle += 1
+
     field(f,2,2*ra2sel + wasel,'01')
     field(f,1,werf,'01')
     field(f,5,ra,'01')
@@ -364,12 +373,15 @@ def regfile_test_cycle(f,ra2sel,wasel,werf,ra,rb,rc,wdata,radata,rbdata):
     field(f,32,wdata,'01')
     field(f,32,radata,'LH')
     field(f,32,rbdata,'LH')
-    f.write(' // Ra[%s]==%s, %s[%s]==%s' % (ra,radata,'Rc' if ra2sel else 'Rb',rb,rbdata))
+    f.write(' // %3d: Ra[%s]==%s, %s[%s]==%s' % (cycle,ra,radata,'Rc' if ra2sel else 'Rb',rb,rbdata))
     if werf:
         f.write(' Reg[%s]=%s' % (30 if wasel else rc,wdata))
     f.write('\n')
 
 def regfile_test(f):
+    global cycle
+    cycle = 0
+
     # write registers with their number, test read ports
     for i in xrange(34):
         ra2sel = 0
@@ -396,6 +408,9 @@ def regfile_test(f):
 ##################################################
 
 def pc_test_cycle(f,reset,pcsel,id,jt,pc,comment=''):
+    global cycle
+    cycle += 1
+
     field(f,1,reset,'01')
     field(f,3,pcsel,'01')
     field(f,16,id & 0xFFFF,'01')
@@ -407,9 +422,12 @@ def pc_test_cycle(f,reset,pcsel,id,jt,pc,comment=''):
 
     field(f,32,pc,'LH')
     field(f,32,pc_inc,'LH')
-    field(f,32,pc_offset,'LH',suffix=' // '+comment+'\n')
+    field(f,32,pc_offset,'LH',suffix=' // %3d: %s\n' % (cycle,comment))
 
 def pc_test(f):
+    global cycle
+    cycle = 0
+
     # test reset, illop, xadr
     pc_test_cycle(f,1,3,-1,0,0x80000000,'reset, PC==0x80000000')
     pc_test_cycle(f,1,4,0,0,0x80000000,'reset, PC==0x80000000')
@@ -443,106 +461,167 @@ def pc_test(f):
     pc_test_cycle(f,0,2,0,0x7FFFFFFC,0x7FFFFFFC,'jmp, PC==0x7FFFFFFC')
     pc_test_cycle(f,0,0,-2,0,0x00000000,'inc')
 
-pc_test(sys.stdout)
+#pc_test(sys.stdout)
 
 ##################################################
 ##  Control
 ##################################################
 
+ctlrom = """
+// alufn[5:0]
+// asel, bsel
+// moe, mwr
+// pcsel[2:0]
+// ra2sel
+// wasel, wdsel[2:0], werf
+0b??????_??_?0_011_?_1001  // 0b000000
+0b??????_??_?0_011_?_1001  // 0b000001
+0b??????_??_?0_011_?_1001  // 0b000010
+0b??????_??_?0_011_?_1001  // 0b000011
+0b??????_??_?0_011_?_1001  // 0b000100
+0b??????_??_?0_011_?_1001  // 0b000101
+0b??????_??_?0_011_?_1001  // 0b000110
+0b??????_??_?0_011_?_1001  // 0b000111
+
+0b??????_??_?0_011_?_1001  // 0b001000
+0b??????_??_?0_011_?_1001  // 0b001001
+0b??????_??_?0_011_?_1001  // 0b001010
+0b??????_??_?0_011_?_1001  // 0b001011
+0b??????_??_?0_011_?_1001  // 0b001100
+0b??????_??_?0_011_?_1001  // 0b001101
+0b??????_??_?0_011_?_1001  // 0b001110
+0b??????_??_?0_011_?_1001  // 0b001111
+
+// alufn[5:0]
+// asel, bsel
+// moe, mwr
+// pcsel[2:0]
+// ra2sel
+// wasel, wdsel[2:0], werf
+0b??????_??_?0_011_?_1001  // 0b010000
+0b??????_??_?0_011_?_1001  // 0b010001
+0b??????_??_?0_011_?_1001  // 0b010010
+0b??????_??_?0_011_?_1001  // 0b010011
+0b??????_??_?0_011_?_1001  // 0b010100
+0b??????_??_?0_011_?_1001  // 0b010101
+0b??????_??_?0_011_?_1001  // 0b010110
+0b??????_??_?0_011_?_1001  // 0b010111
+
+0b010000_01_10_000_?_0101  // 0b011000 LD
+0b010000_01_?1_000_1_???0  // 0b011001 ST
+0b??????_??_?0_011_?_1001  // 0b011010
+0b??????_??_?0_010_?_0001  // 0b011011 JMP
+0b??????_??_?0_110_?_0001  // 0b011100 BEQ
+0b??????_??_?0_111_?_0001  // 0b011101 BNE
+0b??????_??_?0_011_?_1001  // 0b011110
+0b101010_1?_10_000_?_0101  // 0b011111 LDR
+
+// alufn[5:0]
+// asel, bsel
+// moe, mwr
+// pcsel[2:0]
+// ra2sel
+// wasel, wdsel[2:0], werf
+0b010000_00_?0_000_0_0011  // 0b100000 ADD
+0b010001_00_?0_000_0_0011  // 0b100001 SUB
+0b??????_??_?0_011_?_1001  // 0b100010 MUL
+0b??????_??_?0_011_?_1001  // 0b100011 DIV
+0b000011_00_?0_000_0_0011  // 0b100100 CMPEQ
+0b000101_00_?0_000_0_0011  // 0b100101 CMPLT
+0b000111_00_?0_000_0_0011  // 0b100110 CMPLE
+0b??????_??_?0_011_?_1001  // 0b100111
+
+0b101000_00_?0_000_0_0011  // 0b101000 AND
+0b101110_00_?0_000_0_0011  // 0b101001 OR
+0b100110_00_?0_000_0_0011  // 0b101010 XOR
+0b101001_00_?0_000_0_0011  // 0b101011 XNOR
+0b110000_00_?0_000_0_0011  // 0b101100 SHL
+0b110001_00_?0_000_0_0011  // 0b101101 SHR
+0b110011_00_?0_000_0_0011  // 0b101110 SRA
+0b??????_??_?0_011_?_1001  // 0b101111
+
+// alufn[5:0]
+// asel, bsel
+// moe, mwr
+// pcsel[2:0]
+// ra2sel
+// wasel, wdsel[2:0], werf
+0b010000_01_?0_000_?_0011  // 0b100000 ADDC
+0b010001_01_?0_000_?_0011  // 0b100001 SUBC
+0b??????_??_?0_011_?_1001  // 0b100010 MULC
+0b??????_??_?0_011_?_1001  // 0b100011 DIVC
+0b000011_01_?0_000_?_0011  // 0b100100 CMPEQC
+0b000101_01_?0_000_?_0011  // 0b100101 CMPLTC
+0b000111_01_?0_000_?_0011  // 0b100110 CMPLEC
+0b??????_??_?0_011_?_1001  // 0b100111
+
+0b101000_01_?0_000_?_0011  // 0b101000 ANDC
+0b101110_01_?0_000_?_0011  // 0b101001 ORC
+0b100110_01_?0_000_?_0011  // 0b101010 XORC
+0b101001_01_?0_000_?_0011  // 0b101011 XNORC
+0b110000_01_?0_000_?_0011  // 0b101100 SHLC
+0b110001_01_?0_000_?_0011  // 0b101101 SHRC
+0b110011_01_?0_000_?_0011  // 0b101110 SRAC
+0b??????_??_?0_011_?_1001  // 0b101111
 """
-// alufn[5:0]
-// asel, bsel
-// moe, mwr
-// pcsel[2:0]
-// ra2sel
-// wasel, wdsel[2:0], werf
-0b000000_00_00_011_0_1001  // 0b000000
-0b000000_00_00_011_0_1001  // 0b000001
-0b000000_00_00_011_0_1001  // 0b000010
-0b000000_00_00_011_0_1001  // 0b000011
-0b000000_00_00_011_0_1001  // 0b000100
-0b000000_00_00_011_0_1001  // 0b000101
-0b000000_00_00_011_0_1001  // 0b000110
-0b000000_00_00_011_0_1001  // 0b000111
 
-0b000000_00_00_011_0_1001  // 0b001000
-0b000000_00_00_011_0_1001  // 0b001001
-0b000000_00_00_011_0_1001  // 0b001010
-0b000000_00_00_011_0_1001  // 0b001011
-0b000000_00_00_011_0_1001  // 0b001100
-0b000000_00_00_011_0_1001  // 0b001101
-0b000000_00_00_011_0_1001  // 0b001110
-0b000000_00_00_011_0_1001  // 0b001111
+betaop = [
+"???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "LD", "ST", "???", "JMP", "BEQ", "BNE", "???", "LDR", "ADD", "SUB", "MUL", "DIV", "CMPEQ", "CMPLT", "CMPLE", "???", "AND", "OR", "XOR", "XNOR", "SHL", "SHR", "SRA", "???", "ADDC", "SUBC", "MULC", "DIVC", "CMPEQC", "CMPLTC", "CMPLEC", "???", "ANDC", "ORC", "XORC", "XNORC", "SHLC", "SHRC", "SRAC", "???"
+]
 
-// alufn[5:0]
-// asel, bsel
-// moe, mwr
-// pcsel[2:0]
-// ra2sel
-// wasel, wdsel[2:0], werf
-0b000000_00_00_011_0_1001  // 0b010000
-0b000000_00_00_011_0_1001  // 0b010001
-0b000000_00_00_011_0_1001  // 0b010010
-0b000000_00_00_011_0_1001  // 0b010011
-0b000000_00_00_011_0_1001  // 0b010100
-0b000000_00_00_011_0_1001  // 0b010101
-0b000000_00_00_011_0_1001  // 0b010110
-0b000000_00_00_011_0_1001  // 0b010111
+def ctl_test_cycle(f,op,reset,irq,z,alufn,asel,bsel,moe,mwr,pcsel,ra2sel,wasel,wdsel,werf,comment):
+    global cycle
+    cycle += 1
+    field(f,6,op,'01')
+    field(f,3,reset*4 + irq*2 + z,'01')
 
-0b010000_01_10_000_0_0101  // 0b011000 LD
-0b010000_01_01_000_1_0000  // 0b011001 ST
-0b000000_00_00_011_0_1001  // 0b011010
-0b000000_00_00_010_0_0001  // 0b011011 JMP
-0b000000_00_00_110_0_0001  // 0b011100 BEQ
-0b000000_00_00_111_0_0001  // 0b011101 BNE
-0b000000_00_00_011_0_1001  // 0b011110
-0b101010_10_10_000_0_0101  // 0b011111 LDR
+    xfield(f,6,alufn,'LH')
+    xfield(f,1,asel,'LH','')
+    xfield(f,1,bsel,'LH')
+    xfield(f,1,moe,'LH','')
+    xfield(f,1,mwr,'LH')
+    xfield(f,3,pcsel,'LH')
+    xfield(f,1,ra2sel,'LH')
+    xfield(f,1,wasel,'LH','')
+    xfield(f,2,wdsel,'LH','')
+    xfield(f,1,werf,'LH',suffix= ' // %3d: %s\n' % (cycle,comment))
 
-// alufn[5:0]
-// asel, bsel
-// moe, mwr
-// pcsel[2:0]
-// ra2sel
-// wasel, wdsel[2:0], werf
-0b010000_00_00_000_0_0011  // 0b100000 ADD
-0b010001_00_00_000_0_0011  // 0b100001 SUB
-0b000000_00_00_011_0_1001  // 0b100010 MUL
-0b000000_00_00_011_0_1001  // 0b100011 DIV
-0b000011_00_00_000_0_0011  // 0b100100 CMPEQ
-0b000101_00_00_000_0_0011  // 0b100101 CMPLT
-0b000111_00_00_000_0_0011  // 0b100110 CMPLE
-0b000000_00_00_011_0_1001  // 0b100111
+def ctl_test(f):
+    global cycle
+    cycle = 0
 
-0b101000_00_00_000_0_0011  // 0b101000 AND
-0b101110_00_00_000_0_0011  // 0b101001 OR
-0b100110_00_00_000_0_0011  // 0b101010 XOR
-0b101001_00_00_000_0_0011  // 0b101011 XNOR
-0b110000_00_00_000_0_0011  // 0b101100 SHL
-0b110001_00_00_000_0_0011  // 0b101101 SHR
-0b110011_00_00_000_0_0011  // 0b101110 SRA
-0b000000_00_00_011_0_1001  // 0b101111
+    # reformat master into a list of numbers
+    rom = re.sub(r'\/\*(.|\n)*?\*\/','',ctlrom)   # remove multi-line comments
+    rom = re.sub(r'\/\/.*','',rom); # single-line comment
+    rom = re.sub(r'[+_]','',rom)    # random formatting characters
+    rom = re.sub(r'^0b','',rom)     # 0b at front
+    content = rom.split()
+    assert len(content)==64, 'ctlrom does not have 64 entries'
 
-// alufn[5:0]
-// asel, bsel
-// moe, mwr
-// pcsel[2:0]
-// ra2sel
-// wasel, wdsel[2:0], werf
-0b010000_01_00_000_0_0011  // 0b100000 ADDC
-0b010001_01_00_000_0_0011  // 0b100001 SUBC
-0b000000_00_00_011_0_1001  // 0b100010 MULC
-0b000000_00_00_011_0_1001  // 0b100011 DIVC
-0b000011_01_00_000_0_0011  // 0b100100 CMPEQC
-0b000101_01_00_000_0_0011  // 0b100101 CMPLTC
-0b000111_01_00_000_0_0011  // 0b100110 CMPLEC
-0b000000_00_00_011_0_1001  // 0b100111
+    for op in xrange(len(content)):
+        sigs = content[op][2:]
+        alufn = sigs[:6]
+        asel = sigs[6]
+        bsel = sigs[7]
+        moe = sigs[8]
+        mwr = sigs[9]
+        pcsel = sigs[10:13]
+        ra2sel = sigs[13]
+        wasel = sigs[14]
+        wdsel = sigs[15:17]
+        werf = sigs[17]
+        for reset in (0,1):
+            for irq in (0,1):
+                for z in (0,1):
+                    comment = str.format('op=0b{:06b} {:s}',op,betaop[op])
+                    if reset:
+                        ctl_test_cycle(f,op,reset,irq,z,None,None,None,None,'0',None,None,None,None,None,comment)
+                    elif irq:
+                        ctl_test_cycle(f,op,reset,irq,z,None,None,None,None,'0','100',None,'1','00','1',comment)
+                    else:
+                        if pcsel[:2] == '11':
+                            xpcsel = '001' if z ^ int(pcsel[2]) else '000'
+                        else: xpcsel = pcsel
+                        ctl_test_cycle(f,op,reset,irq,z,alufn,asel,bsel,moe,mwr,xpcsel,ra2sel,wasel,wdsel,werf,comment)
 
-0b101000_01_00_000_0_0011  // 0b101000 ANDC
-0b101110_01_00_000_0_0011  // 0b101001 ORC
-0b100110_01_00_000_0_0011  // 0b101010 XORC
-0b101001_01_00_000_0_0011  // 0b101011 XNORC
-0b110000_01_00_000_0_0011  // 0b101100 SHLC
-0b110001_01_00_000_0_0011  // 0b101101 SHRC
-0b110011_01_00_000_0_0011  // 0b101110 SRAC
-0b000000_00_00_011_0_1001  // 0b101111
-"""
+ctl_test(sys.stdout)

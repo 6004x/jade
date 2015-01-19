@@ -94,8 +94,9 @@ jade_defs.utils = function (jade) {
         s = s.replace(/\/\*(.|\n)*?\*\//g,'');   // multi-line using slash-star
         s = s.replace(/\/\/.*/g,'');  // single-line comment
  
-        // remove various formatting chars
+        // remove various formatting chars, change don't care to 0
         s = s.replace(/[+_]/g,'');
+        s = s.replace(/\?/g,'0');
 
         var nlist = s.split(/\s+/);
         var result = [];
