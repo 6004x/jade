@@ -23,18 +23,18 @@ what:
 	@echo
 
 	@echo "  make commit           update modified/deleted files prior to git push"
-	@echo "  make pull             update files from git repository"
+	@echo "  make pull             update files from git repository, set permissions"
 
 	@echo
 	@echo "Run Some ad-hoc example files:"
-	@echo "  make run-beta         Run Jade on beta:vanilla"
+	@echo "  make run-beta         Run Jade on vanilla beta running test code"
+	@echo "  make run-beta-fib     Run Jade on vanilla beta running fibonacci code"
 	@echo "  make run-mul32        32-bit multiplier, approach 2 (not working)"
 
 	@echo
 	@echo "  make beta-json        Readable version of a json file (needs underscore)"
 
 	@echo
-	@echo "  make run-bug         /bugs/mul4_1 runs, mul4_2 shows empty error bug"
 
 ################################################################################
 ### GIT interface commands:
@@ -91,6 +91,9 @@ run-bugs:
 # ad-hoc run commands to show various examples:
 
 run-beta:
+	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/beta/cjttest"
+
+run-beta-fib:
 	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/beta/testjig"
 
 run-mul32:
