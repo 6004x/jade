@@ -209,7 +209,7 @@ jade_defs.test_view = function(jade) {
 
         // remove multiline comments, in-line comments
         source = source.replace(/\/\*(.|\n)*?\*\//g,'');   // multi-line using slash-star
-        source = source.replace(/\/\/.*\n/g,'\n');
+        source = source.replace(/\/\/.*/g,'');  // single-line comment
 
         var i,j,k,v;
         var repeat = 1;
