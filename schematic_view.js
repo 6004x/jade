@@ -95,7 +95,8 @@ jade_defs.schematic_view = function(jade) {
                                       function(diagram) {
                                           if (!diagram.aspect) return false;
                                           var selected = diagram.aspect.selected_component();
-                                          if (selected !== undefined) return selected.has_aspect(Schematic.prototype.editor_name);
+                                          if (selected !== undefined)
+                                              return selected.can_view() && selected.has_aspect(Schematic.prototype.editor_name);
                                           else return false;
                                       });
                 this.toolbar.add_tool('up', jade.icons.up_icon,
@@ -268,8 +269,6 @@ jade_defs.schematic_view = function(jade) {
     Schematic.prototype.set_aspect = function(module) {
         var aspect = module.aspect(Schematic.prototype.editor_name);
 
-        if (aspect.confidential()) aspect = confidential_module.aspect(Schematic.prototype.editor_name);
-
         $(this.tab).html(Schematic.prototype.editor_name);
         if (aspect.read_only()) $(this.tab).append(' ' + jade.icons.readonly);
 
@@ -291,7 +290,7 @@ jade_defs.schematic_view = function(jade) {
 
     function schematic_down(diagram) {
         var selected = diagram.aspect.selected_component();
-        if (selected !== undefined && selected.has_aspect(Schematic.prototype.editor_name)) {
+        if (selected !== undefined && selected.can_view() && selected.has_aspect(Schematic.prototype.editor_name)) {
             var e = diagram.editor;
             e.hierarchy_stack.push(diagram.aspect.module); // remember what we were editing
             e.jade.edit(selected.module);
@@ -1300,8 +1299,10 @@ jade_defs.schematic_view = function(jade) {
                 .mouseup(part_mouse_up);
 
             // you can only edit parts in the parts bin if in hierarchical mode
-            if (parts_bin.editor.jade.configuration.hierarchical)
+            if (parts_bin.editor.jade.configuration.hierarchical && part.component.can_view()) {
                 part.canvas.dblclick(part_dblclick);
+                part.can_edit = true;
+            }
 
             // add icon to parts bin along with new header if needed
             var path = part.component.module.get_name().split('/');
@@ -1467,7 +1468,8 @@ jade_defs.schematic_view = function(jade) {
         var tip = part.component.module.properties.tool_tip;
         if (tip !== undefined) tip = tip.value;
         else tip = part.component.type();
-        tip += ': drag onto diagram to insert, double click to edit';
+        tip += ': drag onto diagram to insert';
+        if (part.can_edit) tip += ', double click to edit';
 
         part.diagram.message(tip);
         return false;
@@ -1502,17 +1504,6 @@ jade_defs.schematic_view = function(jade) {
         var part = event.target.part;
         part.editor.jade.edit(part.component.module.get_name());
     }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  confidential aspect for schematics and icons
-    //
-    ////////////////////////////////////////////////////////////////////////////////
-
-    var confidential_module = new jade.model.Module('Confidential',{
-        properties: {"readonly": "true"},
-        schematic: [["text",[0,0,0],{"text": "This schematic is confidential.", "align":"center", "font": "bold 10pt sans-serif"}]]
-    });
 
     ///////////////////////////////////////////////////////////////////////////////
     //

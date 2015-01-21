@@ -334,6 +334,7 @@ jade_defs.top_level = function(jade) {
         var pattern_list = (this.configuration.parts || ['.*']).map(function (p) { return new RegExp(p); });
         var mlist = [];
         jade.model.map_modules(pattern_list,function (m) {
+            if (m.confidential()) return;  // can't view confidential models
             var name = m.get_name();
             // only include each module once!
             if (mlist.indexOf(name) == -1) mlist.push(name);
