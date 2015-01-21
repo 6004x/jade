@@ -757,9 +757,9 @@ jade_defs.gatesim = function(jade) {
             d = this.drivers[i];
             if (!d.tristate(this)) {
                 // shorting together non-tristate outputs, so complain
-                var msg = 'Node ' + this.name + ' connects to more than one non-tristate output.  See devices: \n';
+                var msg = 'Node ' + this.name + ' is driven by multiple gates.  See devices:<br>';
                 for (var j = 0; j < ndrivers; j += 1)
-                    msg += this.drivers[j].name + '\n';
+                    msg += '<li>'+this.drivers[j].name;
                 throw msg;
             }
             // cons up a new node and have this device drive it

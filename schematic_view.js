@@ -268,10 +268,13 @@ jade_defs.schematic_view = function(jade) {
     Schematic.prototype.set_aspect = function(module) {
         var aspect = module.aspect(Schematic.prototype.editor_name);
 
+        if (aspect.confidential()) aspect = confidential_module.aspect(Schematic.prototype.editor_name);
+
         $(this.tab).html(Schematic.prototype.editor_name);
         if (aspect.read_only()) $(this.tab).append(' ' + jade.icons.readonly);
 
         this.diagram.set_aspect(aspect);
+
         if (this.parts_bin) this.parts_bin.show();
     };
 
@@ -1499,6 +1502,17 @@ jade_defs.schematic_view = function(jade) {
         var part = event.target.part;
         part.editor.jade.edit(part.component.module.get_name());
     }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    //  confidential aspect for schematics and icons
+    //
+    ////////////////////////////////////////////////////////////////////////////////
+
+    var confidential_module = new jade.model.Module('Confidential',{
+        properties: {"readonly": "true"},
+        schematic: [["text",[0,0,0],{"text": "This schematic is confidential.", "align":"center", "font": "bold 10pt sans-serif"}]]
+    });
 
     ///////////////////////////////////////////////////////////////////////////////
     //

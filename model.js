@@ -135,8 +135,12 @@ jade_defs.model = function (jade) {
         return this.name;
     };
 
+    Module.prototype.confidential = function() {
+        return this.property_value('confidential') == 'true';
+    };
+
     Module.prototype.read_only = function() {
-        return this.property_value('readonly') == 'true';
+        return this.confidential() || this.property_value('readonly') == 'true';
     };
 
     Module.prototype.add_listener = function(callback) {
@@ -311,6 +315,15 @@ jade_defs.model = function (jade) {
             json.push(this.components[i].json());
         }
         return json;
+    };
+
+    Aspect.prototype.confidential = function() {
+        if (!this.module) return false;
+
+        // is this aspect read only?
+        if (this.module.property_value(this.name + '-confidential') == 'true') return true;
+
+        return this.module.confidential();
     };
 
     Aspect.prototype.read_only = function() {
@@ -1309,6 +1322,7 @@ jade_defs.model = function (jade) {
         find_module: find_module,
         remove_module: remove_module,
         map_modules: map_modules,
+        Module: Module,
         Aspect: Aspect,
         Component: Component,
         make_component: make_component,

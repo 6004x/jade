@@ -16,7 +16,7 @@ def field(f,width,value,choices,suffix=' '):
 
 def xfield(f,width,s,choices,suffix=' '):
     for i in xrange(width):
-        v = '-' if ((s is None) or s[i]=='?') else choices[0] if s[i]=='0' else choices[1]
+        v = '-' if ((s is None) or s[i] in '?ZX') else choices[0] if s[i]=='0' else choices[1]
         f.write(v)
     f.write(suffix)
 
@@ -401,6 +401,10 @@ def regfile_test(f):
     regfile_test_cycle(f,0,1,1,1,2,3,12345678,1,2) # test wasel
     regfile_test_cycle(f,1,0,0,30,2,30,0,12345678,12345678)  # see if we wrote R30
 
+    # make sure werf isn't tied to 1
+    regfile_test_cycle(f,0,0,0,1,2,3,12345678,1,2) # no write
+    regfile_test_cycle(f,0,0,0,3,3,3,12345678,3,3) # ensure R3 unchanged
+
 #regfile_test(sys.stdout)
 
 ##################################################
@@ -569,6 +573,14 @@ betaop = [
 "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "???", "LD", "ST", "???", "JMP", "BEQ", "BNE", "???", "LDR", "ADD", "SUB", "MUL", "DIV", "CMPEQ", "CMPLT", "CMPLE", "???", "AND", "OR", "XOR", "XNOR", "SHL", "SHR", "SRA", "???", "ADDC", "SUBC", "MULC", "DIVC", "CMPEQC", "CMPLTC", "CMPLEC", "???", "ANDC", "ORC", "XORC", "XNORC", "SHLC", "SHRC", "SRAC", "???"
 ]
 
+def read_rom(rom):
+    # reformat master into a list of values
+    rom = re.sub(r'\/\*(.|\n)*?\*\/','',rom)   # remove multi-line comments
+    rom = re.sub(r'\/\/.*','',rom); # single-line comment
+    rom = re.sub(r'[+_]','',rom)    # random formatting characters
+    rom = re.sub(r'^0b','',rom,flags=re.M)     # 0b at front
+    return rom.split()
+
 def ctl_test_cycle(f,op,reset,irq,z,alufn,asel,bsel,moe,mwr,pcsel,ra2sel,wasel,wdsel,werf,comment):
     global cycle
     cycle += 1
@@ -590,16 +602,12 @@ def ctl_test(f):
     global cycle
     cycle = 0
 
-    # reformat master into a list of numbers
-    rom = re.sub(r'\/\*(.|\n)*?\*\/','',ctlrom)   # remove multi-line comments
-    rom = re.sub(r'\/\/.*','',rom); # single-line comment
-    rom = re.sub(r'[+_]','',rom)    # random formatting characters
-    rom = re.sub(r'^0b','',rom)     # 0b at front
-    content = rom.split()
+    # process control rom
+    content = read_rom(ctlrom)
     assert len(content)==64, 'ctlrom does not have 64 entries'
 
     for op in xrange(len(content)):
-        sigs = content[op][2:]
+        sigs = content[op]
         alufn = sigs[:6]
         asel = sigs[6]
         bsel = sigs[7]
@@ -610,6 +618,7 @@ def ctl_test(f):
         wasel = sigs[14]
         wdsel = sigs[15:17]
         werf = sigs[17]
+        # for each opcode test all combinations of reset, irq and z
         for reset in (0,1):
             for irq in (0,1):
                 for z in (0,1):
@@ -624,4 +633,131 @@ def ctl_test(f):
                         else: xpcsel = pcsel
                         ctl_test_cycle(f,op,reset,irq,z,alufn,asel,bsel,moe,mwr,xpcsel,ra2sel,wasel,wdsel,werf,comment)
 
-ctl_test(sys.stdout)
+#ctl_test(sys.stdout)
+
+##################################################
+##  Beta
+##################################################
+
+# built from log created by running lab5checkoff.uasm on a good beta
+# using the following test
+
+"""
+.power Vdd=1
+.thresholds Vol=0 Vil=0.1 Vih=0.9 Voh=1
+
+.group inputs RESET IRQ
+
+.log RESET IRQ MOE MWR IA[31:0] ID[31:0] MA[31:0] MRD[31:0] MWD[31:0]
+
+.mode gate
+
+.cycle CLK=1 tran 5n assert inputs tran 45n CLK=0 tran 49n log tran 1n
+
+10
+.repeat 264
+00
+01
+.repeat 15
+00
+"""
+
+def beta_test_cycle(f,reset,irq,ia,id,ma,moe,mwr,mrd,mwd,comment = ''):
+    global cycle
+    cycle += 1
+    xfield(f,1,reset,'01','')
+    xfield(f,1,irq,'01')
+
+    xfield(f,32,ia,'LH')
+    xfield(f,32,id,'LH')
+    xfield(f,32,ma,'LH')
+    xfield(f,1,moe,'LH','')
+    xfield(f,1,mwr,'LH')
+    xfield(f,32,mrd,'LH')
+    xfield(f,32,mwd,'LH',suffix= ' // %3d: %s\n' % (cycle,comment))
+
+def disassemble(reset,irq,ia,id):
+    if reset=='1':
+        return 'reset'
+    if irq=='1' and ia[0]=='0':
+        return 'interrupt'
+    if not id[:2] in ['00', '01', '10', '11']:
+        return ''
+
+    pc = str.format('[{:03x}] ',int(ia[1:],2))
+    opcode = betaop[int(id[:6],2)]
+    if opcode[0] == '?':
+        return pc+ str.format('illop op=0b%s' % id[:6])
+
+    rc = int(id[6:11],2)
+    ra = int(id[11:16],2)
+    rb = int(id[16:21],2)
+    literal = int(id[16:32],2)
+    if literal >= 0x8000: literal -= 0x10000
+    offset_addr = int(ia[1:32],2) + 4*literal + 4
+
+    if id[:2] == '10':
+        return pc + '%s(R%d,R%d,R%d)' % (opcode,ra,rb,rc)
+    elif id[:2] == '11':
+        return pc + '%s(R%d,0x%x,R%d)' % (opcode,ra,literal & 0xFFFF,rc)
+    elif opcode == 'LD':
+        return pc + 'LD(R%d,0x%x,R%d)' % (ra,literal & 0xFFFF,rc)
+    elif opcode == 'ST':
+        return pc + 'ST(R%d,0x%x,R%d)' % (rc,literal & 0xFFFF,ra)
+    elif opcode == 'LDR':
+        return pc + 'LDR(0x%x,R%d)' % (offset_addr,rc)
+    elif opcode == 'JMP':
+        return pc + 'JMP(R%d,R%d)' % (ra,rc)
+    elif opcode == 'BEQ' or opcode == 'BNE':
+        return pc + '%s(R%d,0x%x,R%d)' % (opcode,ra,offset_addr,rc)
+    else:
+        return 'unknown instruction'
+
+def beta_test(f):
+    global cycle
+    cycle = 0
+
+    # process control rom
+    content = read_rom(ctlrom)
+    assert len(content)==64, 'ctlrom does not have 64 entries'
+
+    log = open('beta_log')
+    for line in log:
+        # break down log entry into useful values
+        lreset = line[0]
+        lirq = line[1]
+        lmoe = line[2]
+        lmwr = line[3]
+        lia = line[4:36]
+        lid = line[36:68]
+        lma = line[68:100]
+        lmrd = line[100:132]
+        lmwd = line[132:164]
+
+        # read in opcode and determine control signals
+        if lreset == '1':
+            sigs = '?????????0????????'
+        elif lirq == '1':
+            sigs = '?????????0100?1001'
+        else:
+            sigs = content[int(lid[:6],2)]
+        alufn = sigs[:6]
+        asel = sigs[6]
+        bsel = sigs[7]
+        moe = sigs[8]
+        mwr = sigs[9]
+        pcsel = sigs[10:13]
+        ra2sel = sigs[13]
+        wasel = sigs[14]
+        wdsel = sigs[15:17]
+        werf = sigs[17]
+
+        if alufn[0] == '?': lma = None
+        if moe == '?':
+            lmrd = None
+            lmoe = None
+        if lmwr != '1': lmwd = None
+
+        beta_test_cycle(f,lreset,lirq,lia,lid,lma,lmoe,lmwr,lmrd,lmwd,disassemble(lreset,lirq,lia,lid))
+        
+beta_test(sys.stdout)

@@ -225,6 +225,7 @@ jade_defs.test_view = function(jade) {
         var sampled_signals = {};   // if name in dictionary we want its value
         var plotdefs = {};   // name -> array of string representations for values
         var errors = [];
+        var log_signals = [];  // signals to report in each log entry
 
         // process each line in test specification
         source = source.split('\n');
@@ -287,6 +288,7 @@ jade_defs.test_view = function(jade) {
                 //   deassert <group_name>
                 //   sample <group_name>
                 //   tran <duration>
+                //   log
                 //   <name> = <voltage>
                 if (cycle.length != 0) {
                     errors.push('More than one .cycle statement: '+source[k]);
@@ -321,6 +323,11 @@ jade_defs.test_view = function(jade) {
                         i += 2;
                         continue;
                     }
+                    else if (line[i] == 'log') {
+                        cycle.push(['log']);
+                        i += 1;
+                        continue;
+                    }
                     else if (line[i+1] == '=' && (i + 2 < line.length)) {
                         v = line[i+2];   // expect 0,1,Z
                         if ("01Z".indexOf(v) == -1) {
@@ -341,6 +348,14 @@ jade_defs.test_view = function(jade) {
                 if (isNaN(repeat) || repeat < 1) {
                     errors.push('Expected positive integer for .repeat: '+line[1]);
                     repeat = 1;
+                }
+            }
+            else if (line[0] == '.log') {
+                // capture signal names for later printout
+                for (j = 1; j < line.length; j += 1) {
+                    $.each(jade.utils.parse_signal(line[j]),function (index,sig) {
+                        log_signals.push(sig);
+                    });
                 }
             }
             else if (line[0][0] == '.') {
@@ -426,6 +441,7 @@ jade_defs.test_view = function(jade) {
         }
         $.each(driven_signals,check_node);
         $.each(sampled_signals,check_node);
+        $.each(log_signals,function (index,n) { check_node(n); });
 
         if (errors.length != 0) {
             msg = '<li>'+errors.join('<li>');
@@ -453,6 +469,7 @@ jade_defs.test_view = function(jade) {
         function set_voltage(tvlist,v) {
             if (v != tvlist[tvlist.length - 1][1]) tvlist.push([time,v]);
         }
+        var log_times = [];          // times at which to create log entry
         $.each(tests,function(tindex,test) {
             $.each(cycle,function(index,action) {
                 if (action[0] == 'assert' || action[0] == 'deassert') {
@@ -470,6 +487,9 @@ jade_defs.test_view = function(jade) {
                 }
                 else if (action[0] == 'set') {
                     set_voltage(driven_signals[action[1]],action[2]);
+                }
+                else if (action[0] == 'log') {
+                    log_times.push(time);
                 }
                 else if (action[0] == 'tran') {
                     time += action[1];
@@ -609,15 +629,16 @@ jade_defs.test_view = function(jade) {
                 var hcache = {};  // cache histories we retrieve
                 var errors = [];
                 var t_error;
+                var v,test,history;
                 for (var i = 0; i < tests.length; i += 1) {
-                    var test = tests[i];
+                    test = tests[i];
 
                     // if we've detected errors at an earlier test, we're done
                     // -- basically just report all the errors for the first failing test
                     if (t_error && t_error < test.i) break;
 
                     // retrieve history for this node
-                    var history = hcache[test.n];
+                    history = hcache[test.n];
                     if (history === undefined) {
                         history = results._network_.history(test.n);
                         hcache[test.n] = history;
@@ -647,33 +668,27 @@ jade_defs.test_view = function(jade) {
                     else throw 'Unrecognized simulation mode: '+mode;
                 }
 
-                /*
-                $.each(sampled_signals,function(node,tvlist) {
-                    var history = results._network_.history(node);
-                    var times = history.xvalues;
-                    var observed = history.yvalues;
-                    $.each(tvlist,function(index,tvpair) {
-                        var v;
-                        if (mode == 'device') {
-                            v = jade.device_level.interpolate(tvpair[0], times, observed);
-                            if (v === undefined ||
-                                (tvpair[1] == 'L' && v > thresholds.Vil) ||
-                                (tvpair[1] == 'H' && v < thresholds.Vih)) 
-                                errors.push('Expected signal '+node+' to be a valid '+tvpair[1]+
-                                            ' at time '+jade.utils.engineering_notation(tvpair[0],2)+'s.');
+                // create log if requested
+                var log = [];
+                $.each(log_times,function (tindex,t) {
+                    var values = [];
+                    $.each(log_signals,function (sindex,n) {
+                        // retrieve history for this node
+                        var history = hcache[n];
+                        if (history === undefined) {
+                            history = results._network_.history(n);
+                            hcache[n] = history;
                         }
-                        else if (mode == 'gate') {
-                            v = jade.gate_level.interpolate(tvpair[0], times, observed);
-                            if (v === undefined ||
-                                (tvpair[1] == 'L' && v != 0) ||
-                                (tvpair[1] == 'H' && v != 1)) 
-                                errors.push('Expected signal '+node+' to be a valid '+tvpair[1]+
-                                            ' at time '+jade.utils.engineering_notation(tvpair[0],2)+'s.');
+                        if (history === undefined) v = '?';
+                        else {
+                            v = jade.gate_level.interpolate(t, history.xvalues, history.yvalues);
+                            v = "01XZ"[v];
                         }
-                        else throw 'Unrecognized simulation mode: '+mode;
+                        values.push(v);
                     });
+                    log.push(values.join(''));
                 });
-                 */
+                if (log.length > 0) console.log(log.join('\n'));
 
                 // construct a data set for {signals: [sig...], dfunction: string, name: string}
                 var plot_colors = ['#268bd2','#dc322f','#859900','#b58900','#6c71c4','#d33682','#2aa198'];

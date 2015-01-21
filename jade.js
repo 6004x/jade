@@ -82,7 +82,7 @@ jade_defs.top_level = function(jade) {
         this.selected_tab = undefined;
 
         // add status line at the bottom
-        this.status.text('Copyright \u00A9 MIT EECS 2011-2014');
+        this.status.text('Copyright \u00A9 MIT EECS 2011-2015');
 
         // set up handler to resize jade
         var me = this;
