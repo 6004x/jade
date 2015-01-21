@@ -93,7 +93,7 @@ def BuildCTL():
     ALUOp(0b101000, 0b11000)            #  AND
     ALUOp(0b101001, 0b11110)            #  OR
     ALUOp(0b101010, 0b10110)            #  XOR
-    ALUOp(0b101010, 0b11001)            #  XNOR
+    ALUOp(0b101011, 0b11001)            #  XNOR
 
     ALUOp(0b101100, 0b01000)            # SHL
     ALUOp(0b101101, 0b01001)            # SHR
