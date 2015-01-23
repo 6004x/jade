@@ -807,7 +807,7 @@ jade_defs.model = function (jade) {
     };
 
     Component.prototype.can_view = function() {
-        return this.module && !this.module.confidential();
+        return this.module && this.module.confidential && !this.module.confidential();
     };
 
     Component.prototype.has_aspect = function(name) {

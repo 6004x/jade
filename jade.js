@@ -48,13 +48,14 @@ jade_defs.top_level = function(jade) {
         this.jade = jade;
         this.parent = owner;
         this.module = undefined;
+        this.configuration = {};
 
         // insert framework into DOM
         this.top_level = $('<div class="jade-top-level">' +
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.19 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.20 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -167,41 +168,38 @@ jade_defs.top_level = function(jade) {
     };
 
     // initialize editor from configuration object
-    Jade.prototype.initialize = function (configuration) {
+    Jade.prototype.initialize = function (config) {
         var me = this;
-        this.configuration = configuration;
+        $.extend(this.configuration,config);
 
-        // remember who we are
-        this.id = configuration.id;
-
-        $('#start-over',this.module_tools).toggle(configuration.state && configuration.initial_state);
+        $('#start-over',this.module_tools).toggle(this.configuration.state && this.configuration.initial_state);
 
         // initialize object for recording test results
-        if (configuration.tests === undefined) configuration.tests = {};
+        if (this.configuration.tests === undefined) this.configuration.tests = {};
 
         // load any shared modules from specified files
-        if (configuration.shared_modules) {
-            $.each(configuration.shared_modules,function (index,filename) {
+        if (this.configuration.shared_modules) {
+            $.each(this.configuration.shared_modules,function (index,filename) {
                 jade.model.load_modules(filename,true);
             });
         }
 
         // load module files, including those for user?
-        if (configuration.modules) {
-            if (typeof configuration.modules == 'string')
-                configuration.modules = configuration.modules.split(',');
-            $.each(configuration.modules,function (index,mfile) {
+        if (this.configuration.modules) {
+            if (typeof this.configuration.modules == 'string')
+                this.configuration.modules = this.configuration.modules.split(',');
+            $.each(this.configuration.modules,function (index,mfile) {
                 jade.model.load_modules(mfile,false);
             });
         }
 
-        $('.hierarchy-tool',this.top_level).toggle(configuration.hierarchical == 'true');
+        $('.hierarchy-tool',this.top_level).toggle(this.configuration.hierarchical == 'true');
 
         // setup editor panes
         var elist;
-        if (configuration.editors) {
+        if (this.configuration.editors) {
             elist = [];
-            $.each(configuration.editors,function(index,value) {
+            $.each(this.configuration.editors,function(index,value) {
                 // look through list of defined editors to see if we have a match
                 $.each(editors,function(eindex,evalue) {
                     if (evalue.prototype.editor_name == value) elist.push(evalue);
@@ -249,36 +247,27 @@ jade_defs.top_level = function(jade) {
 
         // load state (dictionary of module_name:json).  Start with initial_state
         // then overwrite with user's state
-        if (configuration.initial_state) {
-            jade.model.load_json(configuration.initial_state);
+        if (this.configuration.initial_state) {
+            jade.model.load_json(this.configuration.initial_state);
             jade.model.set_clean();  // mark current module content as clean
         }
-        if (configuration.state)
-            jade.model.load_json(configuration.state);
+        if (this.configuration.state)
+            jade.model.load_json(this.configuration.state);
 
         // starting module?
-        var edit = configuration.edit || '/user/untitled';
+        var edit = this.configuration.edit || '/user/untitled';
         var mname = edit.split('.');          // module.aspect
         this.edit(mname[0]);  // select module
         if (mname.length > 1) this.show(mname[1]);
     };
 
     Jade.prototype.get_state = function() {
-        // start with all the ancillary information
-        var state = $.extend({},this.configuration);
-        delete state.initial_state;  // don't save as part of user state
-
-        // gather up json for all non-shared modules.  Only ask
-        // for aspects which are dirty.
-        if (this.configuration.hierarchical)
-            state.state = jade.model.json_modules(true).json;
-        else if (this.configuration.edit) {
-            // just save the module we're editing
-            var m = jade.model.get_modules()[this.configuration.edit];
-            if (m) { 
-                state.state = {};
-                state.state[this.configuration.edit] = m.json(true);
-            }
+        // save updated test results and any aspects that
+        // differ from initial state
+        var state = {
+            tests: this.configuration.tests,
+            'required-tests': this.configuration['required-tests'],
+            state: jade.model.json_modules(true).json
         };
 
         // request for state means user library is being saved
