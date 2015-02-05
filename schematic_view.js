@@ -133,7 +133,7 @@ jade_defs.schematic_view = function(jade) {
 
             // built-in memory component.  Initially hidden, will be enabled if requested
             // as a wanted part
-            this.memory_part = this.toolbar.add_tool('memory', 'MEM',
+            this.memory_part = this.toolbar.add_tool('memory', '<span>MEM</span>',
                                                      'Multi-port memory: click and drag to insert', null,
                                                      insert_part_allowed);
             part_tool(this.memory_part,this,'memory');

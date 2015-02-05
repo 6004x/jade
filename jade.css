@@ -166,7 +166,8 @@
     vertical-align: middle;
     font: small-caps small sans-serif;
     min-width: 16px;
-    min-height: 16px;
+    height: 24px;
+    background-color: transparent;
 }
 .jade-module-tool {
     padding: 2px;

@@ -55,7 +55,7 @@ jade_defs.top_level = function(jade) {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.21 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.22 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -1768,7 +1768,9 @@ jade_defs.top_level = function(jade) {
             tool = $('<img draggable="false"></img>');
             tool.attr('src',icon);
         }
-        else tool = $('<span>'+icon+'</span>');
+        else {
+            tool = $('<button></button>').append(icon);
+        }
         tool.addClass('jade-tool jade-tool-disabled');
         tool[0].enabled = false;
 

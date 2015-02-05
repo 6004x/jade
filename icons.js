@@ -75,7 +75,7 @@ jade_defs.icons = function(jade) {
         '<circle cx="8" cy="10" r="5" stroke="black" fill="transparent"/>' +
         '</svg>';
 
-    jade.icons.property_icon = '{P}'; // just text
+    jade.icons.property_icon = '<span>{P}</span>'; // just text
 
     jade.icons.terminal_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
         '<circle cx="5" cy="10" r="3" stroke="black" fill="transparent"/>' +
