@@ -1316,12 +1316,14 @@ jade_defs.schematic_view = function(jade) {
                 // allow user to open/close a particular parts bin
                 var local_parts_list = parts_list; // for closure
                 var arrow = $('span',header);
-                header.on('click',function () {
+                header.on('click',function (event) {
                     if (arrow.hasClass('fa-caret-down'))
                         arrow.removeClass('fa-caret-down').addClass('fa-caret-right');
                     else
                         arrow.removeClass('fa-caret-right').addClass('fa-caret-down');
                     local_parts_list.animate({height: 'toggle'});
+                    event.preventDefault();
+                    return false;
                 });
 
                 current = lname;
@@ -1503,6 +1505,8 @@ jade_defs.schematic_view = function(jade) {
     function part_dblclick(event) {
         var part = event.target.part;
         part.editor.jade.edit(part.component.module.get_name());
+        event.preventDefault();
+        return false;
     }
 
     ///////////////////////////////////////////////////////////////////////////////

@@ -55,7 +55,7 @@ jade_defs.top_level = function(jade) {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.20 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.21 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -135,8 +135,10 @@ jade_defs.top_level = function(jade) {
         if (extra_classes) tool.addClass(extra_classes);
 
         var j = this;  // for closure
-        tool.on('click',function () {
+        tool.on('click',function (event) {
             if (action) action(j);
+            event.preventDefault();
+            return false;
         });
 
         tool.on('mouseenter',function () {
@@ -222,6 +224,7 @@ jade_defs.top_level = function(jade) {
             tab.click(function(event) {
                 me.show(ename);
                 event.preventDefault();
+                return false;
             });
 
             // add body for each tab (only one will have display != none)
@@ -1458,6 +1461,8 @@ jade_defs.top_level = function(jade) {
         var stop = progress.find('#stop');
         stop.on('click',function(event) {
             progress[0].stop_requested = true;
+            event.preventDefault();
+            return false;
         });
         return progress;
     }
@@ -1523,7 +1528,7 @@ jade_defs.top_level = function(jade) {
         // fill in body element, set up click handlers
         dialog.find('.jade-dialog-content').append(content);
 
-        dialog.find('#ok').on('click',function () {
+        dialog.find('#ok').on('click',function (event) {
             window_close(dialog[0].win);
 
             // invoke the callback with the dialog contents as the argument.
@@ -1531,10 +1536,15 @@ jade_defs.top_level = function(jade) {
             if (dialog[0].callback) setTimeout(function() {
                 dialog[0].callback();
             }, 1);
+
+            event.preventDefault();
+            return false;
         });
 
-        dialog.find('#cancel').on('click',function () {
+        dialog.find('#cancel').on('click',function (event) {
             window_close(dialog[0].win);
+            event.preventDefault();
+            return false;
         });
 
         // put into an overlay window
@@ -1605,8 +1615,10 @@ jade_defs.top_level = function(jade) {
         head[0].win = win[0];
         win[0].head = head[0];
 
-        var close_button = win.find('span').click(function () {
+        var close_button = win.find('span').click(function (event) {
             window_close(win[0]);
+            event.preventDefault();
+            return false;
         });
 
         win.append($(content));
@@ -1817,6 +1829,9 @@ jade_defs.top_level = function(jade) {
             tool.diagram.event_coords(event); // so we can position pop-up window correctly
             tool.callback(tool.diagram);
         }
+
+        event.preventDefault();
+        return false;
     }
 
     //////////////////////////////////////////////////////////////////////
