@@ -142,6 +142,19 @@
     display: inline-block;
     height: 42px;
     width: 42px;
+
+    padding: 2px;
+    border: 1px solid #EEEEEE;
+    background-color: transparent;
+}
+.jade-xpart:hover {
+    border-color: #000;
+}
+.jade-xpart:active {
+    background-color: #CCCCCC;
+}
+.jade-xpart * {
+    pointer-events: none;
 }
 .jade-icon-diagram {
     width: 568px;
