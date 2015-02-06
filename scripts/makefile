@@ -1,6 +1,6 @@
 # Scripts to generate Jade input tests
 
-doit:		add8-test
+doit:		add2-test
 
 ctlrom:		ctlrom.py
 		python $<
@@ -42,6 +42,9 @@ pcoff-test:	pcoff-test.py
 		python $<
 
 add4-test:	add4-test.py
+		python $<
+
+add2-test:	add2-test.py
 		python $<
 
 inc4-test:	inc4-test.py
