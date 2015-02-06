@@ -870,7 +870,7 @@ jade_defs.model = function (jade) {
 
         // create a record of the change
         var component = this; // for closure
-        this.aspect.add_change(function(diagram, action) {
+        function component_rotate(diagram, action) {
             if (action == 'undo') {
                 component.coords[0] = old_x;
                 component.coords[1] = old_y;
@@ -882,7 +882,9 @@ jade_defs.model = function (jade) {
                 component.coords[2] = new_rotation;
             }
             component.update_coords();
-        });
+        }
+
+        this.aspect.add_change(component_rotate);
     };
 
     Component.prototype.move_begin = function() {
@@ -906,11 +908,13 @@ jade_defs.model = function (jade) {
         if (dx !== 0 || dy !== 0 || this.coords[2] != this.move_rotation) {
             // create a record of the change
             var component = this; // for closure
-            this.aspect.add_change(function(diagram, action) {
+            function component_move_end(diagram, action) {
                 if (action == 'undo') component.move(-dx, - dy);
                 else component.move(dx, dy);
                 component.aspect.check_wires(component);
-            });
+            }
+
+            this.aspect.add_change(component_move_end);
             this.aspect.check_wires(this);
         }
     };
@@ -922,10 +926,12 @@ jade_defs.model = function (jade) {
 
         // create a record of the change
         var component = this; // for closure
-        aspect.add_change(function(diagram, action) {
+        function component_add(diagram, action) {
             if (action == 'undo') component.remove();
             else component.add(diagram);
-        });
+        }
+
+        aspect.add_change(component_add);
     };
 
     Component.prototype.remove = function() {
@@ -940,10 +946,12 @@ jade_defs.model = function (jade) {
 
         // create a record of the change
         var component = this; // for closure
-        this.aspect.add_change(function(diagram, action) {
+        function component_remove(diagram, action) {
             if (action == 'undo') component.add(diagram);
             else component.remove();
-        });
+        }
+
+        this.aspect.add_change(component_remove);
     };
 
     Component.prototype.transform_x = function(x, y) {
@@ -1133,10 +1141,12 @@ jade_defs.model = function (jade) {
             this.properties = new_properties;
 
             var component = this; // for closure
-            this.aspect.add_change(function(diagram, action) {
+            function component_update_properties(diagram, action) {
                 if (action == 'undo') component.properties = old_properties;
                 else component.properties = new_properties;
-            });
+            }
+
+            this.aspect.add_change(component_update_properties);
         }
     };
 
