@@ -728,10 +728,11 @@ jade_defs.gatesim = function(jade) {
         var nfanouts = this.fanouts.length;
         if (ndrivers === 0) {
             if (nfanouts > 0) {
-	        // SAW 10/3/14: I used this to track down a missing connection...
-	        // console.log('Node ', this, ' is not connected to any output.');
-                if (!this.network.options.timing_analysis)
-                    throw 'Node ' + this.name + ' is not connected to any output.';
+                if (!this.network.options.timing_analysis) {
+                    var connections = [];
+                    $.each(this.fanouts,function (index,d) { connections.push(d.name); });
+                    throw 'Node ' + this.name + ' is not connected to any output<br>but is an input to the following devices:<li>'+connections.join('<li>');
+                }
             } else return;  // no drivers, no fanouts... not interesting :)  
         }
         if (this.capacitance === 0) this.capacitance = c_intercept + c_slope * (ndrivers + nfanouts);
