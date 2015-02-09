@@ -6,7 +6,8 @@ but you're welcome experiment!  Here's how:
 
 1.  Fork this repository: click on the "Fork" button in the upper
     right.  This will make a copy of the repository under your own
-    github account.
+    github account.  Now clone your copy of the repo onto your
+    local machine.
 
 2.  Any changes, commits, pushes, pulls, etc. will be to your copy
     of the repo.  If you want to be able keep up with changes to the
