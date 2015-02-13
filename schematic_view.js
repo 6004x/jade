@@ -96,7 +96,7 @@ jade_defs.schematic_view = function(jade) {
                                           if (!diagram.aspect) return false;
                                           var selected = diagram.aspect.selected_component();
                                           if (selected !== undefined)
-                                              return selected.can_view() && selected.has_aspect(Schematic.prototype.editor_name);
+                                              return selected.has_aspect(Schematic.prototype.editor_name) && selected.can_view();
                                           else return false;
                                       });
                 this.toolbar.add_tool('up', jade.icons.up_icon,
@@ -193,8 +193,7 @@ jade_defs.schematic_view = function(jade) {
                     }
 
                     parts.width(parts.width() - dx);
-                    sch_canvas.width(sch_canvas.width() + dx);
-                    sch_canvas[0].diagram.resize();
+                    sch.resize($(div).width(),$(div).height(),true);
 
                     lastX = event.pageX;
                     lastY = event.pageY;
@@ -243,7 +242,7 @@ jade_defs.schematic_view = function(jade) {
 
         var w_extra = e.outerWidth(true) - e.width();
         var h_extra = e.outerHeight(true) - e.height();
-        var w_parts = this.parts_bin ? this.resizer.outerWidth(true) + $(this.parts_bin.top_level).outerWidth(true) : 0;
+        var w_parts = this.parts_bin ? this.resizer.outerWidth(true) + 1 + $(this.parts_bin.top_level).outerWidth(true) : 0;
         var h_toolbar = this.toolbar.toolbar.outerHeight(true);
         
         var tw = w -  w_extra;
