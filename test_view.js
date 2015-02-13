@@ -460,7 +460,7 @@ jade_defs.test_view = function(jade) {
         $.each(power,function(node,v) {
             netlist.push({type:'voltage source',
                           connections:{nplus:node, nminus:'gnd'},
-                          properties:{value:{type:'dc', args:[v]}, name:node+'_source'}});
+                          properties:{value:{type:'dc', args:[v]}, name:node/*+'_source'*/}});
         });
 
         // go through each test determining transition times for each driven node, adding
@@ -701,7 +701,19 @@ jade_defs.test_view = function(jade) {
                     var xy,f;
                     var yunits = mode == 'device' ? 'V' : '';
                     $.each(plist,function (pindex,pspec) {
-                        if (pspec.dfunction) {
+                        if (pspec.dfunction == 'I') {
+                            var sig = pspec.signals[0];
+                            var isig = 'I(' + sig + ')';
+                            var history = results._network_.history(isig);
+                            if (history !== undefined) {
+                                color.push(plot_colors[xvalues.length % plot_colors.length]);
+                                xvalues.push(history.xvalues);
+                                yvalues.push(history.yvalues);
+                                name.push(isig);
+                                type.push(results._network_.result_type());
+                                yunits = 'A';
+                            } else throw "No voltage source named "+sig;
+                        } else if (pspec.dfunction) {
                             // gather history information for each signal
                             var xv = [];  // each element is a list of times
                             var yv = [];  // each element is a list of values
