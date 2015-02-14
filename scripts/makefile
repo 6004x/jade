@@ -1,6 +1,6 @@
 # Scripts to generate Jade input tests
 
-doit:		acc32-test
+doit:		mul4x4r8-test
 
 ctlrom:		ctlrom.py
 		python $<
@@ -30,6 +30,9 @@ mul32-test:	mul32-test.py
 		python $<
 
 mul4x4-test:	mul4x4-test.py
+		python $<
+
+mul4x4r8-test:	mul4x4r8-test.py
 		python $<
 
 add32-test:	add32-test.py
