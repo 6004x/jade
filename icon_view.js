@@ -44,11 +44,11 @@ jade_defs.icon_view = function(jade) {
                                   'Toggle schematic grid', jade.diagram_toggle_grid);
             this.toolbar.add_spacer();
 
-            this.toolbar.add_tool('undo', jade.icons.undo_icon, 'Undo: undo effect of previous action', jade.diagram_undo,
+            this.toolbar.add_tool('undo', jade.icons.undo_icon, 'Undo: undo effect of previous action (\u2318Z, ctrl-Z)', jade.diagram_undo,
                                   function(diagram) {
                                       return diagram.aspect && diagram.aspect.can_undo();
                                   });
-            this.toolbar.add_tool('redo', jade.icons.redo_icon, 'redo: redo effect of next action', jade.diagram_redo,
+            this.toolbar.add_tool('redo', jade.icons.redo_icon, 'redo: redo effect of next action (\u2318Y, ctrl-Y)', jade.diagram_redo,
                                   function(diagram) {
                                       return diagram.aspect && diagram.aspect.can_redo();
                                   });
@@ -57,9 +57,9 @@ jade_defs.icon_view = function(jade) {
                 return diagram.aspect && !diagram.aspect.read_only() && diagram.aspect.selections();
             }
             
-            this.toolbar.add_tool('cut', jade.icons.cut_icon, 'Cut: move selected components from diagram to the clipboard', jade.diagram_cut, has_selections);
-            this.toolbar.add_tool('copy', jade.icons.copy_icon, 'Copy: copy selected components into the clipboard', jade.diagram_copy, has_selections);
-            this.toolbar.add_tool('paste', jade.icons.paste_icon, 'Paste: copy clipboard into the diagram', jade.diagram_paste,
+            this.toolbar.add_tool('cut', jade.icons.cut_icon, 'Cut: move selected components from diagram to the clipboard (\u2318X, ctrl-X)', jade.diagram_cut, has_selections);
+            this.toolbar.add_tool('copy', jade.icons.copy_icon, 'Copy: copy selected components into the clipboard (\u2318C, ctrl-C)', jade.diagram_copy, has_selections);
+            this.toolbar.add_tool('paste', jade.icons.paste_icon, 'Paste: copy clipboard into the diagram (\u2318V, ctrl-V)', jade.diagram_paste,
                                   function(diagram) {
                                       return diagram.aspect && !diagram.aspect.read_only() &&
                                           jade.clipboards[diagram.editor.editor_name].length > 0;
