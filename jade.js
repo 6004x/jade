@@ -55,7 +55,7 @@ jade_defs.top_level = function(jade) {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.27 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.28 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -259,6 +259,7 @@ jade_defs.top_level = function(jade) {
 
         // starting module?
         var edit = this.configuration.edit || '/user/untitled';
+        if (edit[0] != '/') edit = '/user/'+edit;
         var mname = edit.split('.');          // module.aspect
         this.edit(mname[0]);  // select module
         if (mname.length > 1) this.show(mname[1]);
