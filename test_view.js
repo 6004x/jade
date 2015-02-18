@@ -863,7 +863,7 @@ jade_defs.test_view = function(jade) {
                                 offset);
                     test_results[module.get_name()] = 'Error detected: '+msg;
                 } else {
-                    diagram.message('Test succesful!');
+                    diagram.message('Test successful!');
                     test_results[module.get_name()] = 'passed '+md5sum;
                 }
 

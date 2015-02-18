@@ -20,6 +20,9 @@
 .jade-module-select {
     padding: 3px;
 }
+.jade-panning {
+    cursor: move;
+}
 .jade-settings-popup {
     display: none;
     position: absolute;
@@ -106,7 +109,7 @@
 }
 .jade-xparts-resize {
     float: right;
-    cursor: ew-resize;
+    cursor: col-resize;
     width: 3px;
     margin-right: 3px;
     margin-left: 3px;

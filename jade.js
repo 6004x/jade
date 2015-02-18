@@ -55,7 +55,7 @@ jade_defs.top_level = function(jade) {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.26 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.27 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -1325,13 +1325,15 @@ jade_defs.top_level = function(jade) {
                 delta = this.canvas.height / (8 * this.scale);
                 if (sy > 0) delta = -delta;
                 temp = this.origin_y - delta;
-                if (temp > this.origin_min * this.grid && temp < this.origin_max * this.grid) this.origin_y = temp;
+                if (temp > this.origin_min * this.grid && temp < this.origin_max * this.grid)
+                    this.origin_y = temp;
             }
             else { // E or W
                 delta = this.canvas.width / (8 * this.scale);
                 if (sx < 0) delta = -delta;
                 temp = this.origin_x + delta;
-                if (temp > this.origin_min * this.grid && temp < this.origin_max * this.grid) this.origin_x = temp;
+                if (temp > this.origin_min * this.grid && temp < this.origin_max * this.grid)
+                    this.origin_x = temp;
             }
         }
         else if (zx >= 0 && zx < 16 && zy >= 0 && zy < 48) { // click in zoom control
@@ -1376,6 +1378,13 @@ jade_defs.top_level = function(jade) {
             // if there's nothing to drag, set up a selection rectangle
             if (!this.dragging) this.select_rect = [this.mouse_x, this.mouse_y,
                                                     this.mouse_x, this.mouse_y];
+        } else if (!this.dragging) {
+            // shift-click on background starts a pan
+            this.panning = true;
+            this.set_cursor_grid(1);
+            this.drag_x = this.cursor_x;
+            this.drag_y = this.cursor_y;
+            $(this.canvas).addClass('jade-panning');
         }
 
         this.redraw_background();
@@ -1402,6 +1411,27 @@ jade_defs.top_level = function(jade) {
             // update moving corner of selection rectangle
             this.select_rect[2] = this.mouse_x;
             this.select_rect[3] = this.mouse_y;
+        }
+        else if (this.panning) {
+            // see how far we moved
+            var dx = this.cursor_x - this.drag_x;
+            var dy = this.cursor_y - this.drag_y;
+            if (dx !== 0 || dy !== 0) {
+                // update position for next time
+                this.drag_x = this.cursor_x;
+                this.drag_y = this.cursor_y;
+
+                var nx = this.origin_x - dx;
+                var ny = this.origin_y - dy;
+                if (nx > this.origin_min * this.grid && nx < this.origin_max * this.grid &&
+                    ny > this.origin_min * this.grid && ny < this.origin_max * this.grid) {
+                    this.origin_x = nx;
+                    this.origin_y = ny;
+                    this.drag_x -= dx;   // update drag coords to reflect new origin
+                    this.drag_y -= dy;
+                    this.redraw_background();
+                }
+            }
         }
 
         // just redraw dynamic components
@@ -1435,6 +1465,11 @@ jade_defs.top_level = function(jade) {
 
             this.select_rect = undefined;
             this.redraw_background();
+        }
+
+        if (this.panning) {
+            this.panning = false;
+            $(this.canvas).removeClass('jade-panning');
         }
     };
 

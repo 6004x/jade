@@ -168,7 +168,7 @@ jade_defs.icon_view = function(jade) {
     };
 
     var icon_prompts = {
-        'select': 'Click component to select, click and drag on background for area select',
+        'select': 'Click component to select, click and drag on background for area select, shift-click and drag on background to pan',
         'line': 'Click and drag to draw line',
         'arc': 'Click and drag to draw chord, then click again to set radius',
         'circle': 'Click at center point, drag to set radisu',
