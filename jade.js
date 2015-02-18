@@ -418,6 +418,8 @@ jade_defs.top_level = function(jade) {
 
         function edit() {
             var name = $(input).val();
+            // force module names to be a pathname, in /user by default
+            if (name[0] != '/') name = '/user/'+name;
 
             function try_again(msg) {
                 $('#msg',content).text(msg);
