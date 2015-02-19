@@ -59,9 +59,12 @@ jade_defs.gatesim = function(jade) {
     }
 
     // return string describing timing results
-    function timing_analysis(netlist,maxpaths) {
+    function timing_analysis(netlist,options,maxpaths) {
+        if (options === undefined) options = {};
         if (maxpaths === undefined) maxpaths = 10;
-        var network = new Network(netlist, {timing_analysis: true});
+
+        options.timing_analysis = true;
+        var network = new Network(netlist, options);
 
         var analysis;
         try {
