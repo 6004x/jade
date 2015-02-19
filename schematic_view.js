@@ -17,10 +17,12 @@ jade_defs.schematic_view = function(jade) {
 
         var options = {};
         this.options = options;
-        $.each(parent.configuration.options,function (n,vstring) {
-            var v = jade.utils.parse_number(vstring);
-            if (!isNaN(v)) options[n] = v;
-        });
+        if (parent.configuration.options) {
+            $.each(parent.configuration.options,function (n,vstring) {
+                var v = jade.utils.parse_number(vstring);
+                if (!isNaN(v)) options[n] = v;
+            });
+        }
 
         this.diagram = new jade.Diagram(this, 'jade-schematic-diagram');
         div.diagram = this.diagram;
