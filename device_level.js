@@ -207,7 +207,7 @@ jade_defs.device_level = function(jade) {
         try {
             netlist = diagram_device_netlist(diagram,[]);
             if (netlist.length == 0) return;
-            ckt = new jade.cktsim.Circuit(netlist);
+            ckt = new jade.cktsim.Circuit(netlist,diagram.editor.options);
         }
         catch (e) {
             if (e instanceof Error) e = e.stack.split('\n').join('<br>');
@@ -333,7 +333,7 @@ jade_defs.device_level = function(jade) {
         if (netlist.length > 0) {
             var ckt,results;
             try {
-                results = jade.cktsim.dc_analysis(netlist, sweep1, sweep2);
+                results = jade.cktsim.dc_analysis(netlist, sweep1, sweep2, diagram.editor.options);
                 if (typeof results == 'string') throw results;
 
                 var dataseries = [];
@@ -484,7 +484,7 @@ jade_defs.device_level = function(jade) {
             ac_fstop = jade.utils.parse_number_alert(ac_fstop);
             if (ac_fstart === undefined || ac_fstop === undefined) return;
 
-            ac_analysis(netlist, diagram, ac_fstart, ac_fstop, ac_source);
+            ac_analysis(netlist, diagram, ac_fstart, ac_fstop, ac_source, diagram.editor.options);
         });
     }
 
@@ -716,7 +716,7 @@ jade_defs.device_level = function(jade) {
                         transient_results(results,diagram,probes);
                         return undefined;
                     }
-                });
+                }, diagram.editor.options);
             }
         });
     }

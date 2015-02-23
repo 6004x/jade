@@ -55,7 +55,7 @@ jade_defs.top_level = function(jade) {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.25 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version">Jade 2.2.29 (2015 \u00A9 MIT EECS)</div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
@@ -69,8 +69,8 @@ jade_defs.top_level = function(jade) {
         this.module_tools.append(this.module_tool(jade.icons.edit_module_icon,'edit-module','Edit/create module',edit_module,'hierarchy-tool'));
         this.module_tools.append(this.module_tool(jade.icons.copy_module_icon,'copy-module','Copy current module',copy_module,'hierarchy-tool'));
         this.module_tools.append(this.module_tool(jade.icons.delete_module_icon,'delete-module','Delete current module',delete_module,'hierarchy-tool'));
-        this.module_tools.append(this.module_tool(jade.icons.download_icon,'download-modules','Save modules to local storage',download_modules));
-        this.module_tools.append(this.module_tool(jade.icons.upload_icon,'upload-modules','Select modules to load from local storage',upload_modules,'hierarchy-tool'));
+        this.module_tools.append(this.module_tool(jade.icons.download_icon,'download-modules','Save modules to module clipboard',download_modules));
+        this.module_tools.append(this.module_tool(jade.icons.upload_icon,'upload-modules','Select modules to load from module clipboard',upload_modules,'hierarchy-tool'));
         this.module_tools.append(this.module_tool(jade.icons.recycle_icon,'start-over','Discard all work on this problem and start over',start_over));
 
         $('#module-select',this.module_tools).on('change',function () {
@@ -259,6 +259,7 @@ jade_defs.top_level = function(jade) {
 
         // starting module?
         var edit = this.configuration.edit || '/user/untitled';
+        if (edit[0] != '/') edit = '/user/'+edit;
         var mname = edit.split('.');          // module.aspect
         this.edit(mname[0]);  // select module
         if (mname.length > 1) this.show(mname[1]);
@@ -418,6 +419,8 @@ jade_defs.top_level = function(jade) {
 
         function edit() {
             var name = $(input).val();
+            // force module names to be a pathname, in /user by default
+            if (name[0] != '/') name = '/user/'+name;
 
             function try_again(msg) {
                 $('#msg',content).text(msg);
@@ -851,7 +854,7 @@ jade_defs.top_level = function(jade) {
         diagram.redraw(); // digram didn't change, but toolbar status may have
     }
 
-    function diagram_paste(diagram) {
+    function diagram_paste(diagram,keystroke) {
         var clipboard = clipboards[diagram.editor.editor_name];
         var i, c;
 
@@ -874,12 +877,17 @@ jade_defs.top_level = function(jade) {
         diagram.unselect_all(-1);
         diagram.redraw_background(); // so we see any components that got unselected
 
+        // for keystroke, position relative to cursor
+        // for toolbar button, position relative to original location
+        var px = keystroke ? diagram.cursor_x : left + 16;
+        var py = keystroke ? diagram.cursor_y : top + 16;
+
         // make clones of components on the clipboard, positioning
         // them relative to the cursor
         diagram.aspect.start_action();
         for (i = clipboard.length - 1; i >= 0; i -= 1) {
             c = clipboard[i];
-            var new_c = c.clone(diagram.cursor_x + (c.coords[0] - left), diagram.cursor_y + (c.coords[1] - top));
+            var new_c = c.clone(px + (c.coords[0] - left), py + (c.coords[1] - top));
             new_c.set_select(true);
             new_c.add(diagram.aspect);
         }
@@ -1039,6 +1047,8 @@ jade_defs.top_level = function(jade) {
     Diagram.prototype.redraw = function() {
         var c = this.canvas.getContext('2d');
         this.c = c;
+
+        c.lineCap = 'round';
 
         // put static image in the background.  Make sure we don't scale twice!
         c.drawImage(this.bg_image, 0, 0, this.bg_image.width/this.pixelRatio, this.bg_image.height/this.pixelRatio);
@@ -1278,7 +1288,7 @@ jade_defs.top_level = function(jade) {
 
         // cmd/ctrl v: paste
         else if ((event.ctrlKey || event.metaKey) && code == 86) {
-            diagram_paste(this);
+            diagram_paste(this,true);
         }
 
         // cmd/ctrl x: cut
@@ -1318,13 +1328,15 @@ jade_defs.top_level = function(jade) {
                 delta = this.canvas.height / (8 * this.scale);
                 if (sy > 0) delta = -delta;
                 temp = this.origin_y - delta;
-                if (temp > this.origin_min * this.grid && temp < this.origin_max * this.grid) this.origin_y = temp;
+                if (temp > this.origin_min * this.grid && temp < this.origin_max * this.grid)
+                    this.origin_y = temp;
             }
             else { // E or W
                 delta = this.canvas.width / (8 * this.scale);
                 if (sx < 0) delta = -delta;
                 temp = this.origin_x + delta;
-                if (temp > this.origin_min * this.grid && temp < this.origin_max * this.grid) this.origin_x = temp;
+                if (temp > this.origin_min * this.grid && temp < this.origin_max * this.grid)
+                    this.origin_x = temp;
             }
         }
         else if (zx >= 0 && zx < 16 && zy >= 0 && zy < 48) { // click in zoom control
@@ -1369,6 +1381,13 @@ jade_defs.top_level = function(jade) {
             // if there's nothing to drag, set up a selection rectangle
             if (!this.dragging) this.select_rect = [this.mouse_x, this.mouse_y,
                                                     this.mouse_x, this.mouse_y];
+        } else if (!this.dragging) {
+            // shift-click on background starts a pan
+            this.panning = true;
+            this.set_cursor_grid(1);
+            this.drag_x = this.cursor_x;
+            this.drag_y = this.cursor_y;
+            $(this.canvas).addClass('jade-panning');
         }
 
         this.redraw_background();
@@ -1395,6 +1414,27 @@ jade_defs.top_level = function(jade) {
             // update moving corner of selection rectangle
             this.select_rect[2] = this.mouse_x;
             this.select_rect[3] = this.mouse_y;
+        }
+        else if (this.panning) {
+            // see how far we moved
+            var dx = this.cursor_x - this.drag_x;
+            var dy = this.cursor_y - this.drag_y;
+            if (dx !== 0 || dy !== 0) {
+                // update position for next time
+                this.drag_x = this.cursor_x;
+                this.drag_y = this.cursor_y;
+
+                var nx = this.origin_x - dx;
+                var ny = this.origin_y - dy;
+                if (nx > this.origin_min * this.grid && nx < this.origin_max * this.grid &&
+                    ny > this.origin_min * this.grid && ny < this.origin_max * this.grid) {
+                    this.origin_x = nx;
+                    this.origin_y = ny;
+                    this.drag_x -= dx;   // update drag coords to reflect new origin
+                    this.drag_y -= dy;
+                    this.redraw_background();
+                }
+            }
         }
 
         // just redraw dynamic components
@@ -1428,6 +1468,11 @@ jade_defs.top_level = function(jade) {
 
             this.select_rect = undefined;
             this.redraw_background();
+        }
+
+        if (this.panning) {
+            this.panning = false;
+            $(this.canvas).removeClass('jade-panning');
         }
     };
 

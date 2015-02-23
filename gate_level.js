@@ -159,7 +159,7 @@ jade_defs.gate_level = function(jade) {
                         simulation_results(results,diagram,probes);
                         return undefined;
                     }
-                });
+                },diagram.editor.options);
             }
         });
     }
@@ -236,7 +236,7 @@ jade_defs.gate_level = function(jade) {
 
         var timing;
         try {
-            timing = jade.gatesim.timing_analysis(netlist);
+            timing = jade.gatesim.timing_analysis(netlist,diagram.editor.options);
             timing = $('<pre style="width:600px;height:400px;padding:5px;overflow-y:auto;overflow-x:hidden;"></pre>').append(timing);
             timing = timing[0];
 

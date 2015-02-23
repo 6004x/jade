@@ -39,6 +39,8 @@ jade_defs.model = function (jade) {
     function load_json(json,shared) {
         try {
             $.each(json,function(mname,mjson) {
+                // force module names to be a pathname, in /user by default
+                if (mname[0] != '/') mname = '/user/'+mname;
                 var m = find_module(mname,mjson);
                 if (shared) modules[mname].shared = true;
             });
@@ -687,7 +689,14 @@ jade_defs.model = function (jade) {
         var c = built_in_components[json[0]];
 
         if (c) return new c(json);
-        else return new Component(json);
+        else {
+            // instance of a module -- force type to be
+            // a pathname, by default in '/user'
+            if (json[0][0] != '/')
+                json[0] = '/user/' + json[0];
+
+            return new Component(json);
+        }
     }
 
     // general-purpose component, drawn in a diagram using its icon

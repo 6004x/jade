@@ -226,6 +226,7 @@ jade_defs.test_view = function(jade) {
         var plotdefs = {};   // name -> array of string representations for values
         var errors = [];
         var log_signals = [];  // signals to report in each log entry
+        var options = diagram.editor.options || {};
 
         // process each line in test specification
         source = source.split('\n');
@@ -236,6 +237,21 @@ jade_defs.test_view = function(jade) {
                 if (line.length != 2) errors.push('Malformed .mode statement: '+source[k]);
                 else if (line[1] == 'device' || line[1] == 'gate') mode = line[1]
                 else errors.push('Unrecognized simulation mode: '+line[1]);
+            }
+            else if (line[0] == '.options') {
+                // .options name=value name=value ...
+                for (i = 1; i < line.length; i += 3) {
+                    if (i + 2 >= line.length || line[i+1] != '=') {
+                        errors.push('Malformed '+line[0]+' statement: '+source[k]);
+                        break;
+                    }
+                    v = jade.utils.parse_number(line[i+2]);
+                    if (isNaN(v)) {
+                        errors.push('Unrecognized option value "'+line[i+2]+'": '+source[k]);
+                        break;
+                    }
+                    options[line[i].toLowerCase()] = v;
+                }
             }
             else if (line[0] == '.power' || line[0] == '.thresholds') {
                 // .power/.thresholds name=float name=float ...
@@ -863,7 +879,7 @@ jade_defs.test_view = function(jade) {
                                 offset);
                     test_results[module.get_name()] = 'Error detected: '+msg;
                 } else {
-                    diagram.message('Test succesful!');
+                    diagram.message('Test successful!');
                     test_results[module.get_name()] = 'passed '+md5sum;
                 }
 
@@ -879,9 +895,9 @@ jade_defs.test_view = function(jade) {
         jade.window('Progress',progress[0],$(diagram.canvas).offset());
         try {
             if (mode == 'device')
-                jade.cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results);
+                jade.cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results, options);
             else if (mode == 'gate')
-                jade.gatesim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results);
+                jade.gatesim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results, options);
             else 
                 throw 'Unrecognized simulation mode: '+mode;
         } catch (e) {
