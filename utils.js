@@ -10,7 +10,7 @@ jade_defs.utils = function (jade) {
 
     var valid_name = /^[A-Za-z_/][A-Za-z_/0-9]*$/;
 
-    var numeric_constant = /^[\-+]?(0x[0-9a-fA-F]+|0b[01]+|0[0-7]+|[0-9]+)'(\d+)$/;
+    var numeric_constant = /^[\-+]?(0x[0-9a-fA-F]+|0b[01]+|0[0-7]+|[0-9]+)'([1-9]\d*)$/;
 
     // id, sig[num], sig[num:num], sig[num:num:num], sig#num
     var valid_signal = /^[A-Za-z_]([A-Za-z0-9_]|\[\d+(\:\d+(\:d+)?)?\])*(\#\d+)?$/;
@@ -430,7 +430,7 @@ jade_defs.utils = function (jade) {
             // size (in decimal) gives number of bits of signals
             // expands into appropriate list of vdd and gnd
             if (numeric_constant.test(sig)) {
-                m = sig.match(/(.*)'(\d+)$/);
+                m = sig.match(/(.*)'([1-9]\d*)$/);
                 var n = parse_number(m[1]);
                 var size = parseInt(m[2],10);
                 for (var i = size-1; i >= 0; i -= 1) {
