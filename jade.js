@@ -33,6 +33,13 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
+    var version = "Jade 2.2.32 (2015 \u00A9 MIT EECS)";
+
+    var about_msg = version +
+            "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
+            "<p>Jacob White wrote the simulation engine for the device-level simulation tools."+
+            "<p>We are grateful to Quanta Computer Incorporated for their support of the development of the Jade schematic entry and simulation tool as part of a research project on educational technologies with the MIT Computer Science and Artificial Intelligence Laboratory.";
+
     //////////////////////////////////////////////////////////////////////
     //
     // Editor framework
@@ -55,11 +62,17 @@ jade_defs.top_level = function(jade) {
                            ' <div id="module-tools" class="jade-toolbar"></div>' +
                            ' <div class="jade-tabs-div"></div>' +
                            ' <div class="jade-resize-icon"></div>' +
-                           ' <div class="jade-version">Jade 2.2.31 (2015 \u00A9 MIT EECS)</div>' +
+                           ' <div class="jade-version"><a href="#">'+version+'</a></div>' +
                            ' <div class="jade-status"><span id="message"></span></div>' +
                            '</div>');
         $('.jade-resize-icon',this.top_level).append(jade.icons.resize_icon);
         $(owner).append(this.top_level);
+
+        $('.jade-version a',this.top_level).on('click',function (event) {
+            jade_window('About Jade',$('<div class="jade-about"></div>').html(about_msg),$(owner).offset());
+            event.preventDefault();
+            return false;
+        });
 
         this.status = this.top_level.find('#message');
 

@@ -14,6 +14,12 @@
       */
     font: 12px sans-serif;
 }
+.jade-about {
+    width: 300px;
+    background-color: white;
+    padding: 2em;
+}
+
 #savelibs {
     margin-right: 10px;
 }
