@@ -234,7 +234,13 @@ jade_defs.schematic_view = function(jade) {
             editor.diagram.new_part = part;
             event.originalEvent.preventDefault();  // keep Chrome from selecting text
         });
-        tool.mouseup(function(event) { editor.diagram.new_part = undefined; });
+        tool.mouseup(function(event) {
+            editor.diagram.new_part = undefined;
+            event.originalEvent.preventDefault();  // consume event
+        });
+        tool.click(function(event) {
+            event.originalEvent.preventDefault();  // consume event
+        });
     }
 
     Schematic.prototype.diagram_changed = function(diagram) {
