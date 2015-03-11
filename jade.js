@@ -33,7 +33,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.2.33 (2015 \u00A9 MIT EECS)";
+    var version = "Jade 2.2.34 (2015 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
@@ -683,7 +683,7 @@ jade_defs.top_level = function(jade) {
         // ethanschoonover.com
         this.background_style = 'rgb(250,250,250)'; // backgrund color for diagram [base3]
         this.grid_style = 'rgb(230,230,230)'; // grid on background
-        this.control_style = 'rgb(180,180,180)'; // grid on background [base1]
+        this.control_style = 'rgb(0,0,0)'; // grid on background [base1]
         this.normal_style = 'rgb(88,110,117)'; // default drawing color [base01]
         this.component_style = 'rgb(38,139,210)'; // color for unselected components [blue]
         this.selected_style = 'rgb(211,54,130)'; // highlight color for selected components [magenta]
