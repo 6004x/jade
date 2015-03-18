@@ -123,4 +123,6 @@ jade_defs.icons = function(jade) {
 
     jade.icons.recycle_icon = '<span class="fa fa-fw fa-lg fa-recycle"></span>';
 
+    jade.icons.mail_icon = '<span class="fa fa-fw fa-lg fa-envelope-o"></span>';
+
 };

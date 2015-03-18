@@ -5,6 +5,7 @@
 var jade_defs = {};
 var jade_dump_json;   // function for grabbing JSON dumps of modules
 var jade_load_json;   // function for loading JSON dumps of modules
+var jade_load_edx; // function for loading student edX submissions into editor
 
 // "new jade_defs.jade()" will build a self-contained jade object so we can
 // have multiple instances on the same webpage that don't share any
@@ -33,7 +34,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.2.34 (2015 \u00A9 MIT EECS)";
+    var version = "Jade 2.2.35 (2015 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
@@ -85,6 +86,16 @@ jade_defs.top_level = function(jade) {
         this.module_tools.append(this.module_tool(jade.icons.download_icon,'download-modules','Save modules to module clipboard',download_modules));
         this.module_tools.append(this.module_tool(jade.icons.upload_icon,'upload-modules','Select modules to load from module clipboard',upload_modules));
         this.module_tools.append(this.module_tool(jade.icons.recycle_icon,'start-over','Discard all work on this problem and start over',start_over));
+
+        /*
+        var mailto = $('<a href="#"><span class="fa fa-lg fa-envelope-o"></span>"');
+        mailto.on('click',function (event) {
+            window.location = "mailto:cjt@mit.edu?Subject=&body=bar";
+            return false;
+        });
+        this.module_tools.append(mailto);
+         */
+        
 
         $('#module-select',this.module_tools).on('change',function () {
             owner.jade.edit($(this).val());
@@ -180,6 +191,15 @@ jade_defs.top_level = function(jade) {
     // helper function for loading json -- make accessible at top level
     jade_load_json = function (json) {
         jade.model.load_json(JSON.parse(json));
+    };
+
+    jade_load_edx = function(s) {
+        var edx_state = JSON.parse(s).state;
+        var design = JSON.parse(edx_state).state;
+        jade.model.load_json(design);
+        var modules = Object.keys(design);
+        $('.jade')[0].jade.edit(modules[0]);
+        return modules;
     };
 
     // initialize editor from configuration object
