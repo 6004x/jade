@@ -34,7 +34,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.2.35 (2015 \u00A9 MIT EECS)";
+    var version = "Jade 2.2.37 (2015 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
@@ -160,7 +160,7 @@ jade_defs.top_level = function(jade) {
 
         var j = this;  // for closure
         tool.on('click',function (event) {
-            if (action) action(j);
+            if (action) action(j,event);
             event.preventDefault();
             return false;
         });
@@ -549,7 +549,25 @@ jade_defs.top_level = function(jade) {
         localStorage.setItem('jade_saved_modules',JSON.stringify(saved_modules));
     };
 
-    function upload_modules(j) {
+    function upload_modules(j,event) {
+        if (event && event.shiftKey) {
+            var content = $('<div style="margin:10px;"><textarea rows="5" cols="80"/></div>');
+            var offset = $('.jade-tabs-div',j.top_level).offset();
+
+            function load_answer() {
+                var s = eval($('textarea',content).val());
+                var edx_state = JSON.parse(s).state;
+                var design = JSON.parse(edx_state).state;
+                jade.model.load_json(design);
+                var modules = Object.keys(design);
+                j.edit(modules[0]);
+                console.log(modules);
+            }
+
+            dialog('Load student answer',content,load_answer,offset);
+            return;
+        }
+
         // get modules from localStorage
         var modules = JSON.parse(localStorage.getItem('jade_saved_modules') || '{}');
         var mnames = Object.keys(modules).sort();
@@ -564,6 +582,8 @@ jade_defs.top_level = function(jade) {
         // build a dialog using up to 3 columns to list modules
         var row = $('<tr valign="top"></tr>');
         var ncols = Math.max(3,Math.ceil(select.length/10));
+        var select_all = $('<td><a href="">Select all</a></td>');
+        select_all.attr('colspan',ncols.toString());
         var nitems = Math.ceil(select.length/ncols);
         var col,index=0,i;
         while (ncols--) {
@@ -572,7 +592,14 @@ jade_defs.top_level = function(jade) {
                 col.append(select[index++]);
             row.append(col);
         }
-        var contents = $('<table></table>').append(row);
+        var contents = $('<table></table>').append(row,$('<tr align="center"></tr>').append(select_all));
+
+        // implement select all functionality
+        $('a',select_all).on('click',function (event) {
+            $('input',row).prop('checked',true);
+            event.preventDefault();
+            return false;
+        });
 
         // find checked items and load them
         function upload () {
