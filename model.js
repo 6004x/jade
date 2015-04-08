@@ -1192,7 +1192,8 @@ jade_defs.model = function (jade) {
             var component = this;
 
             function update_properties() {
-                var new_properties = {},ptype,pmsg;
+                var new_properties = component.clone_properties();
+                var ptype,pmsg;
                 var error = false;
                 for (var i in fields) {
                     var v = fields[i].prop_input.value;
