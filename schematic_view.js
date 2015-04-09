@@ -1144,6 +1144,7 @@ jade_defs.schematic_view = function(jade) {
         else if (name == 'contents') {
             nlist = jade.utils.parse_nlist(value);
             for (j = 0; j < nlist.length; j += 1) {
+                if (nlist[j] === undefined) continue;
                 if (isNaN(nlist[j])) {
                     pmsg.text('item '+(j+1).toString()+' not a valid number');
                     return false;
@@ -1225,6 +1226,7 @@ jade_defs.schematic_view = function(jade) {
         // turn contents property into an array of integers
         var contents = jade.utils.parse_nlist(this.properties.contents || '');
         for (var i = 0; i < contents.length; i += 1) {
+            if (contents[i] === undefined) continue;
             contents[i] = Math.floor(contents[i]);
         }
 

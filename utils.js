@@ -88,7 +88,8 @@ jade_defs.utils = function (jade) {
         return v;
     }
 
-    // parse list of numeric values
+    // parse list of numeric values, return array of values
+    // use "@number" to change index of next location to be filled to number
     function parse_nlist(s) {
         // remove multiline comments, in-line comments
         s = s.replace(/\/\*(.|\n)*?\*\//g,'');   // multi-line using slash-star
@@ -100,9 +101,15 @@ jade_defs.utils = function (jade) {
 
         var nlist = s.split(/\s+/);
         var result = [];
+        var locn = 0;
         for (var i = 0; i < nlist.length; i += 1) {
             if (nlist[i] == '') continue;
-            result.push(parse_number(nlist[i]));
+            if (nlist[i][0] == '@') {
+                locn = parse_number(nlist[i].substr(1));
+            } else {
+                result[locn] = parse_number(nlist[i]);
+                locn += 1;
+            }
         }
         return result;
     }

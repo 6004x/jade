@@ -1638,10 +1638,12 @@ jade_defs.gatesim = function(jade) {
         this.clear_memory();  // start with all X's
 
         // did user specify initial contents?
-        if (this.contents !== undefined) {
-            var nlocations = Math.min(this.nlocations,this.contents.length);
-            for (var i = 0; i < nlocations; i += 1) {
+        if (this.contents !== undefined && this.contents.length > 0) {
+            for (var i = 0; i < this.nlocations; i += 1) {
                 var word = this.contents[i];
+                if (word === undefined) {
+                    continue;
+                }
                 for (var j = 0; j < this.width; j += 1, word >>= 1)
                     this.bits[i*this.width + j] = word & 1;
             }
