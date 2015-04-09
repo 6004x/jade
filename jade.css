@@ -257,6 +257,9 @@
     color: #b94a48;
     background-color: #f3dede;
     font: 10pt/1.25 "Lucida Console",monospace;
+    overflow: auto;
+    max-width: 600px;
+    max-height: 400px;
 }
 .jade-window {
     /*background-image: -webkit-linear-gradient(top, #F0F0F0 0%, #D0D0D0 100%);

@@ -348,7 +348,7 @@ jade_defs.netlist = function(jade) {
             this.parent.aspect.propagate_select(this);
 
             // signal an error while generating netlist
-            throw "Node has two conflicting sets of labels: [" + this.label + "], [" + label + "]";
+            throw "Node has two conflicting sets of labels: [" + this.label.join(', ') + "], [" + label.join(', ') + "]";
         }
     };
 
