@@ -730,7 +730,8 @@ jade_defs.test_view = function(jade) {
                             errors.push("Location "+locn.toString()+" out of range for memory "+mem_name);
                         }
                         if (mem[locn] !== v) {
-                            errors.push(mem_name+"["+locn.toString()+"]: Expected 0x"+v.toString(16)+", got 0x"+mem[locn].toString(16));
+                            var got = mem[locn] === undefined ? 'undefined' : '0x'+mem[locn].toString(16);
+                            errors.push(mem_name+"[0x"+locn.toString(16)+"]: Expected 0x"+v.toString(16)+", got "+got);
                         }
                     });
                 });
