@@ -204,6 +204,7 @@ jade_defs.test_view = function(jade) {
         test_results[module.get_name()] = 'Error detected: test did not yield a result.';
         var msg;
 
+        var mverify_md5sum;
         var md5sum = jade.utils.md5(source);  // for server-side verification
         jade_defs.md5sum = md5sum;
 
@@ -216,6 +217,8 @@ jade_defs.test_view = function(jade) {
         var mode = 'device';  // which simulation to run
         var plots = [];     // list of signals to plot
         var tests = [];     // list of test lines
+        var mverify = {};   // mem name -> [value... ]
+        var mverify_src = [];   // list of .mverify source lines (used for checksum)
         var power = {};     // node name -> voltage
         var thresholds = {};  // spec name -> voltage
         var cycle = [];    // list of test actions: [action args...]
@@ -372,6 +375,35 @@ jade_defs.test_view = function(jade) {
                     $.each(jade.utils.parse_signal(line[j]),function (index,sig) {
                         log_signals.push(sig);
                     });
+                }
+            }
+            else if (line[0] == '.mverify') {
+                // .mverify mem_name locn value...
+                if (line.length < 4)
+                    errors.push("Malformed .mverify statement: "+source[k]);
+                else {
+                    var locn = parseInt(line[2]);
+                    if (isNaN(locn)) {
+                        errors.push('Bad location "'+line[2]+'" in .mverify statement: '+source[k]);
+                    } else {
+                        var a = mverify[line[1].toLowerCase()];
+                        if (a === undefined) {
+                            a = [];
+                            mverify[line[1].toLowerCase()] = a;
+                        }
+                        for (j = 3; j < line.length; j += 1) {
+                            v = parseInt(line[j]);
+                            if (isNaN(v)) {
+                                errors.push('Bad value "'+line[j]+'" in .mverify statement: '+source[k]);
+                            } else {
+                                // save value in correct location in array
+                                // associated with mem_name
+                                a[locn] = v;
+                                locn += 1;
+                            }
+                        }
+                        mverify_src.push(source[k]);  // remember source line for checksum
+                    }
                 }
             }
             else if (line[0][0] == '.') {
@@ -684,6 +716,27 @@ jade_defs.test_view = function(jade) {
                     else throw 'Unrecognized simulation mode: '+mode;
                 }
 
+                // perform requested memory verifications
+                $.each(mverify,function (mem_name,a) {
+                    var mem = results._network_.device_map[mem_name];
+                    if (mem === undefined) {
+                        errors.push('Cannot find memory named "'+mem_name+'", verification aborted.');
+                        return;
+                    }
+                    mem = mem.get_contents();
+                    $.each(a,function (locn,v) {
+                        if (v === undefined) return;  // no check for this location
+                        if (locn < 0 || locn >= mem.nlocations) {
+                            errors.push("Location "+locn.toString()+" out of range for memory "+mem_name);
+                        }
+                        if (mem[locn] !== v) {
+                            errors.push(mem_name+"["+locn.toString()+"]: Expected 0x"+v.toString(16)+", got 0x"+mem[locn].toString(16));
+                        }
+                    });
+                });
+                mverify_md5sum = jade.utils.md5(mverify_src.join('\n'));  // for server-side verification
+                jade_defs.mverify_md5sum = mverify_md5sum;
+
                 // create log if requested
                 var log = [];
                 $.each(log_times,function (tindex,t) {
@@ -880,7 +933,11 @@ jade_defs.test_view = function(jade) {
                     test_results[module.get_name()] = 'Error detected: '+msg;
                 } else {
                     diagram.message('Test successful!');
-                    test_results[module.get_name()] = 'passed '+md5sum;
+
+                    // Benmark = 1e-10/(size_in_m**2 * simulation_time_in_s)
+                    var benmark = 1e-10/((results._network_.size*1e-12) * results._network_.time);
+
+                    test_results[module.get_name()] = 'passed '+md5sum+' '+mverify_md5sum+' '+benmark.toString();
                 }
 
                 return undefined;
