@@ -13,7 +13,7 @@ jade_defs.utils = function (jade) {
     var numeric_constant = /^[\-+]?(0x[0-9a-fA-F]+|0b[01]+|0[0-7]+|[0-9]+)'([1-9]\d*)$/;
 
     // id, sig[num], sig[num:num], sig[num:num:num], sig#num
-    var valid_signal = /^[A-Za-z_]([A-Za-z0-9_]|\[\d+(\:\d+(\:d+)?)?\])*(\#\d+)?$/;
+    var valid_signal = /^[A-Za-z_]([A-Za-z0-9_]|\[\d+(\:\d+(\:\d+)?)?\])*(\#\d+)?$/;
 
     // does the proposed component/signal name meet our rules?
     function validate_name(name) {
