@@ -772,27 +772,28 @@ jade_defs.model = function (jade) {
         this.name = this.properties.name; // used when extracting netlists
         if (this.name) this.name = this.name.toLowerCase();
 
-        this.icon = this.module.aspect('icon');
-        if (this.icon === undefined) return;
+        if (this.module.has_aspect('icon')) {
+            this.icon = this.module.aspect('icon');
 
-        // clear out old connection points if any
-        var component = this;   // for closures
-        if (this.aspect) {
-            $.each(this.connections,function (index,cp) {
-                component.aspect.remove_connection_point(cp, cp.location);
+            // clear out old connection points if any
+            var component = this;   // for closures
+            if (this.aspect) {
+                $.each(this.connections,function (index,cp) {
+                    component.aspect.remove_connection_point(cp, cp.location);
+                });
+            }
+            this.connections = [];
+
+            // look for terminals in the icon and add appropriate connection
+            // points for this instance
+            this.icon.map_over_components(function(c) {
+                var cp = c.terminal_coords();
+                if (cp) component.add_connection(cp[0], cp[1], cp[2]);
             });
+
+            this.bounding_box = this.icon.compute_bbox();
+            this.update_coords();
         }
-        this.connections = [];
-
-        // look for terminals in the icon and add appropriate connection
-        // points for this instance
-        this.icon.map_over_components(function(c) {
-            var cp = c.terminal_coords();
-            if (cp) component.add_connection(cp[0], cp[1], cp[2]);
-        });
-
-        this.bounding_box = this.icon.compute_bbox();
-        this.update_coords();
     };
 
     // default: no terminal coords to provide!
@@ -1137,22 +1138,17 @@ jade_defs.model = function (jade) {
     // default: do nothing
     Component.prototype.bisect = function(c) {};
 
-    // clear the labels on all connections
-    Component.prototype.clear_labels = function() {
-        for (var i = this.connections.length - 1; i >= 0; i -= 1) {
-            this.connections[i].clear_label();
-        }
-    };
-
     Component.prototype.update_properties = function(new_properties) {
         if (new_properties !== undefined) {
             var old_properties = this.clone_properties(false);
             this.properties = new_properties;
+            this.compute_bbox();
 
             var component = this; // for closure
             function component_update_properties(diagram, action) {
                 if (action == 'undo') component.properties = old_properties;
                 else component.properties = new_properties;
+                this.compute_bbox();
             }
 
             this.aspect.add_change(component_update_properties);
@@ -1278,12 +1274,6 @@ jade_defs.model = function (jade) {
         this.width = undefined;
         this.selected = false;
     }
-
-    ConnectionPoint.prototype.clear_label = function() {
-        this.label = undefined;
-        this.width = undefined;
-        this.selected = false;
-    };
 
     // return number of connection points coincidient with this one
     ConnectionPoint.prototype.nconnections = function() {

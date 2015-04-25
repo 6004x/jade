@@ -22,9 +22,11 @@ jade_defs.netlist = function(jade) {
         }
         mstack.push(n);  // remember that we're extracting this module
 
-        // clear any selections so we can highlight errors
         for (i = 0; i < this.components.length; i += 1) {
+            // clear any selections so we can highlight errors;
             this.components[i].set_select(false);
+            // just in case some icon terminal has changed its name
+            this.components[i].compute_bbox();
         }
 
         // figure out signal names for all connections
@@ -55,9 +57,13 @@ jade_defs.netlist = function(jade) {
         var i;
         
         // start by clearing all the connection point labels and widths
+        /*
         for (i = this.components.length - 1; i >= 0; i -= 1) {
             this.components[i].clear_labels();
-        }
+         }*/
+        $.each(this.connection_points,function (locn,cplist) {
+            $.each(cplist,function (index,cp) { cp.clear_label(); });
+        });
 
         // propagate any specified widths through connected wires
         for (i = this.components.length - 1; i >= 0; i -= 1) {
@@ -157,11 +163,13 @@ jade_defs.netlist = function(jade) {
     //////////////////////////////////////////////////////////////////////
 
     // clear the labels on all connections
+    /*
     jade.model.Component.prototype.clear_labels = function() {
         for (var i = this.connections.length - 1; i >= 0; i -= 1) {
             this.connections[i].clear_label();
         }
     };
+     */
 
     jade.model.Component.prototype.propagate_select = function () {};
 
@@ -314,6 +322,12 @@ jade_defs.netlist = function(jade) {
     // ConnectionPoint -- netlisting extensions
     //
     //////////////////////////////////////////////////////////////////////
+
+    jade.model.ConnectionPoint.prototype.clear_label = function() {
+        this.label = undefined;
+        this.width = undefined;
+        this.selected = false;
+    };
 
     jade.model.ConnectionPoint.prototype.propagate_select = function() {
         if (!this.selected) {
