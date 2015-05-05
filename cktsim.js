@@ -482,7 +482,7 @@ jade_defs.cktsim = function(jade) {
             msg += ', ' + this.counts[d].toString() + ' ' + d;
             this.size += this.counts[d];
         }
-        //console.log(msg);
+        console.log(msg);
     };  
 
     Circuit.prototype.find_cmos_gates = function() {
@@ -497,6 +497,7 @@ jade_defs.cktsim = function(jade) {
                     source_drain[d.s].push(d);
                 }
         });
+        //console.log(source_drain);
 
         // find output nodes of CMOS gates by looking for nodes that connect
         // to both P and N fets
@@ -511,6 +512,7 @@ jade_defs.cktsim = function(jade) {
                 if (found_n && found_p) cmos_outputs.push(node);
         });
 
+        //console.log(cmos_outputs);
         this.counts['cmos_gates'] = cmos_outputs.length;
     };
 
