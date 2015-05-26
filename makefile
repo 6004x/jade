@@ -118,6 +118,10 @@ edx:	analog.js gates.js
 	cp build/jade_edx.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6.004_mitx/static/
 	rm jade_edx.zip; zip -j jade_edx.zip build/jade_edx.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.*
 
+workbook:	analog.js gates.js
+	grunt jade_workbook
+	cp build/jade_workbook.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6004x.github.io/tools/
+
 6004:	analog.js gates.js
 	grunt jade_6004
 	scp build/jade_6004.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* 6004:coursewarex/
