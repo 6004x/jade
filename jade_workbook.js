@@ -42,13 +42,9 @@ jade_defs.services = function (jade) {
     // object that will not be used here (see http://mozilla.github.io/jschannel/docs/)
     jade.initialize = function () {
         var stateStr = arguments.length === 1 ? arguments[0] : arguments[1];
+        var state = JSON.parse(stateStr);
         var div = $('.jade').get(0);
-        if (div.jade) {
-            // jsinput gets anxious if we don't respond quickly, so come back to
-            // initialization after we've returned and made jsinput happy.  Initialization
-            // may involve loading remote libraries, which may take awhile.
-            setTimeout(function () { div.jade.initialize(JSON.parse(stateStr)); },1);
-        }
+        if (div.jade) div.jade.initialize(state);
     };
 
     // set up editor inside of div's with class "jade"
@@ -97,7 +93,12 @@ jade_defs.services = function (jade) {
             var config = {};
 
             // use text from jade.div, if any
-            var text = $(div).text().trim();
+            var text = $(div).html();
+            // strip off <!--[CDATA[ ... ]]--> tag if it's there
+            if (text.lastIndexOf('<!--[CDATA[',0) === 0) {
+                text = text.substring(11,text.length-5);
+            }
+
             $(div).empty();  // all done with innards
             if (text)
                 try {
