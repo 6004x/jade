@@ -23,12 +23,18 @@ jade_defs.services = function (jade) {
 
     jade.save_to_server = function (json,callback) {
         json = jade_instance.get_state();
-        channel.call({
-            method: 'update',
-            params: json,
-            success: function (v) { if (callback) callback(); },
-            error: function (e) { console.log(e); }
-        });
+        if (channel) {
+            // embedded in iframe
+            channel.call({
+                method: 'update',
+                params: json,
+                success: function (v) { if (callback) callback(); },
+                error: function (e) { console.log(e); }
+            });
+        } else {
+            // standalone: update saved state
+            localStorage.setItem( window.location.pathname,JSON.stringify(json));
+        }
     };
 
     jade.unsaved_changes = function(which) {
@@ -106,6 +112,13 @@ jade_defs.services = function (jade) {
                 } catch(e) {
                     console.log('Error parsing configuration: '+e);
                 }
+
+            if (channel === undefined) {
+                // standalone mode
+                var saved_state = localStorage.getItem(window.location.pathname);
+                if (saved_state)
+                    $.extend(config,JSON.parse(saved_state));
+            }
 
             // now create the editor, pass along initial configuration
             var j = new jade.Jade(div);
