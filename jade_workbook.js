@@ -75,19 +75,20 @@ jade_defs.services = function (jade) {
                     var answer = JSON.parse(event.data);
 
                     // change save_to_server to communicate with host
-                    jade.save_to_server = function (json,callback) {
-                        var state = j.get_state();
+                    if (answer.id) {
+                        jade.save_to_server = function (json,callback) {
+                            // update answer object
+                            var state = j.get_state();
+                            answer.value = JSON.stringify(state);
+                            // to-do: check required tests, update correct, msg
 
-                        // update answer object
-                        answer.value = JSON.stringify(state);
-                        // to-do: check required tests, update correct, msg
+                            // send it to our host
+                            host.postMessage(JSON.stringify(answer),window.location.origin);
 
-                        // send it to our host
-                        host.postMessage(JSON.stringify(answer),window.location.origin);
-
-                        // done...
-                        if (callback) callback();
-                    };
+                            // done...
+                            if (callback) callback();
+                        };
+                    }
 
                     var state = JSON.parse(answer.value);
                     j.initialize(state);
