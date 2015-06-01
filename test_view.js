@@ -58,6 +58,10 @@ jade_defs.test_view = function(jade) {
                 var test = module.aspect('test').components[0];
                 if (test) {
                     run_tests(test.test,diagram,module);
+
+                    // save (partial) results to server
+                    jade.model.save_modules(true);
+
                     // redraw diagram to show any changes in highlighting
                     diagram.redraw_background();
                     return;
@@ -948,14 +952,26 @@ jade_defs.test_view = function(jade) {
             }
         }
 
+        function process_results_and_save(percent_complete,results) {
+            var response = process_results(percent_complete,results);
+
+            // if this was the final call, save modules to record any
+            // test result
+            if (percent_complete === undefined) {
+                jade.model.save_modules(true);
+            }
+
+            return response;
+        }
+
         // do the simulation
         var progress = jade.progress_report();
         jade.window('Progress',progress[0],$(diagram.canvas).offset());
         try {
             if (mode == 'device')
-                jade.cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results, options);
+                jade.cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results_and_save, options);
             else if (mode == 'gate')
-                jade.gatesim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results, options);
+                jade.gatesim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results_and_save, options);
             else 
                 throw 'Unrecognized simulation mode: '+mode;
         } catch (e) {

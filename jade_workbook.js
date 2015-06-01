@@ -9,7 +9,14 @@ jade_defs.services = function (jade) {
 
     jade.save_to_server = function (json,callback) {
         // standalone: update saved state
-        localStorage.setItem(window.location.pathname,json);
+        try {
+            json = JSON.stringify(json);
+            localStorage.setItem(window.location.pathname,json);
+            if (callback) callback();
+        } catch (e) {
+            console.log('Local save failed');
+            console.log(e.stack);
+        }
     };
 
     jade.unsaved_changes = function(which) {
@@ -56,8 +63,15 @@ jade_defs.services = function (jade) {
 
             // standalone mode... change if message arrives
             var saved_state = localStorage.getItem(window.location.pathname);
-            if (saved_state)
-                $.extend(config,JSON.parse(saved_state));
+            if (saved_state) {
+                try {
+                    saved_state = JSON.parse(saved_state);
+                    $.extend(config,saved_state);
+                } catch (e) {
+                    console.log('Restore of local state failed');
+                    console.log(e.stack);
+                }
+            }
 
             // now create the editor, pass along initial configuration
             var j = new jade.Jade(div);
@@ -80,7 +94,23 @@ jade_defs.services = function (jade) {
                             // update answer object
                             var state = j.get_state();
                             answer.value = JSON.stringify(state);
-                            // to-do: check required tests, update correct, msg
+
+                            // if there are tests, see if they've been run
+                            answer.message = undefined;
+                            answer.check = undefined;
+                            var completed_tests = state['tests'];
+                            if (completed_tests) {
+                                // make sure all required tests passed
+                                answer.check = 'right';
+                                $.each(state['required-tests'] || [],function (index,test) {
+                                    // test results: error msg or "passed <md5sum> <mverify_md5sum> <benmark>"
+                                    var result = (completed_tests[test] || 'Test has not be run: '+test);
+                                    if (result.lastIndexOf('passed',0) !== 0) {
+                                        answer.message = result;
+                                        answer.check = 'wrong';
+                                    }
+                                });
+                            }
 
                             // send it to our host
                             host.postMessage(JSON.stringify(answer),window.location.origin);
