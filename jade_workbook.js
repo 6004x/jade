@@ -120,8 +120,10 @@ jade_defs.services = function (jade) {
                         };
                     }
 
-                    var state = JSON.parse(answer.value);
-                    j.initialize(state);
+                    if (answer.value) {
+                        var state = JSON.parse(answer.value);
+                        j.initialize(state);
+                    }
                 });
             };
         }
