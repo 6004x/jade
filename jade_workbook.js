@@ -4,6 +4,8 @@ jade_defs.services = function (jade) {
     var host;   // window target for state updates
     var jade_instance;  // jade instance whose state we'll save
 
+    jade.model.AUTOSAVE_TRIGGER = 1;  // save after every edit
+
     jade.load_from_server = function (filename,shared,callback) {
     };
 
@@ -136,6 +138,7 @@ $(document).ready(function () {
     $('.jade').each(function(index, div) {
         var j = new jade_defs.jade();
         jade_defs.services(j);
+
         // only the first Jade div can interact with host framework
         j.setup(div,index == 0);
         if (index == 0) {

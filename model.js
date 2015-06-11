@@ -1325,6 +1325,7 @@ jade_defs.model = function (jade) {
     //////////////////////////////////////////////////////////////////////////////
 
     return {
+        AUTOSAVE_TRIGGER: AUTOSAVE_TRIGGER,
         get_modules: get_modules,
         clear_modules: clear_modules,
         load_modules: load_modules,
