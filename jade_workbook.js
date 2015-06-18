@@ -10,15 +10,6 @@ jade_defs.services = function (jade) {
     };
 
     jade.save_to_server = function (json,callback) {
-        // standalone: update saved state
-        try {
-            json = JSON.stringify(json);
-            localStorage.setItem(window.location.pathname,json);
-            if (callback) callback();
-        } catch (e) {
-            console.log('Local save failed');
-            console.log(e.stack);
-        }
     };
 
     jade.unsaved_changes = function(which) {
@@ -106,9 +97,10 @@ jade_defs.services = function (jade) {
                                 answer.check = 'right';
                                 $.each(state['required-tests'] || [],function (index,test) {
                                     // test results: error msg or "passed <md5sum> <mverify_md5sum> <benmark>"
-                                    var result = (completed_tests[test] || 'Test has not be run: '+test);
+                                    var result = (completed_tests[test] || 'Test has not been run: '+test);
                                     if (result.lastIndexOf('passed',0) !== 0) {
-                                        answer.message = result;
+                                        if (answer.message) answer.message += '\n' + result;
+                                        else answer.message = result;
                                         answer.check = 'wrong';
                                     }
                                 });
