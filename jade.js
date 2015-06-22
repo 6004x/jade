@@ -625,6 +625,7 @@ jade_defs.top_level = function(jade) {
             delete j.configuration.state;
             delete j.configuration.tests;
             j.initialize(j.configuration);
+            jade.model.save_modules();
         }
 
         var offset = $('.jade-tabs-div',j.top_level).offset();
