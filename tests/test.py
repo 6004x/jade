@@ -655,7 +655,7 @@ def ctl_test(f):
 .cycle CLK=1 tran 5n assert inputs tran 45n CLK=0 tran 49n log tran 1n
 
 10
-.repeat 264
+.repeat 416
 00
 01
 .repeat 15
