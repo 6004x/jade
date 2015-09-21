@@ -489,7 +489,7 @@ jade_defs.test_view = function(jade) {
         var nodes = jade.netlist.extract_nodes(netlist);  // get list of nodes in netlist
         function check_node(node) {
             if (!(node in driven_signals) && nodes.indexOf(node) == -1)
-                errors.push('Circuit does not have a node named "'+node+'".');
+                errors.push('There are no devices connected to node "'+node+'".');
         }
         $.each(driven_signals,check_node);
         $.each(sampled_signals,check_node);
