@@ -205,6 +205,8 @@ jade_defs.test_view = function(jade) {
 
     function run_tests(source,diagram,module) {
         var test_results = diagram.editor.jade.configuration.tests;
+        var help_url = diagram.editor.jade.configuration.help_url;
+        var student_id = diagram.editor.jade.configuration.student_id;
         test_results[module.get_name()] = 'Error detected: test did not yield a result.';
         var msg;
 
@@ -931,7 +933,14 @@ jade_defs.test_view = function(jade) {
                         errors = errors.slice(0,5);
                         postscript = '<br>...';
                     }
-                    msg = '<li>'+errors.join('<li>')+postscript;
+
+                    msg = '';
+                    if (help_url && t_error) {
+                        // create a form to visit courseoverflow.org
+                        msg += '<div style="margin-bottom:5px;"><a href="'+help_url+'&module='+module.get_name()+'&testNum='+t_error+'&student_id='+student_id+'" target="_blank"><button>Click to find or submit a hint for this error</button></a></div>';
+                    }
+
+                    msg += '<li>'+errors.join('<li>')+postscript;
                     jade.window("Errors detected by test",
                                 $('<div class="jade-alert"></div>').html(msg),
                                 offset);
