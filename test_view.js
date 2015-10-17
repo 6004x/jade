@@ -937,7 +937,11 @@ jade_defs.test_view = function(jade) {
                     msg = '';
                     if (help_url && t_error) {
                         // create a form to visit courseoverflow.org
-                        msg += '<div style="margin-bottom:5px;"><a href="'+help_url+'&module='+module.get_name()+'&testNum='+t_error+/*'&student_id='+student_id+*/'" target="_blank"><button>Click to find or submit a hint for this error</button></a></div>';
+                        var url = help_url+'&module='+module.get_name()+'&testNum='+t_error;
+                        if (student_id) {
+                            url += '&student_id='+student_id;
+                        }
+                        msg += '<div style="margin-bottom:5px;"><a href="'+url+'" target="_blank"><button>Click to find or submit a hint for this error</button></a></div>';
                     }
 
                     msg += '<li>'+errors.join('<li>')+postscript;
