@@ -71,7 +71,12 @@ jade_defs.services = function(jade) {
             var config = {};
 
             // use text from jade.div, if any
-            var text = $(div).text().trim();
+            var text = $(div).html();
+            // strip off <!--[CDATA[ ... ]]--> tag if it's there
+            if (text.lastIndexOf('<!--[CDATA[',0) === 0) {
+                text = text.substring(11,text.length-5);
+            }
+
             $(div).empty();  // all done with innards
             if (text)
                 try {

@@ -12,6 +12,16 @@ module.exports = function(grunt) {
                        src: ['jade_edx.html', 'jade.css'],
                        dest: 'build/'
                        },
+            jade_workbook: {expand: true,
+                            flatten: true,
+                            src: ['jade_workbook.html', 'jade.css'],
+                            dest: 'build/'
+                           },
+            jade_standalone: {expand: true,
+                              flatten: true,
+                              src: ['jade_standalone.html', 'jade.css'],
+                              dest: 'build/'
+                             },
             jade_6004: {expand: true,
                            flatten: true,
                            src: ['jade_6004.html', 'jade.css'],
@@ -38,6 +48,8 @@ module.exports = function(grunt) {
         },
         useminPrepare: {
             jade_edx: 'jade_edx.html',
+            jade_workbook: 'jade_workbook.html',
+            jade_standalone: 'jade_standalone.html',
             jade_6004: 'jade_6004.html',
             jade_local: 'jade_local.html',
             options: {
@@ -47,6 +59,14 @@ module.exports = function(grunt) {
         usemin: {
             jade_edx: {
                 src: 'build/jade_edx.html',
+                options: {type: 'html'}
+            },
+            jade_workbook: {
+                src: 'build/jade_workbook.html',
+                options: {type: 'html'}
+            },
+            jade_standalone: {
+                src: 'build/jade_standalone.html',
                 options: {type: 'html'}
             },
             jade_6004: {
@@ -72,6 +92,8 @@ module.exports = function(grunt) {
 
     grunt.registerTask('jade_6004', ['copy:jade_6004', 'copy:font_awesome', 'useminPrepare:jade_6004', 'concat', 'uglify', 'usemin:jade_6004']);
     grunt.registerTask('jade_edx', ['copy:jade_edx', 'copy:font_awesome', 'useminPrepare:jade_edx', 'concat', 'uglify', 'usemin:jade_edx']);
+    grunt.registerTask('jade_workbook', ['copy:jade_workbook', 'copy:font_awesome', 'useminPrepare:jade_workbook', 'concat', 'uglify', 'usemin:jade_workbook']);
+    grunt.registerTask('jade_standalone', ['copy:jade_standalone', 'copy:font_awesome', 'useminPrepare:jade_standalone', 'concat', 'uglify', 'usemin:jade_standalone']);
     grunt.registerTask('jade_local', ['copy:jade_local', 'copy:font_awesome', 'useminPrepare:jade_local', 'concat', 'usemin:jade_local']);
 
     // Builds everything if just called as 'grunt'

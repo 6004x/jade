@@ -58,6 +58,10 @@ jade_defs.test_view = function(jade) {
                 var test = module.aspect('test').components[0];
                 if (test) {
                     run_tests(test.test,diagram,module);
+
+                    // save (partial) results to server
+                    jade.model.save_modules(true);
+
                     // redraw diagram to show any changes in highlighting
                     diagram.redraw_background();
                     return;
@@ -201,6 +205,8 @@ jade_defs.test_view = function(jade) {
 
     function run_tests(source,diagram,module) {
         var test_results = diagram.editor.jade.configuration.tests;
+        var help_url = diagram.editor.jade.configuration.help_url;
+        var student_id = diagram.editor.jade.configuration.student_id;
         test_results[module.get_name()] = 'Error detected: test did not yield a result.';
         var msg;
 
@@ -485,7 +491,7 @@ jade_defs.test_view = function(jade) {
         var nodes = jade.netlist.extract_nodes(netlist);  // get list of nodes in netlist
         function check_node(node) {
             if (!(node in driven_signals) && nodes.indexOf(node) == -1)
-                errors.push('Circuit does not have a node named "'+node+'".');
+                errors.push('There are no devices connected to node "'+node+'".');
         }
         $.each(driven_signals,check_node);
         $.each(sampled_signals,check_node);
@@ -927,7 +933,18 @@ jade_defs.test_view = function(jade) {
                         errors = errors.slice(0,5);
                         postscript = '<br>...';
                     }
-                    msg = '<li>'+errors.join('<li>')+postscript;
+
+                    msg = '';
+                    if (help_url && t_error) {
+                        // create a form to visit courseoverflow.org
+                        var url = help_url+'&module='+module.get_name()+'&testNum='+t_error;
+                        if (student_id) {
+                            url += '&student_id='+student_id;
+                        }
+                        msg += '<div style="margin-bottom:5px;"><a href="'+url+'" target="_blank"><button>Click to find or submit a hint for this error</button></a></div>';
+                    }
+
+                    msg += '<li>'+errors.join('<li>')+postscript;
                     jade.window("Errors detected by test",
                                 $('<div class="jade-alert"></div>').html(msg),
                                 offset);
@@ -948,14 +965,26 @@ jade_defs.test_view = function(jade) {
             }
         }
 
+        function process_results_and_save(percent_complete,results) {
+            var response = process_results(percent_complete,results);
+
+            // if this was the final call, save modules to record any
+            // test result
+            if (percent_complete === undefined) {
+                jade.model.save_modules(true);
+            }
+
+            return response;
+        }
+
         // do the simulation
         var progress = jade.progress_report();
         jade.window('Progress',progress[0],$(diagram.canvas).offset());
         try {
             if (mode == 'device')
-                jade.cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results, options);
+                jade.cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results_and_save, options);
             else if (mode == 'gate')
-                jade.gatesim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results, options);
+                jade.gatesim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results_and_save, options);
             else 
                 throw 'Unrecognized simulation mode: '+mode;
         } catch (e) {
