@@ -122,11 +122,6 @@ workbook:	analog.js gates.js
 	grunt jade_workbook
 	cp build/jade_workbook.html build/jade_workbook.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6004x.github.io/tools/
 
-6004:	analog.js gates.js
-	grunt jade_6004
-	scp build/jade_6004.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* 6004:coursewarex/
-
-
 labs:	analog.js gates.js
 	grunt jade_6004
-	cp build/jade_6004.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ../6.004_labs/ssldocs/coursewarex/
+	cp build/jade_6004.html build/jade_6004.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ../6.004_labs/ssldocs/coursewarex/

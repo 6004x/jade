@@ -90,7 +90,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
 
-    grunt.registerTask('jade_6004', ['copy:jade_6004', 'copy:font_awesome', 'useminPrepare:jade_6004', 'concat', 'uglify', 'usemin:jade_6004']);
+    grunt.registerTask('jade_6004', ['copy:jade_6004', 'copy:font_awesome', 'useminPrepare:jade_6004', 'concat', 'usemin:jade_6004']);
     grunt.registerTask('jade_edx', ['copy:jade_edx', 'copy:font_awesome', 'useminPrepare:jade_edx', 'concat', 'uglify', 'usemin:jade_edx']);
     grunt.registerTask('jade_workbook', ['copy:jade_workbook', 'copy:font_awesome', 'useminPrepare:jade_workbook', 'concat', 'uglify', 'usemin:jade_workbook']);
     grunt.registerTask('jade_standalone', ['copy:jade_standalone', 'copy:font_awesome', 'useminPrepare:jade_standalone', 'concat', 'uglify', 'usemin:jade_standalone']);

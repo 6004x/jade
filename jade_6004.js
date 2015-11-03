@@ -1,23 +1,6 @@
 // sandbox can only load shared modules
 jade_defs.services = function (jade) {
     jade.load_from_server = function (filename,shared,callback) {
-        if (!shared) {
-            alert('Sandbox can only load shared modules.');
-        } else {
-            var args = {
-                async: false, // hang until load completes
-                url: 'https://6004.mit.edu/coursewarex/' + filename,
-                type: 'POST',
-                dataType: 'json',
-                error: function(jqXHR, textStatus, errorThrown) {
-                    alert('Error while loading file '+filename+': '+errorThrown);
-                },
-                success: function(result) {
-                    if (callback) callback(result);
-                }
-            };
-            $.ajax(args);
-        }
     };
 
     // sandbox doesn't save changes
@@ -28,6 +11,14 @@ jade_defs.services = function (jade) {
     };
 
     jade.request_zip_url = undefined;  //'/jade-server?zip=1';
+
+    // return JSON representation of persistent state
+    jade_defs.getState = function() {
+        var div = $('.jade').get(0);
+        var state = {};
+        if (div.jade) state = div.jade.get_state();
+        return JSON.stringify(state);
+    };
 
     jade.setup = function (div) {
         // skip if this div has already been configured
@@ -42,21 +33,63 @@ jade_defs.services = function (jade) {
                         $('body').removeAttr('data-dirty');
                 };
 
-            var config = {};
-
-            // use text from jade.div, if any
-            var text = $(div).text().trim();
-            $(div).empty();  // all done with innards
-            if (text)
+            // are we in an iframe?
+            if (window.parent !== window) {
+                // make iframe resizable if we can.  This may fail if we don't have
+                // access to our parent...
                 try {
-                    config = JSON.parse(text);
-                } catch(e) {
-                    console.log('Error parsing configuration: '+e);
+                    // look through all our parent's iframes
+                    var foo;
+                    $('iframe',window.parent.document).each(function () {
+                        // is this iframe us?
+                        if (this.contentWindow == window) {
+                            foo = this;
+                            // yes! so add css to enable resizing
+                            $(this).css({resize:'both', overflow:'auto'});
+
+                            // initial state is JSON stored as text child of <iframe>
+                            var state = JSON.parse($(this).text() || '{}');
+
+                            // grab our server-side state from the appropriate input field
+                            var id = $(this).attr('data-id');
+                            if (id) {
+                                var input = $("[name='"+id+"']",window.parent.document);
+                                if (input) {
+                                    // overwrite with user's state from server
+                                    input = input.val();
+                                    if (input.length > 0) {
+                                        var args = JSON.parse(input);
+                                        args.student_id = window.parent.anonymous_student_id;
+                                        $.extend(state,args);
+                                    }
+                                }
+                            }
+
+                            var j = new jade.Jade(div);
+                            j.initialize(state);
+                        }
+                    });
+                } catch (e) {
+                    alert(e.stack ? e.stack : e);
+                }
+            } else {
+                var text = $(div).text().trim();
+
+                // starting state is given by text from jade.div, if any
+                var config = {};
+                $(div).empty();  // all done with innards
+                if (text) {
+                    try {
+                        state = JSON.parse(text);
+                    } catch(e) {
+                        console.log('Error parsing configuration: '+e);
+                    }
                 }
 
-            // now create the editor and pass along initial configuration
-            var j = new jade.Jade(div);
-            j.initialize(config);
+                // now create the editor and pass along initial configuration
+                var j = new jade.Jade(div);
+                j.initialize(config);
+            }
         }
     };
 };
