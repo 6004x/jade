@@ -104,7 +104,7 @@ $(document).ready(function () {
 });
 
 // notify user of unsaved changes
-$(window).bind('beforeunload',function () {
+$(window).on('beforeunload',function () {
     if ($('body').attr('data-dirty') !== undefined)
         return 'You have unsaved changes on this page.';
     return undefined;
