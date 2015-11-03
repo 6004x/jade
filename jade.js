@@ -147,8 +147,9 @@ jade_defs.top_level = function(jade) {
             // we're full screen, so resize when window resizes
             $(window).on('resize',function() {
                 var body = $('body');
+                // 8, 12 are fudge factors to avoid scrollbars...
                 var win_w = $(window).width() - (body.outerWidth(true) - body.width()) - 8;
-                var win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 8;
+                var win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 12;
                 me.resize(win_w,win_h);
             });
         }
