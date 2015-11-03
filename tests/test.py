@@ -382,6 +382,8 @@ def regfile_test(f):
     global cycle
     cycle = 0
 
+    regfile_test_cycle(f,0,0,0,31,31,0,0,0,0)
+
     # write registers with their number, test read ports
     for i in xrange(34):
         ra2sel = 0
@@ -405,7 +407,7 @@ def regfile_test(f):
     regfile_test_cycle(f,0,0,0,1,2,3,12345678,1,2) # no write
     regfile_test_cycle(f,0,0,0,3,3,3,12345678,3,3) # ensure R3 unchanged
 
-#regfile_test(sys.stdout)
+regfile_test(sys.stdout)
 
 ##################################################
 ##  PC
@@ -760,4 +762,4 @@ def beta_test(f):
 
         beta_test_cycle(f,lreset,lirq,lia,lid,lma,lmoe,lmwr,lmrd,lmwd,disassemble(lreset,lirq,lia,lid))
         
-beta_test(sys.stdout)
+#beta_test(sys.stdout)
