@@ -447,7 +447,7 @@ def pc_test(f):
 
     # test JMP w/ and w/o supervisor bit
     pc_test_cycle(f,0,2,0x8000,0x7FFFFFFF,0x7FFFFFFC,'jmp to user mode, PC==0x7FFFFFFC, offset=0x8000')
-    pc_test_cycle(f,0,2,-9,0x87654321,0x07654320,'jmp to super mode?, PC==0x77654320, offset=-9')
+    pc_test_cycle(f,0,2,-9,0x87654321,0x07654320,'jmp to super mode?, PC==0x07654320, offset=-9')
 
     # test increment (use JMP set PC, followed by inc cycle)
     pc_test_cycle(f,0,2,0,0x00000004,0x00000004,'jmp, PC==0x0')
