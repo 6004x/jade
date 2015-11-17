@@ -11,7 +11,9 @@ jade_defs.services = function (jade) {
 
     jade.save_to_server = function (json,callback) {
         try {
-            localStorage.setItem(window.location.pathname,JSON.stringify(json));
+            // grab the complete state and save it away
+            var state = $('.jade')[0].jade.get_state();
+            localStorage.setItem(window.location.pathname,JSON.stringify(state));
             if (callback) callback();
         } catch (e) {
             console.log('Failed to save state in localStorage.');
@@ -49,7 +51,7 @@ jade_defs.services = function (jade) {
             if (saved_state) {
                 try {
                     saved_state = JSON.parse(saved_state);
-                    $.extend(config,{state: saved_state});
+                    $.extend(config,saved_state);
                 } catch (e) {
                     console.log('Restore of local state failed');
                     console.log(e.stack);
