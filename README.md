@@ -25,8 +25,8 @@ but you're welcome to experiment!  Here's how:
 Using Jade
 =====
 
-Jade can be used either standalone or as embedded courseware in
-the edX framework.  To use Jade in standalone mode, simply change
+Jade can be used either standalone or as embedded courseware in the
+edX framework.  To use Jade locally in standalone mode, simply change
 to the top-level directory of this repo and run
 
     python -m SimpleHTTPServer
@@ -35,6 +35,21 @@ to start a basic HTTP server listening on port localhost:8000.
 You can access Jade at
 
     http://localhost:8000/jade_standalone.html
+
+Or, of course, you can serve Jade as part of your website. For
+"production use", you can build a minified Jade distribution using
+"grunt jade_standalone" and then copying the following files from
+the build subdirectory
+
+    jade_standalone.html
+    jade.css
+    jade_standalone.min.js
+    FontAwesome.otf
+    fontawesome-webfont.eot
+    fontawesome-webfont.svg
+    fontawesome-webfont.ttf
+    fontawesome-webfont.woff
+    fontawesome-webfont.woff2
 
 As you enter schematics they are saved using the HTML5 localStorage
 persistent store supplied by your browser, which is specific to the
@@ -48,4 +63,7 @@ order to access Jade.
 
 Jade can be configured to display only certain simulation tools and
 parts.  The default configuration in jade_standalone.html shows all
-available tools and parts libraries.
+available tools and parts libraries.  You can also load parts libraries
+specific to an assignment, with schematics, icons and (read-only) tests
+that serve as template and test jig for a design problem.
+
