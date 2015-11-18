@@ -21,10 +21,40 @@ jade_defs.services = function (jade) {
     };
 
     jade.cloud_upload = function (j) {
-        console.log('cloud_upload');
+        var args = {
+            url: j.configuration.cloud_url,
+            type: 'POST',
+            dataType: 'text',
+            data: {key: window.location.pathname, value: JSON.stringify(j.get_state())},
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log('Error: '+errorThrown);
+            },
+            success: function(result) {
+                console.log('upload complete');
+            }
+        };
+        $.ajax(args);
     };
 
     jade.cloud_download = function (j) {
+        var args = {
+            url: j.configuration.cloud_url,
+            type: 'POST',
+            dataType: 'text',
+            data: {key: window.location.pathname},
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log('Error: '+errorThrown);
+            },
+            success: function(result) {
+                localStorage.setItem(window.location.pathname,result);
+                var config = {};
+                $.extend(config,initial_config);
+                $.extend(config,JSON.parse(result));
+                j.initialize(config);
+            }
+        };
+        $.ajax(args);
+
         console.log('cloud_download');
     };
 
@@ -33,26 +63,31 @@ jade_defs.services = function (jade) {
 
     jade.request_zip_url = undefined;  // not used here...
 
+    var initial_config;
+
     // set up editor inside of div's with class "jade"
     jade.setup = function (div,setup_channel) {
         // skip if this div has already been configured
         if (div.jade === undefined) {
-            var config = {};
 
             // use text from jade.div, if any
-            var text = $(div).html();
+            var div_text = $(div).html();
             // strip off <!--[CDATA[ ... ]]--> tag if it's there
-            if (text.lastIndexOf('<!--[CDATA[',0) === 0) {
-                text = text.substring(11,text.length-5);
+            if (div_text.lastIndexOf('<!--[CDATA[',0) === 0) {
+                div_text = div_text.substring(11,text.length-5);
             }
 
             $(div).empty();  // all done with innards
-            if (text)
+            if (div_text)
                 try {
-                    config = JSON.parse(text);
+                    initial_config = JSON.parse(div_text);
                 } catch(e) {
                     console.log('Error parsing configuration: '+e);
                 }
+            else initial_config = {};
+
+            var config = {};
+            $.extend(config,initial_config);
 
             // standalone mode -- module data stored locally
             var saved_state = localStorage.getItem(window.location.pathname);

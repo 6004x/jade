@@ -313,7 +313,8 @@ jade_defs.top_level = function(jade) {
         var state = {
             tests: this.configuration.tests,
             'required-tests': this.configuration['required-tests'],
-            state: jade.model.json_modules(true).json
+            state: jade.model.json_modules(true).json,
+            last_saved: Date.now()
         };
 
         // request for state means user library is being saved
