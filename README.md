@@ -1,38 +1,12 @@
 jade
 ====
 
-Copyright (c) 2015 M.I.T. Department of Electrical Engineering and
-Computer Science
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Notes
-=====
-
 The Jade schematic entry and simulation tool is a work in progress,
-but you're welcome experiment!  Here's how:
+but you're welcome to experiment!  Here's how:
 
 1.  Fork this repository: click on the "Fork" button in the upper
     right.  This will make a copy of the repository under your own
-    github account.  Now clone your copy of the repo onto your
-    local machine.
+    github account.
 
 2.  Any changes, commits, pushes, pulls, etc. will be to your copy
     of the repo.  If you want to be able keep up with changes to the
@@ -48,50 +22,30 @@ but you're welcome experiment!  Here's how:
         git merge upstream/master
         git push               # save updates in local repo
 
-The repo includes a simple file server used by the development
-version of Jade to read and write design libraries.  To access
-Jade via the browser and to give it access to the simple file
-server, you need to set up web access to the local repo.
+Using Jade
+=====
 
-Look at README.WINDOWS for advice on running jade on
-a Windows machine.
+Jade can be used either standalone or as embedded courseware in
+the edX framework.  To use Jade in standalone mode, simply change
+to the top-level directory of this repo and run
 
-I use apache2 as a web server on my machine and added the following
-to my apache configuration file:
+    python -m SimpleHTTPServer
 
-    Alias /jade /Users/cjt/git/jade
-    <Directory "/Users/cjt/git/jade">
-      Options FollowSymLinks Includes ExecCGI MultiViews
-      AllowOverride All
-      #ScriptInterpreterSource Registry   # on Windows
-      AddHandler cgi-script .py
-      Order allow,deny
-      Allow from all
-      #Require all granted  # for Apache 2.4
-    </Directory>
+to start a basic HTTP server listening on port localhost:8000.
+You can access Jade at
 
-where "/Users/cjt/git/jade" is the pathname to my local copy
-of the Jade repo.  Make sure your apache configuration is
-loading mod_cgi and mod_alias.  I can then access Jade at
+    http://localhost:8000/jade_standalone.html
 
-    http://localhost/jade/src/jade_local.html
+As you enter schematics they are saved using the HTML5 localStorage
+persistent store supplied by your browser, which is specific to the
+particular URL (different URLs => different localStoage).  Each time
+you modify your design, it will be saved in localStorage, which
+persists across browser sessions.  Next time you browse to the URL
+above, you'll be able to pick up your design where you left off.
+Note: in many browsers localStorage does not function correctly with
+file:// URLs, which is why we needed to start a local HTTP server in
+order to access Jade.
 
-and the somewhat terse Jade help file at
-
-    http://localhost/jade/help.html
-
-User module files are stored in the src/files/ subdirectory
-of the repo.  To specify a particular module file, you can
-provide an optional "modules" argument to the URL above:
-
-    http://localhost/jade/src/jade_local.html?modules=cjt
-
-would access the modules file "files/cjt".
-
-NOTE: You may have to change permissions on the /src/files/
-subdirectory to give apache read/write access to the user
-libraries:
-
-    chmod 777 files files/*
-
-
+Jade can be configured to display only certain simulation tools and
+parts.  The default configuration in jade_standalone.html shows all
+available tools and parts libraries.

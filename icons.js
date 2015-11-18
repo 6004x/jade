@@ -125,4 +125,7 @@ jade_defs.icons = function(jade) {
 
     jade.icons.mail_icon = '<span class="fa fa-fw fa-lg fa-envelope-o"></span>';
 
+    jade.icons.cloud_download_icon = '<span class="fa fa-fw fa-lg fa-cloud-download"></span>';
+    jade.icons.cloud_upload_icon = '<span class="fa fa-fw fa-lg fa-cloud-upload"></span>';
+
 };

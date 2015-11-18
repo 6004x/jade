@@ -20,6 +20,14 @@ jade_defs.services = function (jade) {
         }
     };
 
+    jade.cloud_upload = function (j) {
+        console.log('cloud_upload');
+    };
+
+    jade.cloud_download = function (j) {
+        console.log('cloud_download');
+    };
+
     jade.unsaved_changes = function(which) {
     };
 

@@ -86,6 +86,12 @@ jade_defs.top_level = function(jade) {
         this.module_tools.append(this.module_tool(jade.icons.download_icon,'download-modules','Save modules to module clipboard',download_modules));
         this.module_tools.append(this.module_tool(jade.icons.upload_icon,'upload-modules','Select modules to load from module clipboard',upload_modules));
         this.module_tools.append(this.module_tool(jade.icons.recycle_icon,'start-over','Discard all work on this problem and start over',start_over));
+        if (jade.cloud_upload) {
+            this.module_tools.append(this.module_tool(jade.icons.cloud_upload_icon,'cloud-upload','Upload designs to the cloud',jade.cloud_upload));
+        }
+        if (jade.cloud_download) {
+            this.module_tools.append(this.module_tool(jade.icons.cloud_download_icon,'cloud-download','Dowload designs from the cloud',jade.cloud_download));
+        }
 
         /*
         var mailto = $('<a href="#"><span class="fa fa-lg fa-envelope-o"></span>"');
@@ -209,6 +215,8 @@ jade_defs.top_level = function(jade) {
         $.extend(this.configuration,config);
 
         $('#start-over',this.module_tools).toggle(this.configuration.state && this.configuration.initial_state);
+        $('#cloud-upload',this.module_tools).toggle(this.configuration.cloud_url !== undefined);
+        $('#cloud-download',this.module_tools).toggle(this.configuration.cloud_url !== undefined);
 
         // initialize object for recording test results
         if (this.configuration.tests === undefined) this.configuration.tests = {};
