@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link type="text/css" href="jade.css" rel="Stylesheet"/>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+<!-- build:js jade_min.js -->
+<script type="text/javascript" src="jade.js"></script>
+<script type="text/javascript" src="model.js"></script>
+<script type="text/javascript" src="netlist.js"></script>
+<script type="text/javascript" src="icons.js"></script>
+<script type="text/javascript" src="schematic_view.js"></script>
+<script type="text/javascript" src="icon_view.js"></script>
+<script type="text/javascript" src="property_view.js"></script>
+<script type="text/javascript" src="test_view.js"></script>
+<script type="text/javascript" src="utils.js"></script>
+<script type="text/javascript" src="plot.js"></script>
+<script type="text/javascript" src="device_level.js"></script>
+<script type="text/javascript" src="cktsim.js"></script>
+<script type="text/javascript" src="gate_level.js"></script>
+<script type="text/javascript" src="gatesim.js"></script>
+<script type="text/javascript" src="libraries.js"></script>
+<!-- endbuild -->
+
+<script type="text/javascript">
+jade.load_from_server = function (lib) {
+    var args = {
+        async: false, // hang until load completes
+        url: '/jade-server',
+        type: 'POST',
+        data: { file: lib.name },
+        dataType: 'json',
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert('Error while loading library '+lib.name+': '+errorThrown);
+        },
+        success: function(json) {
+            lib.load(json[0]);
+            if (json[1] == 'shared') lib.read_only = true;
+        }
+    };
+    $.ajax(args);
+};
+
+jade.save_to_server = function (lib) {
+    var args = {
+        url: '/jade-server',
+        type: 'POST',
+        data: {
+            file: lib.name,
+            json: JSON.stringify(lib.json())
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert(errorThrown);
+        },
+        success: function() {
+            // clear modified status for library and its modules
+            lib.clear_modified();
+        }
+    };
+    $.ajax(args);
+};
+
+jade.request_zip_url = '/jade-server?zip=1';
+
+jade.setup = (function () {
+    // set up editor inside of div's with class "jade"
+    function setup() {
+        // look for nodes of class "jade" and give them an editor
+        $('.jade').each(function(index, div) {
+            // skip if this div has already been configured
+            if (div.jade === undefined) {
+                // now create the editor
+                var j = new jade.Jade(div);
+
+                // start configuration with whatever is provided by <jade> tag
+                var config = {};
+                $.each(div.attributes,function () {
+                    if (this.name != 'class') config[this.name] = this.value;
+                });
+
+                j.initialize(config);
+            }
+        });
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    //
+    // Module exports
+    //
+    //////////////////////////////////////////////////////////////////////
+
+    return {
+        setup: setup,   // called to initialize jade editors on this page
+    };
+
+}());
+
+// set up editor inside of div's with class "jade"
+$(document).ready(jade.setup.setup);
+</script>
+
+</head>
+<body>
+<div class="jade" parts="analog,gates" hierarchical="true"></div>
+<script>
+// notify user of unsaved changes
+$(window).bind('beforeunload',function () {
+    if ($('body').attr('data-dirty') !== undefined)
+        return 'You have unsaved changes on this page.';
+    return undefined;
+});
+</script>
+</body>
+</html>
