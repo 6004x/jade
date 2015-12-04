@@ -29,7 +29,7 @@ Jade can be used either standalone or as embedded courseware in the
 edX framework.  To use Jade locally in standalone mode, simply change
 to the top-level directory of this repo and run
 
-    python -m SimpleHTTPServer
+    python server.py
 
 to start a basic HTTP server listening on port localhost:8000.
 You can access Jade at
@@ -39,7 +39,7 @@ You can access Jade at
 Or, of course, you can serve Jade as part of your website. For
 "production use", you can build a minified Jade distribution using
 "grunt jade_standalone" and then copying the following files from
-the build subdirectory
+the standalone subdirectory
 
     jade_standalone.html
     jade.css
@@ -51,15 +51,12 @@ the build subdirectory
     fontawesome-webfont.woff
     fontawesome-webfont.woff2
 
-As you enter schematics they are saved using the HTML5 localStorage
-persistent store supplied by your browser, which is specific to the
-particular URL (different URLs => different localStoage).  Each time
-you modify your design, it will be saved in localStorage, which
-persists across browser sessions.  Next time you browse to the URL
-above, you'll be able to pick up your design where you left off.
-Note: in many browsers localStorage does not function correctly with
-file:// URLs, which is why we needed to start a local HTTP server in
-order to access Jade.
+In the standalone version of Jade, changes are saved to the local
+server as they're made.  The saved state is for the particular .html
+file you accessed, so if you have several .html files for, say,
+different projects, their state will be stored separately.  Next time
+you browse to the URL above, you'll be able to pick up your design
+where you left off.
 
 Jade can be configured to display only certain simulation tools and
 parts.  The default configuration in jade_standalone.html shows all

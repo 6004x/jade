@@ -19,7 +19,7 @@ module.exports = function(grunt) {
                            },
             jade_standalone: {expand: true,
                               flatten: true,
-                              src: ['jade_standalone.html', 'jade.css'],
+                              src: ['jade_standalone.html', 'jade.css', 'server.py'],
                               dest: 'build/'
                              },
             jade_6004: {expand: true,

@@ -12,6 +12,10 @@ jade_defs.model = function (jade) {
     var AUTOSAVE_TRIGGER = 25;  // number edits that triggers an autosave
     var edit_counter = 0;
 
+    function set_autosave_trigger(n) {
+        AUTOSAVE_TRIGGER = n;
+    }
+
     //////////////////////////////////////////////////////////////////////
     //
     // Modules
@@ -1326,6 +1330,7 @@ jade_defs.model = function (jade) {
 
     return {
         AUTOSAVE_TRIGGER: AUTOSAVE_TRIGGER,
+        set_autosave_trigger: set_autosave_trigger,
         get_modules: get_modules,
         clear_modules: clear_modules,
         load_modules: load_modules,

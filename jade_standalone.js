@@ -4,7 +4,7 @@ jade_defs.services = function (jade) {
     var host;   // window target for state updates
     var jade_instance;  // jade instance whose state we'll save
 
-    jade.model.AUTOSAVE_TRIGGER = 1;  // save after every edit
+    jade.model.set_autosave_trigger(1);  // save after every edit
 
     jade.load_from_server = function (filename,shared,callback) {
     };
@@ -12,17 +12,21 @@ jade_defs.services = function (jade) {
     jade.save_to_server = function (json,callback) {
         try {
             // grab the complete state and save it away
-            var state = $('.jade')[0].jade.get_state();
-            localStorage.setItem(window.location.pathname,JSON.stringify(state));
-            if (callback) callback();
+            //var state = $('.jade')[0].jade.get_state();
+            //localStorage.setItem(window.location.pathname,JSON.stringify(state));
+            //if (callback) callback();
+
+            // send to local server
+            jade.cloud_upload($('.jade')[0].jade,window.location.origin,callback);
         } catch (e) {
             console.log('Failed to save state in localStorage.');
         }
     };
 
-    jade.cloud_upload = function (j) {
+    jade.cloud_upload = function (j,url,callback) {
+        if (url === undefined) url = j.configuration.cloud_url;
         var args = {
-            url: j.configuration.cloud_url,
+            url: url,
             type: 'POST',
             dataType: 'text',
             data: {key: window.location.pathname, value: JSON.stringify(j.get_state())},
@@ -30,15 +34,17 @@ jade_defs.services = function (jade) {
                 console.log('Error: '+errorThrown);
             },
             success: function(result) {
-                console.log('upload complete');
+                if (callback) callback();
+                //console.log('upload complete');
             }
         };
         $.ajax(args);
     };
 
-    jade.cloud_download = function (j) {
+    jade.cloud_download = function (j,url) {
+        if (url === undefined) url = j.configuration.cloud_url;
         var args = {
-            url: j.configuration.cloud_url,
+            url: url,
             type: 'POST',
             dataType: 'text',
             data: {key: window.location.pathname},
@@ -46,16 +52,16 @@ jade_defs.services = function (jade) {
                 console.log('Error: '+errorThrown);
             },
             success: function(result) {
-                localStorage.setItem(window.location.pathname,result);
+                //localStorage.setItem(window.location.pathname,result);
                 var config = {};
                 $.extend(config,initial_config);
-                $.extend(config,JSON.parse(result));
+                if (result) $.extend(config,JSON.parse(result));
                 j.initialize(config);
             }
         };
         $.ajax(args);
 
-        console.log('cloud_download');
+        //console.log('cloud_download');
     };
 
     jade.unsaved_changes = function(which) {
@@ -86,6 +92,7 @@ jade_defs.services = function (jade) {
                 }
             else initial_config = {};
 
+            /*
             var config = {};
             $.extend(config,initial_config);
 
@@ -100,10 +107,14 @@ jade_defs.services = function (jade) {
                     console.log(e.stack);
                 }
             }
+             */
 
             // now create the editor, pass along initial configuration
             var j = new jade.Jade(div);
-            j.initialize(config);
+
+            // initialize with state from server
+            //j.initialize(config);
+            jade.cloud_download(j,window.location.origin);
         }
     };
 };

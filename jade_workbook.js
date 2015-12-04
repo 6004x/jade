@@ -4,7 +4,7 @@ jade_defs.services = function (jade) {
     var host;   // window target for state updates
     var jade_instance;  // jade instance whose state we'll save
 
-    jade.model.AUTOSAVE_TRIGGER = 1;  // save after every edit
+    jade.model.set_autosave_trigger(1);  // save after every edit
 
     jade.load_from_server = function (filename,shared,callback) {
     };
