@@ -1,0 +1,23 @@
+Jade can be used either standalone or as embedded courseware in the
+edX framework.  To use Jade locally in standalone mode, simply 
+run
+
+    python server.py
+
+to start a basic HTTP server listening on port localhost:8000.
+You can access Jade at
+
+    http://localhost:8000/jade_standalone.html
+
+In the standalone version of Jade, changes are saved to the local
+server as they're made.  The saved state is for the particular .html
+file you accessed, so if you have several .html files for, say,
+different projects, their state will be stored separately.  Next time
+you browse to the URL above, you'll be able to pick up your design
+where you left off.
+
+Jade can be configured to display only certain simulation tools and
+parts.  The default configuration in jade_standalone.html shows all
+available tools and parts libraries.  You can also load parts libraries
+specific to an assignment, with schematics, icons and (read-only) tests
+that serve as template and test jig for a design problem.
