@@ -7,7 +7,7 @@ run
 to start a basic HTTP server listening on port localhost:8000.
 You can access Jade at
 
-    http://localhost:8000/jade_standalone.html
+    http://localhost:8000/jade.html
 
 In the standalone version of Jade, changes are saved to the local
 server as they're made.  The saved state is for the particular .html
