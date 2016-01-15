@@ -316,6 +316,10 @@ jade_defs.top_level = function(jade) {
             state: jade.model.json_modules(true).json,
             last_saved: Date.now()
         };
+        if (this.configuration.help_url)
+            state.help_url = this.configuration.help_url;
+        if (this.configuration.student_id)
+            state.help_url = this.configuration.student_id;
 
         // request for state means user library is being saved
         jade.model.clear_modified();

@@ -55,7 +55,34 @@ jade_defs.services = function (jade) {
             // jsinput gets anxious if we don't respond quickly, so come back to
             // initialization after we've returned and made jsinput happy.  Initialization
             // may involve loading remote libraries, which may take awhile.
-            setTimeout(function () { div.jade.initialize(JSON.parse(stateStr)); },1);
+            setTimeout(function () {
+                var state = {};
+
+                // temporary hack to get initial-state from parent window
+                try {
+                    if (window.parent !== window) {
+                        // look through all our parent's iframes
+                        $('iframe',window.parent.document).each(function () {
+                            // is this iframe us?
+                            if (this.contentWindow == window) {
+                                // locate our state in hidden input field in parent
+                                var n = $(this).attr('name');    // name attribute of iframe: "iframe_..."
+                                if (n.lastIndexOf('iframe_',0) != 0) return;
+                                n = '#inputtype' + n.substr(6);  // convert to "inputtype_..."
+                                var section = $(n,window.parent.document);   // find associated section tag
+                                if (section.length == 1) {
+                                    // grab initial state
+                                    state = JSON.parse(section.attr('data-initial-state') || '{}');
+                                }
+                            }
+                        });
+                    }
+                } catch (e) {
+                }
+
+                $.extend(state,JSON.parse(stateStr));
+                div.jade.initialize(state);
+            },1);
         }
     };
 

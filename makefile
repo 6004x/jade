@@ -115,7 +115,8 @@ gates.js: files/gates
 
 edx:	analog.js gates.js
 	grunt jade_edx
-	cp build/jade_edx.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6.004_mitx/static/
+	cp build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6.004_mitx/static/
+	cp build/jade_edx.min.js build/jade.css ~/git/6.004_mitx/static/labs/
 	rm jade_edx.zip; zip -j jade_edx.zip build/jade_edx.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.*
 
 standalone: analog.js gates.js
