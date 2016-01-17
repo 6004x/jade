@@ -76,7 +76,29 @@ class JadeRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             c.execute('insert or replace into key_value (key,val) values (?,?);',
                       (key,value))
             db.commit()
-                                                        
+
+        # The following conditional is not an obvious or reliable way
+        # to check if the POST request is looking for a 
+        # <module-file>.json, but it seems to work.
+        if 'file' in postvars:
+            # looking for a jade module in ./files
+            fnameList = postvars['file']
+            
+            # if that filename list is empty then 404
+            if len(fnameList) == 0:
+                self.send_response(404, "No modules listed in POST")
+                return
+            
+            # look for the module on disk
+            p = os.path.join("files", fnameList[0])
+            
+            # if the file is there then set response
+            if os.path.exists(p):
+                response = open(p).read()
+            else:
+                self.send_response(404, "Couldn't find module: "+p)
+                return
+            
         self.send_response(200)
         self.send_header("Content-type", 'text/plain')
         self.send_header("Content-Length", str(len(response)))
