@@ -219,10 +219,20 @@ jade_defs.model = function (jade) {
     Module.prototype.load = function(json) {
         // load aspects
         for (var a in json) {
-            if (a == 'properties')
-                $.extend(this.properties,json[a]);
-            else
-                this.aspects[a] = new Aspect(a, this, json[a]);
+            if (a == 'properties') {
+                // if properties are marked as clean, only load properties
+                // if they differ from the current ones, preserving cleanliness if we can!
+                if (!this.properties_clean || JSON.stringify(this.properties) != JSON.stringify(json[a])) {
+                    $.extend(this.properties,json[a]);
+                    this.properties_clean = false;
+                }
+            } else {
+                var current = this.aspects[a];
+                // if current aspect is marked as clean, only load aspect
+                // if it differs from the current one, preserving cleanliness if we can!
+                if (!current || !current.clean || JSON.stringify(current.json()) != JSON.stringify(json[a]))
+                    this.aspects[a] = new Aspect(a, this, json[a]);
+            }
         }
 
         // a newly loaded module starts as unmodified
