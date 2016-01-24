@@ -373,7 +373,7 @@ def regfile_test_cycle(f,ra2sel,wasel,werf,ra,rb,rc,wdata,radata,rbdata):
     field(f,32,wdata,'01')
     field(f,32,radata,'LH')
     field(f,32,rbdata,'LH')
-    f.write(' // %3d: Ra[%s]==%s, %s[%s]==%s' % (cycle,ra,radata,'Rc' if ra2sel else 'Rb',rb,rbdata))
+    f.write(' // %3d: Ra[%s]==%s, %s[%s]==%s' % (cycle,ra,radata,'Rc' if ra2sel else 'Rb',rc if ra2sel else rb,rbdata))
     if werf:
         f.write(' Reg[%s]=%s' % (30 if wasel else rc,wdata))
     f.write('\n')
@@ -394,11 +394,15 @@ def regfile_test(f):
         rc = i if i < 32 else 31
         wdata = i if i < 32 else 0
         radata = None if i < 1 else ra if ra != 31 else 0
-        rbdata = None if i < 2 else rb if rb != 31 else 0
+        rbdata = None if i < 1 else rb if rb != 31 else 0
         regfile_test_cycle(f,ra2sel,wasel,werf,ra,rb,rc,wdata,radata,rbdata)
 
     regfile_test_cycle(f,1,0,0,1,2,3,0,1,3)  # test ra2sel
     regfile_test_cycle(f,1,0,0,1,2,31,0,1,0) # read with Rc=31
+
+    regfile_test_cycle(f,1,0,0,1,31,4,0,1,4) # read with ra2sel but Rb=31
+    regfile_test_cycle(f,0,1,1,1,2,31,12345,1,2) # write with wasel=1, rc=31
+    regfile_test_cycle(f,0,0,0,30,1,2,0,12345,1) # make sure r30 was written correctly
 
     regfile_test_cycle(f,0,1,1,1,2,3,12345678,1,2) # test wasel
     regfile_test_cycle(f,1,0,0,30,2,30,0,12345678,12345678)  # see if we wrote R30
@@ -437,8 +441,8 @@ def pc_test(f):
     # test reset, illop, xadr
     pc_test_cycle(f,1,3,-1,0,0x80000000,'reset, PC==0x80000000')
     pc_test_cycle(f,1,4,0,0,0x80000000,'reset, PC==0x80000000')
-    pc_test_cycle(f,0,3,0x7FFF,0,0x80000004,'illop, PC==0x80000004, offset=0x7fff')
     pc_test_cycle(f,0,4,-2,0,0x80000008,'xadr, PC==0x80000008, offset=-2')
+    pc_test_cycle(f,0,3,0x7FFF,0,0x80000004,'illop, PC==0x80000004, offset=0x7fff')
     pc_test_cycle(f,0,2,0,0xFFFFFFF0,0xFFFFFFF0,'jmp, pc==0XFFFFFFF0')
     pc_test_cycle(f,0,0,-1,0,0xFFFFFFF4,'inc, pc==0xFFFFFFF4, offset=-1')
     pc_test_cycle(f,0,0,-2,0,0xFFFFFFF8,'inc, pc==0xFFFFFFF8, offset=-1')
@@ -454,7 +458,7 @@ def pc_test(f):
     pc_test_cycle(f,0,0,0,0,0x00000008,'inc')
     pc_test_cycle(f,0,0,0,0,0x0000000C,'inc')
     pc_test_cycle(f,0,0,0,0,0x00000010,'inc')
-    pc_test_cycle(f,0,2,0,0x0000001C,0x0000001C,'jmp, PC==0x1C')
+    pc_test_cycle(f,0,1,2,0x000000F0,0x0000001C,'br, offset=3, PC==0x1C')
     pc_test_cycle(f,0,0,0,0,0x00000020,'inc')
     pc_test_cycle(f,0,2,0,0x0000003C,0x0000003C,'jmp, PC==0x3C')
     pc_test_cycle(f,0,0,0,0,0x00000040,'inc')
