@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2015 Massachusetts Institute of Technology
+// Copyright (C) 2011-2016 Massachusetts Institute of Technology
 // Chris Terman
 
 jade_defs.netlist = function(jade) {
@@ -236,7 +236,27 @@ jade_defs.netlist = function(jade) {
     // netlist entry: ["type", {terminal:signal, ...}, {property: value, ...}]
     jade.model.Component.prototype.netlist = function(mlist, globals, prefix, mstack) {
         var i;
+        var netlist = [];
         
+        // jumpers get special treatment: the widths have to be the same
+        // on both sides, no replication allowed since that tends to get
+        // designers into trouble!
+        if (this.type() == 'jumper') {
+            var c1 = this.connections[0];
+            var c2 = this.connections[1];
+            var c1len = c1.label.length;
+            var c2len = c2.label.length;
+            if (c1len != c2len) {
+                this.selected = true;
+                throw "Signals of different widths ("+c1len.toString()+
+                    "," + c2len.toString() + ") connected by jumper.";
+            }
+            for (i = 0; i < c1len; i += 1) {
+                netlist.push(['jumper',{n1: c1.label[i], n2: c2.label[i]},{}]);
+            }
+            return netlist;
+        }
+
         // match up connections to the component's terminals, determine
         // the number of instances implied by the connections.
         var connections = [];
@@ -272,7 +292,6 @@ jade_defs.netlist = function(jade) {
         }
 
         // now create the appropriate number of instances
-        var netlist = [];
         for (i = 0; i < ninstances; i += 1) {
             // build port map
             var port_map = {};

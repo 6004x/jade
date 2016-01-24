@@ -57,6 +57,7 @@ jade_defs.services = function (jade) {
             // may involve loading remote libraries, which may take awhile.
             setTimeout(function () {
                 var state = {};
+                var saved_state = JSON.parse(stateStr);
 
                 // temporary hack to get initial-state from parent window
                 try {
@@ -73,6 +74,8 @@ jade_defs.services = function (jade) {
                                 if (section.length == 1) {
                                     // grab initial state
                                     state = JSON.parse(section.attr('data-initial-state') || '{}');
+                                    if (saved_state.help_url) delete saved_state.help_url;
+                                    if (saved_state.student_id) delete saved_state.student_id;
                                 }
                             }
                         });
@@ -80,7 +83,7 @@ jade_defs.services = function (jade) {
                 } catch (e) {
                 }
 
-                $.extend(state,JSON.parse(stateStr));
+                $.extend(state,saved_state);
                 div.jade.initialize(state);
             },1);
         }
