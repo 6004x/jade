@@ -264,6 +264,7 @@ jade_defs.top_level = function(jade) {
             var tab = $('<div class="jade-tab">'+ename+'</div>');
             me.tabs_div.append(tab);
             tab.click(function(event) {
+                jade.model.save_modules();
                 me.show(ename);
                 event.preventDefault();
                 return false;
@@ -486,6 +487,7 @@ jade_defs.top_level = function(jade) {
             }
 
             var module = jade.model.find_module(name);
+            jade.model.save_modules(true);
             j.edit(module.get_name());
         }
 
@@ -501,6 +503,7 @@ jade_defs.top_level = function(jade) {
         function del() {
             var module = j.module;
             jade.model.remove_module(module.name);
+            jade.model.save_modules(true);
 
             // choose something else to edit
             j.edit(jade.model.find_module('/user/untitled'));
@@ -548,6 +551,7 @@ jade_defs.top_level = function(jade) {
             module.shared = false;
             module.remove_property('readonly');
             module.set_modified();   // since it hasn't been saved yet
+            jade.model.save_modules(true);
 
             // select new module for editing
             j.edit(module);
@@ -626,6 +630,7 @@ jade_defs.top_level = function(jade) {
                 }
             });
 
+            jade.model.save_modules(true);
             j.edit(j.module);  // trigger rebuild of module list
         }
 
