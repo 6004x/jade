@@ -34,7 +34,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.2.50 (2016 \u00A9 MIT EECS)";
+    var version = "Jade 2.2.51 (2016 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
@@ -523,6 +523,8 @@ jade_defs.top_level = function(jade) {
 
         function copy() {
             var name = $(input).val();
+            // force module names to be a pathname, in /user by default
+            if (name[0] != '/') name = '/user/'+name;
 
             function try_again(msg) {
                 $('#msg',content).text(msg);
