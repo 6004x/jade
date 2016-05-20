@@ -34,7 +34,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.2.51 (2016 \u00A9 MIT EECS)";
+    var version = "Jade 2.2.52 (2016 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
@@ -184,12 +184,12 @@ jade_defs.top_level = function(jade) {
     };
 
     // helper function for dumping json for modules -- make accessible at top level
-    jade_dump_json = function (mname) {
+    jade_dump_json = function (mname,dirty_only) {
         var p = new RegExp(mname);
         var result = {};
         $.each(jade.model.get_modules(),function (mname,module) {
             if (p.test(mname)) {
-                result[mname] = module.json();
+                result[mname] = module.json(dirty_only);
             }
         });
         return JSON.stringify(result);

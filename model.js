@@ -228,10 +228,17 @@ jade_defs.model = function (jade) {
                 }
             } else {
                 var current = this.aspects[a];
-                // if current aspect is marked as clean, only load aspect
-                // if it differs from the current one, preserving cleanliness if we can!
-                if (!current || !current.clean || JSON.stringify(current.json()) != JSON.stringify(json[a]))
-                    this.aspects[a] = new Aspect(a, this, json[a]);
+                var ld = true;
+                if (current) {
+                    // if current aspect is read-only, don't overwrite!
+                    if (current.read_only()) ld = false;
+
+                    // if current aspect is marked as clean, only load aspect
+                    // if it differs from the current one, preserving cleanliness if we can!
+                    if (current.clean && JSON.stringify(current.json()) == JSON.stringify(json[a])) ld = false;
+                }
+
+                if (ld) this.aspects[a] = new Aspect(a, this, json[a]);
             }
         }
 
