@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2015 Massachusetts Institute of Technology
+// Copyright (C) 2011-2016 Massachusetts Institute of Technology
 // Chris Terman
 
 // Model:
@@ -32,21 +32,12 @@ jade_defs.model = function (jade) {
         modules = {};
     }
 
-    // grab file from server, load all the modules it contains
-    function load_modules(filename,shared) {
-        jade.load_from_server(filename,shared,function(json) {
-            if (typeof json == 'string') json = JSON.parse(json);
-            load_json(json,shared);
-        });
-    }
-
-    function load_json(json,shared) {
+    function load_json(json,mark_clean) {
         try {
             $.each(json,function(mname,mjson) {
                 // force module names to be a pathname, in /user by default
                 if (mname[0] != '/') mname = '/user/'+mname;
-                var m = find_module(mname,mjson);
-                if (shared) modules[mname].shared = true;
+                var m = find_module(mname,mjson,mark_clean);
             });
         }
         catch (e) {
@@ -84,19 +75,13 @@ jade_defs.model = function (jade) {
         });
     }
 
-    function set_clean() {
-        $.each(modules,function(mname,module) {
-            module.set_clean();
-        });
-    }
-
     // return specified Module, newly created if necessary
-    function find_module(name,json) {
+    function find_module(name,json,mark_clean) {
         var module = modules[name];
         if (module === undefined) {
-            module = new Module(name, json);
+            module = new Module(name, json, mark_clean);
             modules[name] = module;
-        } else if (json) module.load(json);
+        } else if (json) module.load(json, mark_clean);
         return module;
     }
 
@@ -121,7 +106,7 @@ jade_defs.model = function (jade) {
         });
     }
 
-    function Module(name, json) {
+    function Module(name, json, mark_clean) {
         this.name = name;
         this.aspects = {};
         this.properties = {   // every module has itertions and name properties
@@ -134,7 +119,7 @@ jade_defs.model = function (jade) {
         this.loaded = false;
         this.listeners = [];
 
-        if (json) this.load(json);
+        if (json) this.load(json, mark_clean);
     }
 
     Module.prototype.get_name = function() {
@@ -158,10 +143,12 @@ jade_defs.model = function (jade) {
         $.each(this.listeners,function (index,callback) { callback(msg); });
     };
 
+    /*
     Module.prototype.set_clean = function() {
         this.properties_clean = true;
         for (var a in this.aspects) this.aspects[a].clean = true;
     };
+     */
 
     Module.prototype.set_modified = function() {
         this.modified = true;
@@ -189,7 +176,6 @@ jade_defs.model = function (jade) {
             this.properties_clean = false;
             this.properties[prop] = v;
             this.set_modified();
-            this.properties_clean = false;
         }
     };
 
@@ -216,7 +202,7 @@ jade_defs.model = function (jade) {
     };
 
     // initialize module from JSON object
-    Module.prototype.load = function(json) {
+    Module.prototype.load = function(json, mark_clean) {
         // load aspects
         for (var a in json) {
             if (a == 'properties') {
@@ -224,7 +210,7 @@ jade_defs.model = function (jade) {
                 // if they differ from the current ones, preserving cleanliness if we can!
                 if (!this.properties_clean || JSON.stringify(this.properties) != JSON.stringify(json[a])) {
                     $.extend(this.properties,json[a]);
-                    this.properties_clean = false;
+                    this.properties_clean = mark_clean;
                 }
             } else {
                 var current = this.aspects[a];
@@ -238,7 +224,7 @@ jade_defs.model = function (jade) {
                     if (current.clean && JSON.stringify(current.json()) == JSON.stringify(json[a])) ld = false;
                 }
 
-                if (ld) this.aspects[a] = new Aspect(a, this, json[a]);
+                if (ld) this.aspects[a] = new Aspect(a, this, json[a], mark_clean);
             }
         }
 
@@ -286,7 +272,7 @@ jade_defs.model = function (jade) {
     //
     //////////////////////////////////////////////////////////////////////
 
-    function Aspect(name, module, json) {
+    function Aspect(name, module, json, mark_clean) {
         this.module = module;
         this.name = name;
         this.components = [];
@@ -306,11 +292,11 @@ jade_defs.model = function (jade) {
         this.current_action = -1; // index of current list of changes
         this.change_list = undefined;
 
-        if (json) this.load(json);
+        if (json) this.load(json, mark_clean);
     }
 
     // initialize aspect from JSON object
-    Aspect.prototype.load = function(json) {
+    Aspect.prototype.load = function(json, mark_clean) {
         this.components = [];  // start with a clean slate
 
         for (var i = 0; i < json.length; i += 1) {
@@ -318,7 +304,7 @@ jade_defs.model = function (jade) {
             c.add(this);
         }
         this.clear_modified();
-        this.clean = false;
+        this.clean = mark_clean;
     };
 
     Aspect.prototype.set_modified = function() {
@@ -1350,11 +1336,9 @@ jade_defs.model = function (jade) {
         set_autosave_trigger: set_autosave_trigger,
         get_modules: get_modules,
         clear_modules: clear_modules,
-        load_modules: load_modules,
         load_json: load_json,
         save_modules: save_modules,
         clear_modified: clear_modified,
-        set_clean: set_clean,
         json_modules: json_modules,
         find_module: find_module,
         remove_module: remove_module,

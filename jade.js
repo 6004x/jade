@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2015 Massachusetts Institute of Technology
+// Copyright (C) 2011-2016 Massachusetts Institute of Technology
 // Chris Terman
 
 // pollute the global namespace with a single variable
@@ -34,7 +34,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.2.52 (2016 \u00A9 MIT EECS)";
+    var version = "Jade 2.2.53 (2016 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
@@ -221,22 +221,6 @@ jade_defs.top_level = function(jade) {
         // initialize object for recording test results
         if (this.configuration.tests === undefined) this.configuration.tests = {};
 
-        // load any shared modules from specified files
-        if (this.configuration.shared_modules) {
-            $.each(this.configuration.shared_modules,function (index,filename) {
-                jade.model.load_modules(filename,true);
-            });
-        }
-
-        // load module files, including those for user?
-        if (this.configuration.modules) {
-            if (typeof this.configuration.modules == 'string')
-                this.configuration.modules = this.configuration.modules.split(',');
-            $.each(this.configuration.modules,function (index,mfile) {
-                jade.model.load_modules(mfile,false);
-            });
-        }
-
         $('.hierarchy-tool',this.top_level).toggle(this.configuration.hierarchical == 'true');
 
         // setup editor panes
@@ -294,11 +278,11 @@ jade_defs.top_level = function(jade) {
         // load state (dictionary of module_name:json).  Start with initial_state
         // then overwrite with user's state
         if (this.configuration.initial_state) {
-            jade.model.load_json(this.configuration.initial_state);
-            jade.model.set_clean();  // mark current module content as clean
+            jade.model.load_json(this.configuration.initial_state,true);
         }
-        if (this.configuration.state)
-            jade.model.load_json(this.configuration.state);
+        if (this.configuration.state) {
+            jade.model.load_json(this.configuration.state,false);
+        }
 
         // starting module?
         var edit = this.configuration.edit || '/user/untitled';
