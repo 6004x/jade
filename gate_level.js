@@ -226,11 +226,17 @@ jade_defs.gate_level = function(jade) {
         var netlist;
         try {
             netlist = diagram_gate_netlist(diagram,['gnd','vdd']);
+
+            // redraw diagram to show any changes in highlighting
+            diagram.redraw_background();
         }
         catch (e) {
             jade.window('Errors extracting netlist',
                         $('<div class="jade-alert"></div>').html(e),
                         $(diagram.canvas).offset());
+
+            // redraw diagram to show any changes in highlighting
+            diagram.redraw_background();
             return;
         }
 
