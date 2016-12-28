@@ -1,4 +1,6 @@
+#! /usr/bin/env python
 # combo HTTP server (GETs) and key/value store (POSTs)
+# to run: python server.py
 
 import BaseHTTPServer
 import SocketServer
