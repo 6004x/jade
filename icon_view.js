@@ -573,8 +573,6 @@ jade_defs.icon_view = function(jade) {
     };
 
     Arc.prototype.draw_icon = function(c, diagram) {
-        var x1 = this.transform_x(this.coords[0], this.coords[1]) + this.coords[0];
-        var y1 = this.transform_y(this.coords[0], this.coords[1]) + this.coords[1];
         var x2 = this.transform_x(this.coords[3], this.coords[4]) + this.coords[0];
         var y2 = this.transform_y(this.coords[3], this.coords[4]) + this.coords[1];
 
@@ -588,12 +586,10 @@ jade_defs.icon_view = function(jade) {
             y3 = y2;
         }
 
-        c.draw_arc(diagram, x1, x2, x2, y2, x3, y3);
+        c.draw_arc(diagram, this.coords[0], this.coords[1], x2, y2, x3, y3);
     };
 
     Arc.prototype.svg = function(c,diagram) {
-        var x1 = this.transform_x(this.coords[0], this.coords[1]) + this.coords[0];
-        var y1 = this.transform_y(this.coords[0], this.coords[1]) + this.coords[1];
         var x2 = this.transform_x(this.coords[3], this.coords[4]) + this.coords[0];
         var y2 = this.transform_y(this.coords[3], this.coords[4]) + this.coords[1];
 

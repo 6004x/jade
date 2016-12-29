@@ -673,42 +673,40 @@ jade_defs.utils = function (jade) {
     // draw arc from [x1,y1] to [x2,y2] passing through [x3,y3]
     function svg_arc(x1, y1, x2, y2, x3, y3) {
         // make second two points relative to x,y
-        var x = x1;
-        var y = y1;
-        var dx = x2 - x;
-        var dy = y2 - y;
-        var ex = x3 - x;
-        var ey = x3 - y;
+        var bx = x2 - x1;
+        var by = y2 - y1;
+        var cx = x3 - x1;
+        var cy = y3 - y1;
 
         // compute center of circumscribed circle
         // http://en.wikipedia.org/wiki/Circumscribed_circle
-        var D = 2 * (dx * ey - dy * ex);
+        var D = 2 * (bx * cy - by * cx);
         if (D === 0) { // oops, it's just a line
-            return make_svg('line',{x1:x, y1:y, x2:dx+x, y2:dy+y});
+            return make_svg('line',{x1:x1, y1:y1, x2:x2, y2:y2});
         }
-        var dsquare = dx * dx + dy * dy;
-        var esquare = ex * ex + ey * ey;
-        var cx = (ey * dsquare - dy * esquare) / D;
-        var cy = (dx * esquare - ex * dsquare) / D;
-        var r = Math.sqrt((dx - cx) * (dx - cx) + (dy - cy) * (dy - cy)); // radius
+        var bsquare = bx * bx + by * by;
+        var csquare = cx * cx + cy * cy;
+        var ux = (cy * bsquare - by * csquare) / D;
+        var uy = (bx * csquare - cx * bsquare) / D;
+        var r = Math.sqrt((bx-ux)*(bx-ux) + (by-uy)*(by-uy)); // radius
 
         // compute start and end angles relative to circle's center.
         // remember that y axis is positive *down* the page;
         // canvas arc angle measurements: 0 = x-axis, then clockwise from there
-        var start_angle = 2 * Math.PI - Math.atan2(-(0 - cy), 0 - cx);
-        var end_angle = 2 * Math.PI - Math.atan2(-(dy - cy), dx - cx);
+        var start_angle = 2 * Math.PI - Math.atan2(-(0 - uy), 0 - ux);
+        var end_angle = 2 * Math.PI - Math.atan2(-(by - uy), bx - ux);
 
         // make sure arc passes through third point
-        var middle_angle = 2 * Math.PI - Math.atan2(-(ey - cy), ex - cx);
+        var middle_angle = 2 * Math.PI - Math.atan2(-(cy - uy), cx - ux);
         var angle1 = end_angle - start_angle;
         if (angle1 < 0) angle1 += 2 * Math.PI;
         var angle2 = middle_angle - start_angle;
         if (angle2 < 0) angle2 += 2 * Math.PI;
         var ccw = (angle2 > angle1);
 
-        console.log(JSON.stringify([x,y,x2,y2,x3,y3,cx,cy,r,angle1,angle2]));
+        console.log(JSON.stringify([x1,y1,x2,y2,x3,y3,ux+x1,uy+y1,r,angle1,angle2]));
 
-        var path = "M " + x.toString() + " " + y.toString();
+        var path = "M " + x1.toString() + " " + y1.toString();
         path += " A " + r.toString() + " " + r.toString() + " 0 ";  // rx, ry, x-axis-rotation
         path += (angle1 > Math.PI) ? "1 " : "0 ";  // large-arc-flag
         path += ccw ? "1 " : "0 ";  // sweep-flag
