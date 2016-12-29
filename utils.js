@@ -658,6 +658,18 @@ jade_defs.utils = function (jade) {
 
     ///////////////////////////////////////////////////////////////////////////////
     //
+    // svg
+    //
+    //////////////////////////////////////////////////////////////////////////////
+
+    function make_svg(tag,attrs) {
+        var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+        for (var k in attrs) el.setAttribute(k, attrs[k]);
+        return el;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    //
     // Module exports
     //
     //////////////////////////////////////////////////////////////////////////////
@@ -672,7 +684,8 @@ jade_defs.utils = function (jade) {
         parse_source: parse_source,
         parse_signal: parse_signal,
         signal_equals: signal_equals,
-        md5: md5
+        md5: md5,
+        make_svg: make_svg
     };
 
 };

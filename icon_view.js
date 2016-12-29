@@ -454,6 +454,14 @@ jade_defs.icon_view = function(jade) {
         c.draw_line(diagram, this.coords[0], this.coords[1], x2, y2);
     };
 
+    // return SVG tag
+    Line.prototype.svg = function() {
+        var x2 = this.transform_x(this.coords[3], this.coords[4]) + this.coords[0];
+        var y2 = this.transform_y(this.coords[3], this.coords[4]) + this.coords[1];
+
+        return jade.util.make_svg('line',{x1: this.coords[0],y1: this.coords[1],x2: x2,y2: y2});
+    };
+
     // compute distance between x,y and nearest point on line
     // http://www.allegro.cc/forums/thread/589720
     Line.prototype.distance = function(x, y) {
@@ -631,6 +639,11 @@ jade_defs.icon_view = function(jade) {
         c.draw_circle(diagram, this.coords[0], this.coords[1], this.coords[3], false);
     };
 
+    // return SVG tag
+    Circle.prototype.svg = function() {
+        return jade.util.make_svg('circle',{cx: this.coords[0],cy: this.coords[1],r: this.coords[3]});
+    };
+
     // display of one or more module properties, aligned to reference point
     function Property(json) {
         jade.model.Component.call(this);
@@ -781,6 +794,13 @@ jade_defs.icon_view = function(jade) {
 
             c.draw_line(diagram, x1, y1, x2, y2);
         }
+    };
+
+    // return SVG tag
+    Terminal.prototype.svg = function() {
+        var x2 = this.transform_x(8, 0) + this.coords[0];
+        var y2 = this.transform_y(8, 0) + this.coords[1];
+        return jade.util.make_svg('line',{x1: this.coords[0],y1: this.coords[1],x2: x2,y2: y2});
     };
 
     Terminal.prototype.terminal_coords = function() {
