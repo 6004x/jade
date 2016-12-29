@@ -1037,6 +1037,16 @@ jade_defs.schematic_view = function(jade) {
         c.draw_text(diagram, this.properties.text, this.coords[0], this.coords[1], align, this.properties.font);
     };
 
+    Text.prototype.svg = function(c, diagram) {
+        // need to adjust alignment accounting for our rotation
+        var align = text_alignments.indexOf(this.properties.align);
+        align = jade.model.aOrient[this.coords[2] * 9 + align];
+
+        jade.utils.svg_text(this.properties.text, this.coords[0], this.coords[1],
+                            jade.model.textAlign[align],jade.model.textBaseline[align],
+                            this.properties.font);
+    };
+
     Text.prototype.edit_properties = function(diagram, x, y) {
         return jade.model.Component.prototype.edit_properties.call(this, diagram, x, y, function(c) {
             c.bounding_box = text_bbox(c.properties.text, c.properties.align);
@@ -1362,24 +1372,9 @@ jade_defs.schematic_view = function(jade) {
         this.selected = false;
 
         // set up canvas
-        this.canvas = $('<canvas class="jade-xpart"></div>');
+        this.svg = jade.utils.make_svg('svg',{width: part_w, height: part_w});
+        this.canvas = $(this.svg);
         this.canvas[0].part = this;
-
-        // handle retina devices properly
-        var context = this.canvas[0].getContext('2d');
-        var devicePixelRatio = window.devicePixelRatio || 1;
-        var backingStoreRatio = context.webkitBackingStorePixelRatio ||
-                context.mozBackingStorePixelRatio ||
-                context.msBackingStorePixelRatio ||
-                context.oBackingStorePixelRatio ||
-                context.backingStorePixelRatio || 1;
-        this.pixelRatio = 1; //devicePixelRatio / backingStoreRatio;
-
-        this.canvas[0].width = part_w * this.pixelRatio;
-        this.canvas[0].height = part_h * this.pixelRatio;
-
-        // set up appropriately scaled context
-        context.scale(this.pixelRatio,this.pixelRatio);
 
         this.property_font = '5pt sans-serif'; // point size for Component property text
         this.annotation_font = '6pt sans-serif'; // point size for diagram annotations
@@ -1392,10 +1387,13 @@ jade_defs.schematic_view = function(jade) {
 
         var dx = b[2] - b[0];
         var dy = b[3] - b[1];
-        this.scale = Math.min(part_w/(1.1 * Math.abs(dx)),
-                              part_h/(1.1 * Math.abs(dy)), 0.8);
-        this.origin_x = b[0] + dx/2.0 - part_w/(2.0 * this.scale);
-        this.origin_y = b[1] + dy/2.0 - part_h/(2.0 * this.scale);
+        var scale = Math.min(part_w/(1.1 * Math.abs(dx)),
+                             part_h/(1.1 * Math.abs(dy)), 0.8);
+        var origin_x = b[0] + dx/2.0 - part_w/(2.0 * scale);
+        var origin_y = b[1] + dy/2.0 - part_h/(2.0 * scale);
+
+        this.svg.setAttribute('viewBox',origin_x.toString() + ' ' + origin_y.toString() + ' ' +
+                              (part_w/scale).toString() + ' ' + (part_h/scale).toString());
     };
 
     Part.prototype.set_component = function(component) {
@@ -1403,13 +1401,11 @@ jade_defs.schematic_view = function(jade) {
     };
 
     Part.prototype.redraw = function() {
-        var c = this.canvas[0].getContext('2d');
-        this.c = c;
+        while (this.svg.firstChild) {
+            this.svg.removeChild(this.svg.firstChild);
+        }
 
-        // paint background color
-        c.clearRect(0, 0, this.canvas[0].width, this.canvas[0].height);
-
-        if (this.component) this.component.draw(this);
+        if (this.component) this.svg.appendChild(this.component.svg(this));
     };
 
     Part.prototype.select = function(which) {

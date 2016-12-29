@@ -664,9 +664,79 @@ jade_defs.utils = function (jade) {
 
     function make_svg(tag,attrs) {
         var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-        for (var k in attrs) el.setAttribute(k, attrs[k]);
+        if (attrs) {
+            for (var k in attrs) el.setAttribute(k, attrs[k]);
+        }
         return el;
     }
+
+    // draw arc from [x1,y1] to [x2,y2] passing through [x3,y3]
+    function svg_arc(x1, y1, x2, y2, x3, y3) {
+        // make second two points relative to x,y
+        var x = x1;
+        var y = y1;
+        var dx = x2 - x;
+        var dy = y2 - y;
+        var ex = x3 - x;
+        var ey = x3 - y;
+
+        // compute center of circumscribed circle
+        // http://en.wikipedia.org/wiki/Circumscribed_circle
+        var D = 2 * (dx * ey - dy * ex);
+        if (D === 0) { // oops, it's just a line
+            return make_svg('line',{x1:x, y1:y, x2:dx+x, y2:dy+y});
+        }
+        var dsquare = dx * dx + dy * dy;
+        var esquare = ex * ex + ey * ey;
+        var cx = (ey * dsquare - dy * esquare) / D;
+        var cy = (dx * esquare - ex * dsquare) / D;
+        var r = Math.sqrt((dx - cx) * (dx - cx) + (dy - cy) * (dy - cy)); // radius
+
+        // compute start and end angles relative to circle's center.
+        // remember that y axis is positive *down* the page;
+        // canvas arc angle measurements: 0 = x-axis, then clockwise from there
+        var start_angle = 2 * Math.PI - Math.atan2(-(0 - cy), 0 - cx);
+        var end_angle = 2 * Math.PI - Math.atan2(-(dy - cy), dx - cx);
+
+        // make sure arc passes through third point
+        var middle_angle = 2 * Math.PI - Math.atan2(-(ey - cy), ex - cx);
+        var angle1 = end_angle - start_angle;
+        if (angle1 < 0) angle1 += 2 * Math.PI;
+        var angle2 = middle_angle - start_angle;
+        if (angle2 < 0) angle2 += 2 * Math.PI;
+        var ccw = (angle2 > angle1);
+
+        console.log(JSON.stringify([x,y,x2,y2,x3,y3,cx,cy,r,angle1,angle2]));
+
+        var path = "M " + x.toString() + " " + y.toString();
+        path += " A " + r.toString() + " " + r.toString() + " 0 ";  // rx, ry, x-axis-rotation
+        path += (angle1 > Math.PI) ? "1 " : "0 ";  // large-arc-flag
+        path += ccw ? "1 " : "0 ";  // sweep-flag
+        path += x2.toString() + " " + y2.toString();   // dx,dy
+
+        return make_svg('path',{d: path, fill: 'none'});
+    };
+
+    // text positioned such that x,y falls at requested horizontal and vertical alignment
+    function svg_text(s,x,y,horizontal,vertical,font) {
+        var svg = make_svg('text',{x:x, y:y});
+        if (font) svg.setAttribute('style','font: '+font);
+
+        var bbox = svg.getBBox();  // .height, .width
+        var yoffset = y - bbox.y;
+
+        // deal with horizontal postioning (left, center, right)
+        if (horizontal == 'left') svg.setAttribute('text-anchor', 'start');
+        else if (horizontal == 'center') svg.setAttribute('text-anchor', 'middle');
+        else svg.setAttribute('text-anchor', 'end');
+
+        // deal with vertical positioning (top, middle, bottom)
+        if (vertical == 'top') svg.setAttribute('dy', (y + yoffset).toString());
+        else if (vertical == 'middle') svg.setAttribute('dy', (y + yoffset - bbox.height/2).toString());
+        else svg.setAttribute('dy', (y + yoffset - bbox.height).toString());
+
+        return svg;
+    };
 
     ///////////////////////////////////////////////////////////////////////////////
     //
@@ -685,7 +755,9 @@ jade_defs.utils = function (jade) {
         parse_signal: parse_signal,
         signal_equals: signal_equals,
         md5: md5,
-        make_svg: make_svg
+        make_svg: make_svg,
+        svg_arc: svg_arc,
+        svg_text: svg_text
     };
 
 };

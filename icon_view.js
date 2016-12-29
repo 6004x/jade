@@ -455,11 +455,13 @@ jade_defs.icon_view = function(jade) {
     };
 
     // return SVG tag
-    Line.prototype.svg = function() {
+    Line.prototype.svg = function(c,diagram) {
+        var x1 = this.coords[0];
+        var y1 = this.coords[1];
         var x2 = this.transform_x(this.coords[3], this.coords[4]) + this.coords[0];
         var y2 = this.transform_y(this.coords[3], this.coords[4]) + this.coords[1];
 
-        return jade.util.make_svg('line',{x1: this.coords[0],y1: this.coords[1],x2: x2,y2: y2});
+        return jade.utils.make_svg('line',{x1:x1, y1:y1, x2:x2, y2:y2});
     };
 
     // compute distance between x,y and nearest point on line
@@ -571,6 +573,8 @@ jade_defs.icon_view = function(jade) {
     };
 
     Arc.prototype.draw_icon = function(c, diagram) {
+        var x1 = this.transform_x(this.coords[0], this.coords[1]) + this.coords[0];
+        var y1 = this.transform_y(this.coords[0], this.coords[1]) + this.coords[1];
         var x2 = this.transform_x(this.coords[3], this.coords[4]) + this.coords[0];
         var y2 = this.transform_y(this.coords[3], this.coords[4]) + this.coords[1];
 
@@ -584,9 +588,28 @@ jade_defs.icon_view = function(jade) {
             y3 = y2;
         }
 
-        c.draw_arc(diagram, this.coords[0], this.coords[1], x2, y2, x3, y3);
+        c.draw_arc(diagram, x1, x2, x2, y2, x3, y3);
     };
 
+    Arc.prototype.svg = function(c,diagram) {
+        var x1 = this.transform_x(this.coords[0], this.coords[1]) + this.coords[0];
+        var y1 = this.transform_y(this.coords[0], this.coords[1]) + this.coords[1];
+        var x2 = this.transform_x(this.coords[3], this.coords[4]) + this.coords[0];
+        var y2 = this.transform_y(this.coords[3], this.coords[4]) + this.coords[1];
+
+        var x3, y3;
+        if (this.coords[5] !== undefined) {
+            x3 = this.transform_x(this.coords[5], this.coords[6]) + this.coords[0];
+            y3 = this.transform_y(this.coords[5], this.coords[6]) + this.coords[1];
+        }
+        else {
+            x3 = x2;
+            y3 = y2;
+        }
+
+        return jade.utils.svg_arc(this.coords[0],this.coords[1],x2,y2,x3,y3);
+    };
+    
     // circle: center point + radius
     function Circle(json) {
         jade.model.Component.call(this);
@@ -640,8 +663,9 @@ jade_defs.icon_view = function(jade) {
     };
 
     // return SVG tag
-    Circle.prototype.svg = function() {
-        return jade.util.make_svg('circle',{cx: this.coords[0],cy: this.coords[1],r: this.coords[3]});
+    Circle.prototype.svg = function(c,diagram) {
+        return jade.utils.make_svg('circle',{cx:this.coords[0], cy:this.coords[1],
+                                             r:this.coords[3], fill: 'none'});
     };
 
     // display of one or more module properties, aligned to reference point
@@ -701,22 +725,25 @@ jade_defs.icon_view = function(jade) {
         this.draw_text(diagram, this.properties.format || '-no format-', 0, 0, align, diagram.property_font);
     };
 
-    Property.prototype.draw_icon = function(c, diagram) {
-        var s = this.properties.format || '-no format-';
-
+    function prop_string(c,s) {
         // name property is special
         if (/\{name\}/.test(s)) {
             // don't draw name property if it begins with $ (it's a gensym)
-            if (c.properties.name && c.properties.name[0] == '$') return;
+            if (c.properties.name && c.properties.name[0] == '$') return undefined;
         }
 
-        // replace occurences of {pname} in format with the
+        // replace occurrences of {pname} in format with the
         // corresponding property value
         for (var p in c.properties) {
             var v = c.properties[p] || '';
             s = s.replace(new RegExp("\\{" + p + "\\}", "gm"), v);
         }
-        s = s.replace(new RegExp("\\{module\\}", "gm"), c.module.get_name());
+        return s.replace(new RegExp("\\{module\\}", "gm"), c.module.get_name());
+    }
+
+    Property.prototype.draw_icon = function(c, diagram) {
+        var s = prop_string(c,this.properties.format || '-no format-');
+        if (s === undefined) return;
 
         // need to adjust alignment accounting for our rotation
         var align =  jade.schematic_view.text_alignments.indexOf(this.properties.align);
@@ -725,6 +752,19 @@ jade_defs.icon_view = function(jade) {
         c.draw_text(diagram, s, this.coords[0], this.coords[1], align, diagram.property_font);
     };
 
+    Property.prototype.svg = function(c,diagram) {
+        var s = prop_string(c,this.properties.format || '-no format-');
+        if (s === undefined) return;
+
+        // need to adjust alignment accounting for our rotation
+        var align =  jade.schematic_view.text_alignments.indexOf(this.properties.align);
+        align = jade.model.aOrient[this.coords[2] * 9 + align];
+
+        jade.utils.svg_text(s, this.coords[0], this.coords[1],
+                            jade.model.textAlign[align],jade.model.textBaseline[align],
+                            diagram.property_font);
+    };
+    
     Property.prototype.edit_properties = function(diagram, x, y) {
         return jade.model.Component.prototype.edit_properties.call(this, diagram, x, y, function(c) {
             c.bounding_box = jade.schematic_view.text_bbox(c.properties.format, c.properties.align, diagram.property_font);
@@ -797,10 +837,10 @@ jade_defs.icon_view = function(jade) {
     };
 
     // return SVG tag
-    Terminal.prototype.svg = function() {
+    Terminal.prototype.svg = function(c,diagram) {
         var x2 = this.transform_x(8, 0) + this.coords[0];
         var y2 = this.transform_y(8, 0) + this.coords[1];
-        return jade.util.make_svg('line',{x1: this.coords[0],y1: this.coords[1],x2: x2,y2: y2});
+        return jade.utils.make_svg('line',{x1:this.coords[0], y1:this.coords[1], x2:x2, y2:y2});
     };
 
     Terminal.prototype.terminal_coords = function() {

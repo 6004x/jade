@@ -1124,6 +1124,34 @@ jade_defs.model = function (jade) {
         }
     };
 
+    Component.prototype.svg = function(diagram) {
+        // see if icon has been defined recently...
+        if (this.icon === undefined) this.compute_bbox();
+
+        // build container element
+        var attrs = {
+            stroke: 'black',
+            'stroke-width': '1',
+            fill: 'black',
+            transform: 'translate(' + this.coords[0] + ' ' + this.coords[1] + ')'
+        };
+        var svg = jade.utils.make_svg('g',attrs);
+
+        if (this.icon && !this.icon.empty()) {
+            var component = this; // for closure
+            this.icon.map_over_components(function(c) {
+                var s = c.svg(component, diagram);
+                if (s) svg.appendChild(s);
+            });
+        } else {
+            // user didn't supply an icon, so fake a stand-in
+            svg.appendChild(jade.utils.svg_text(this.type(),0,0,'center','middle',diagram.annotation_font));
+            svg.appendChild(jade.utils.make_svg('path',{d: 'M -16 -16 l 32 0 l 0 32 l -32 0 Z', fill: 'none'}));
+        }
+
+        return svg;
+    };
+    
     // does mouse click fall on this component?
     Component.prototype.near = function(x, y) {
         return this.inside(x, y);
@@ -1350,6 +1378,8 @@ jade_defs.model = function (jade) {
         built_in_components: built_in_components,
         canonicalize: canonicalize,
         aOrient: aOrient,
+        textAlign: textAlign,
+        textBaseline: textBaseline,
         ConnectionPoint: ConnectionPoint,
         connection_point_radius: connection_point_radius
     };
