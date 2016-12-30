@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2016 Massachusetts Institute of Technology
+// Copyright (C) 2011-2017 Massachusetts Institute of Technology
 // Chris Terman
 
 // Model:
@@ -1012,6 +1012,18 @@ jade_defs.model = function (jade) {
         diagram.draw_line(nx1, ny1, nx2, ny2, width || 1);
     };
 
+    Component.prototype.svg_line = function(diagram, x1, y1, x2, y2, width) {
+        var strokeStyle = this.selected ? diagram.selected_style :
+            this.type() == 'wire' ? (diagram.show_grid ? diagram.normal_style : 'rgb(0,0,0)') :
+            (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : 'rgb(0,0,0)'));
+        var nx1 = this.transform_x(x1, y1) + this.coords[0];
+        var ny1 = this.transform_y(x1, y1) + this.coords[1];
+        var nx2 = this.transform_x(x2, y2) + this.coords[0];
+        var ny2 = this.transform_y(x2, y2) + this.coords[1];
+        return jade.utils.make_svg('line',{x1:x1, y1:y1, x2:x2, y2:y2,
+                                           'stroke-width': width || 1, stroke: strokeStyle});
+    };
+
     Component.prototype.draw_circle = function(diagram, x, y, radius, filled) {
         if (filled) diagram.c.fillStyle = this.selected ? diagram.selected_style : diagram.normal_style;
         else diagram.c.strokeStyle = this.selected ? diagram.selected_style :
@@ -1023,6 +1035,20 @@ jade_defs.model = function (jade) {
         diagram.draw_arc(nx, ny, radius, 0, 2 * Math.PI, false, 1, filled);
     };
 
+    Component.prototype.svg_circle = function(diagram, x, y, radius, filled) {
+        var fillStyle = 'none';
+        var strokeStyle = 'none';
+        if (filled) fillStyle = this.selected ? diagram.selected_style : diagram.normal_style;
+        else strokeStyle = this.selected ? diagram.selected_style :
+            this.type() == 'wire' ? (diagram.show_grid ? diagram.normal_style : 'rgb(0,0,0)') :
+            (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : 'rgb(0,0,0)'));
+        var nx = this.transform_x(x, y) + this.coords[0];
+        var ny = this.transform_y(x, y) + this.coords[1];
+
+        return jade.utils.make_svg('circle',{cx: nx, cy: ny, r: radius,
+                                             fill: fillStyle, stroke: strokeStyle});
+    };
+    
     // draw arc from [x1,y1] to [x2,y2] passing through [x3,y3]
     Component.prototype.draw_arc = function(diagram, x1, y1, x2, y2, x3, y3) {
         diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type() == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : 'rgb(0,0,0)'));
@@ -1065,6 +1091,21 @@ jade_defs.model = function (jade) {
         diagram.draw_arc(cx + x, cy + y, r, start_angle, end_angle, ccw, 1, false);
     };
 
+    // draw arc from [x1,y1] to [x2,y2] passing through [x3,y3]
+    Component.prototype.svg_arc = function(diagram, x1, y1, x2, y2, x3, y3) {
+        var strokeStyle = this.selected ? diagram.selected_style : this.type() == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : 'rgb(0,0,0)'));
+
+        // transform coords, make second two points relative to x,y
+        var x1 = this.transform_x(x1, y1) + this.coords[0];
+        var y1 = this.transform_y(x1, y1) + this.coords[1];
+        var x2 = this.transform_x(x2, y2) + this.coords[0];
+        var y2 = this.transform_y(x2, y2) + this.coords[1];
+        var x3 = this.transform_x(x3, y3) + this.coords[0];
+        var y3 = this.transform_y(y3, y3) + this.coords[1];
+
+        return jade.utils.svg_arc(x1,y1,x2,y2,x3,y3,{stroke: strokeStyle});
+    };
+    
     // result of rotating an alignment [rot*9 + align]
     var aOrient = [
         0, 1, 2, 3, 4, 5, 6, 7, 8, // NORTH (identity)
@@ -1093,6 +1134,16 @@ jade_defs.model = function (jade) {
                           font);
     };
 
+    Component.prototype.svg_text = function(diagram, text, x, y, alignment, font, fill) {
+        var a = aOrient[this.coords[2] * 9 + alignment];
+
+        if (fill === undefined) fill = this.selected ? diagram.selected_style : (colors_rgb[this.properties.color] || (diagram.show_grid ? diagram.component_style : 'rgb(0,0,0)'));
+
+        var attrs = {fill: fill};
+        if (font) attrs.style = 'font: ' + font;
+        return jade.utils.svg_text(text, x, y, textAlign[a], textBaseline[a], attrs);
+    };
+
     Component.prototype.draw_text_important = function(diagram, text, x, y, alignment, font, fill) {
         var a = aOrient[this.coords[2] * 9 + alignment];
         diagram.c.textAlign = textAlign[a];
@@ -1116,7 +1167,7 @@ jade_defs.model = function (jade) {
             });
         } else {
             // user didn't supply an icon, so fake a stand-in
-            this.draw_text_important(diagram, this.type(), 0, 0, 4, diagram.annotation_font);
+            this.draw_text(diagram, this.type(), 0, 0, 4, diagram.annotation_font);
             this.draw_line(diagram,-16,-16,16,-16,1);
             this.draw_line(diagram,16,-16,16,16,1);
             this.draw_line(diagram,16,16,-16,16,1);
@@ -1132,20 +1183,19 @@ jade_defs.model = function (jade) {
         var attrs = {
             stroke: 'black',
             'stroke-width': '1',
-            fill: 'black',
-            transform: 'translate(' + this.coords[0] + ' ' + this.coords[1] + ')'
+            fill: 'black'
         };
         var svg = jade.utils.make_svg('g',attrs);
 
         if (this.icon && !this.icon.empty()) {
             var component = this; // for closure
             this.icon.map_over_components(function(c) {
-                var s = c.svg(component, diagram);
+                var s = c.svg_icon(component, diagram);
                 if (s) svg.appendChild(s);
             });
         } else {
             // user didn't supply an icon, so fake a stand-in
-            svg.appendChild(jade.utils.svg_text(this.type(),0,0,'center','middle',diagram.annotation_font));
+            svg.appendChild(jade.utils.svg_text(this.type(),0,0,'center','middle',{font: diagram.annotation_font}));
             svg.appendChild(jade.utils.make_svg('path',{d: 'M -16 -16 l 32 0 l 0 32 l -32 0 Z', fill: 'none'}));
         }
 

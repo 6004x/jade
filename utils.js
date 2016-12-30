@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2015 Massachusetts Institute of Technology
+// Copyright (C) 2011-2017 Massachusetts Institute of Technology
 // Chris Terman
 
 jade_defs.utils = function (jade) {
@@ -671,7 +671,7 @@ jade_defs.utils = function (jade) {
     }
 
     // draw arc from [x1,y1] to [x2,y2] passing through [x3,y3]
-    function svg_arc(x1, y1, x2, y2, x3, y3) {
+    function svg_arc(x1, y1, x2, y2, x3, y3, attrs) {
         // make second two points relative to x,y
         var bx = x2 - x1;
         var by = y2 - y1;
@@ -724,33 +724,23 @@ jade_defs.utils = function (jade) {
         path += " A " + r.toString() + " " + r.toString() + " 0 ";  // rx, ry, x-axis-rotation
         path += flags + x2.toString() + " " + y2.toString();   // large_arc, sweep, dx,dy
 
-        return make_svg('path',{d: path, fill: 'none'});
+        if (attrs === undefined) attrs = {};
+        attrs.d = path;
+        attrs.fill = 'none';
+        return make_svg('path',attrs);
     };
 
     // text positioned such that x,y falls at requested horizontal and vertical alignment
-    function svg_text(s,x,y,horizontal,vertical,font) {
-        var svg = make_svg('text',{x:x, y:y, stroke:'none'});
-        if (font) svg.setAttribute('style','font: '+font);
+    function svg_text(s,x,y,horizontal,vertical,attrs) {
+        if (attrs === undefined) attrs = {};
+        attrs.x = x;
+        attrs.y = y;
+        attrs.stroke = 'none';
+        attrs['text-anchor'] = {left: 'start', center: 'middle', right: 'end'}[horizontal];
+        attrs.dy = {top: '0.9em', middle: '0.4em', bottom: '-0.1em'}[vertical];
+
+        var svg = make_svg('text',attrs);
         svg.textContent = s;
-
-        // deal with horizontal postioning (left, center, right)
-        if (horizontal == 'left') svg.setAttribute('text-anchor', 'start');
-        else if (horizontal == 'center') svg.setAttribute('text-anchor', 'middle');
-        else svg.setAttribute('text-anchor', 'end');
-
-        // deal with horizontal postioning (top, middle, bottom)
-        if (vertical == 'top') svg.setAttribute('dy','1em');
-        else if (vertical == 'middle') svg.setAttribute('dy', '0.5em');
-
-        /*
-        // deal with vertical positioning (top, middle, bottom)
-        var bbox = svg.getBBox();  // .height, .width
-        var yoffset = y - bbox.y;
-        if (vertical == 'top') svg.setAttribute('dy', (y + yoffset).toString());
-        else if (vertical == 'middle') svg.setAttribute('dy', (y + yoffset - bbox.height/2).toString());
-        else svg.setAttribute('dy', (y + yoffset - bbox.height).toString());
-         */
-
         return svg;
     };
 

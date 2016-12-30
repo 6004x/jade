@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2015 Massachusetts Institute of Technology
+// Copyright (C) 2011-2017 Massachusetts Institute of Technology
 // Chris Terman
 
 jade_defs.schematic_view = function(jade) {
@@ -648,6 +648,91 @@ jade_defs.schematic_view = function(jade) {
         c.draw_line(diagram, this.coords[0], this.coords[1], x2, y2);
     };
 
+    Wire.prototype.svg = function(diagram) {
+        var svg = jade.utils.make_svg('g');
+        var dx = this.coords[3];
+        var dy = this.coords[4];
+
+        svg.appendChild(this.svg_line(diagram, 0, 0, dx, dy));
+
+        var width = this.properties.width;
+        if (width && width > 1) {
+            // perpendicular
+            var x0 = dx/2;
+            var y0 = dy/2;
+            if (dy == 0) { dx = 0; dy = 2; }
+            else if (dx == 0) {dx = 2; dy = 0; }
+            else {
+                var angle = Math.atan2(-dx,dy);
+                dx = 2*Math.cos(angle);
+                dy = 2*Math.sin(angle);
+            }
+            if (dx < 0) { dx = -dx; dy = -dy; }
+            svg.appendChild(this.svg_line(diagram, x0-dx, y0-dy, x0+dx, y0+dy, 0.5));
+            var align = (Math.abs(dy) > dx) ? (dy < 0 ? 7 : 1) : 3;
+            svg.appendChild(this.svg_text(diagram, width.toString(), x0+dx, y0+dy, align, '3pt sans-serif'));
+            dx = this.coords[3];
+            dy = this.coords[4];
+        }
+
+        // display signal name if there is one
+        var name = this.properties.signal;
+        var align;
+        if (name !== undefined) {
+            // if wire has one unconnected end, but label there
+            var ncp0 = this.connections[0].nconnections() == 1;
+            var ncp1 = this.connections[1].nconnections() == 1;
+            if ((ncp0 && !ncp1) || (!ncp0 && ncp1)) {
+                // this is the unconnected end
+                var cp = this.connections[ncp0 ? 0 : 1];
+                var x = cp.offset_x;
+                var y = cp.offset_y;
+                if (dx === 0 || Math.abs(dy / dx) > 1) {
+                    // vertical-ish wire
+                    var cy = (this.bounding_box[1] + this.bounding_box[3]) / 2;
+                    if (cp.offset_y > cy) {
+                        align = 1;
+                        y += 3;
+                    } // label at bottom end
+                    else {
+                        align = 7;
+                        y -= 3;
+                    } // label at top end
+                }
+                else {
+                    // horiztonal-ish wire
+                    var cx = (this.bounding_box[0] + this.bounding_box[2]) / 2;
+                    if (cp.offset_x > cx) {
+                        align = 3;
+                        x += 3;
+                    } // label at right end
+                    else {
+                        align = 5;
+                        x -= 3;
+                    } // label at left end
+                }
+                svg.appendChild(this.svg_text(diagram, name, x, y, align, diagram.property_font));
+            }
+            else {
+                // draw label at center of wire
+                if (dx === 0) { align = 3; dx += 4; }
+                else if (dy === 0) { align = 7; dy -= 4; }
+                else if (dy / dx > 0) align = 6;
+                else align = 8;
+                svg.appendChild(this.svg_text(diagram, name, dx >> 1, dy >> 1, align, diagram.property_font));
+            }
+        }
+
+        return svg;
+    };
+
+    Wire.prototype.svg_icon = function(c, diagram) {
+        var x2 = this.transform_x(this.coords[3], this.coords[4]) + this.coords[0];
+        var y2 = this.transform_y(this.coords[3], this.coords[4]) + this.coords[1];
+
+        c.svg_line(diagram, this.coords[0], this.coords[1], x2, y2);
+    };
+    
     // compute distance between x,y and nearest point on line
     // http://www.allegro.cc/forums/thread/589720
     Wire.prototype.distance = function(x, y) {
@@ -775,6 +860,15 @@ jade_defs.schematic_view = function(jade) {
         this.draw_line(diagram,6,8,0,14);
     };
 
+    Ground.prototype.svg = function(diagram) {
+        var svg = jade.utils.make_svg('g');
+        svg.appendChild(this.svg_line(diagram,0,0,0,8));
+        svg.appendChild(this.svg_line(diagram,-6,8,6,8));
+        svg.appendChild(this.svg_line(diagram,-6,8,0,14));
+        svg.appendChild(this.svg_line(diagram,6,8,0,14));
+        return svg;
+    };
+
     Ground.prototype.netlist = function(mlist, globals, prefix, mstack) {
         return [["ground",{"gnd":"gnd"},{}]];
     };
@@ -814,6 +908,14 @@ jade_defs.schematic_view = function(jade) {
         this.draw_text(diagram,this.properties.global_signal,0,-10,7,diagram.property_font);
     };
 
+    Vdd.prototype.svg = function(diagram) {
+        var svg = jade.utils.make_svg('g');
+        svg.appendChild(this.svg_line(diagram,0,0,0,-8));
+        svg.appendChild(this.svg_line(diagram,-6,-8,6,-8));
+        svg.appendChild(this.svg_text(diagram,this.properties.global_signal,0,-10,7,diagram.property_font));
+        return svg;
+    };
+
     Vdd.prototype.netlist = function(mlist, globals, prefix, mstack) {
         return undefined;
     };
@@ -850,6 +952,10 @@ jade_defs.schematic_view = function(jade) {
 
     Jumper.prototype.draw = function(diagram) {
         this.draw_arc(diagram, 0,0, 8,0, 4,-4);  // a "bump" to distinguish jumper from wire
+    };
+
+    Jumper.prototype.svg = function(diagram) {
+        return this.svg_arc(diagram, 0,0, 8,0, 4,-4);  // a "bump" to distinguish jumper from wire
     };
 
     // I/O port
@@ -905,6 +1011,29 @@ jade_defs.schematic_view = function(jade) {
         }
     };
 
+    Port.prototype.svg = function(diagram) {
+        var svg = jade.utils.make_svg('g');
+        svg.appendChild(this.svg_line(diagram,0,0,-8,0));
+        svg.appendChild(this.svg_line(diagram,-8,0,-12,-4));
+        svg.appendChild(this.svg_line(diagram,-12,-4,-24,-4));
+        svg.appendChild(this.svg_line(diagram,-8,0,-12,4));
+        svg.appendChild(this.svg_line(diagram,-12,4,-24,4));
+        svg.appendChild(this.svg_line(diagram,-24,-4,-24,4));
+        svg.appendChild(this.svg_text(diagram,this.properties.signal,-26,0,5,diagram.property_font));
+
+        svg.appendChild(this.svg_line(diagram,-14,0,-20,0));
+        var dir = this.properties.direction;
+        if (dir == 'in' || dir == 'inout') {
+            svg.appendChild(this.svg_line(diagram,-14,0,-16,-2));
+            svg.appendChild(this.svg_line(diagram,-14,0,-16,2));
+        }
+        if (dir == 'out' || dir == 'inout') {
+            svg.appendChild(this.svg_line(diagram,-20,0,-18,-2));
+            svg.appendChild(this.svg_line(diagram,-20,0,-18,2));
+        }
+        return svg;
+    };
+    
     Port.prototype.netlist = function(mlist, globals, prefix, mstack) {
         return undefined;
     };
@@ -1037,16 +1166,27 @@ jade_defs.schematic_view = function(jade) {
         c.draw_text(diagram, this.properties.text, this.coords[0], this.coords[1], align, this.properties.font);
     };
 
-    Text.prototype.svg = function(c, diagram) {
+    Text.prototype.svg = function(diagram) {
+        var svg = jade.utils.make_svg('g');
+        if (this.selected) {
+            // "+" marks the reference point for the property
+            svg.appendChild(this.svg_line(diagram, - 1, 0, 1, 0));
+            svg.appendChild(this.svg_line(diagram, 0, - 1, 0, 1));
+        }
+
+        var align = text_alignments.indexOf(this.properties.align);
+        svg.appendChild(this.svg_text(diagram, this.properties.text, 0, 0, align, this.properties.font));
+        return svg;
+    };
+
+    Text.prototype.svg_icon = function(c, diagram) {
         // need to adjust alignment accounting for our rotation
         var align = text_alignments.indexOf(this.properties.align);
         align = jade.model.aOrient[this.coords[2] * 9 + align];
 
-        jade.utils.svg_text(this.properties.text, this.coords[0], this.coords[1],
-                            jade.model.textAlign[align],jade.model.textBaseline[align],
-                            this.properties.font);
+        return c.svg_text(diagram, this.properties.text, this.coords[0], this.coords[1], align, this.properties.font);
     };
-
+    
     Text.prototype.edit_properties = function(diagram, x, y) {
         return jade.model.Component.prototype.edit_properties.call(this, diagram, x, y, function(c) {
             c.bounding_box = text_bbox(c.properties.text, c.properties.align);
@@ -1207,6 +1347,47 @@ jade_defs.schematic_view = function(jade) {
         this.draw_text(diagram,nlocns.toString()+"\u00D7"+this.properties.ndata,36,-16,1,diagram.property_font);
     };
 
+    Memory.prototype.svg = function(diagram) {
+        var svg = jade.utils.make_svg('g');
+        // draw bbox
+        var bb = this.bounding_box;
+        svg.appendChild(this.svg_line(diagram,bb[0]+8,bb[1],bb[2]-8,bb[1]));
+        svg.appendChild(this.svg_line(diagram,bb[0]+8,bb[1],bb[0]+8,bb[3]));
+        svg.appendChild(this.svg_line(diagram,bb[2]-8,bb[1],bb[2]-8,bb[3]));
+        svg.appendChild(this.svg_line(diagram,bb[0]+8,bb[1]+16,bb[2]-8,bb[1]+16));
+
+        // draw stubs for each port
+        var y = 0;
+        var alabel = 'A['+(this.properties.naddr-1).toString();
+        alabel += (this.properties.naddr > 1) ? ':0]' : ']';
+        var dlabel = 'D['+(this.properties.ndata-1).toString();
+        dlabel += (this.properties.ndata > 1) ? ':0]' : ']';
+        var lfont = '4pt sans-serif';
+        for (var port = 0; port < this.properties.nports; port += 1) {
+            svg.appendChild(this.svg_line(diagram,0,y,8,y));
+            svg.appendChild(this.svg_text(diagram,alabel,9,y,3,lfont));
+            svg.appendChild(this.svg_line(diagram,64,y,72,y));
+            svg.appendChild(this.svg_text(diagram,dlabel,63,y,5,lfont));
+            svg.appendChild(this.svg_line(diagram,0,y+8,8,y+8));
+            svg.appendChild(this.svg_text(diagram,'OE',9,y+8,3,lfont));
+            svg.appendChild(this.svg_line(diagram,0,y+16,8,y+16));
+            svg.appendChild(this.svg_text(diagram,'WE',9,y+16,3,lfont));
+            svg.appendChild(this.svg_line(diagram,0,y+24,8,y+24));
+            svg.appendChild(this.svg_line(diagram,8,y+22,12,y+24));  // CLK triangle
+            svg.appendChild(this.svg_line(diagram,8,y+26,12,y+24));
+
+            svg.appendChild(this.svg_line(diagram,8,y+32,64,y+32));
+            y += 40;
+        }
+
+        // draw internal labels
+        svg.appendChild(this.svg_text(diagram,this.properties.name || 'Memory',36,-16,7,diagram.property_font));
+        var nlocns = 1 << this.properties.naddr;
+        svg.appendChild(this.svg_text(diagram,nlocns.toString()+"\u00D7"+this.properties.ndata,36,-16,1,diagram.property_font));
+
+        return svg;
+    };
+
     // netlist entry: ["type", {terminal:signal, ...}, {property: value, ...}]
     Memory.prototype.netlist = function(mlist, globals, prefix, mstack) {
         if (mlist.indexOf('memory') == -1) return undefined;
@@ -1318,15 +1499,42 @@ jade_defs.schematic_view = function(jade) {
             // add handlers here since any old handlers were
             // removed if part was removed from parts_list
             // at some earlier point
-            part.canvas
-                .mouseover(part_enter)
-                .mouseout(part_leave)
-                .mousedown(part_mouse_down)
-                .mouseup(part_mouse_up);
+            part.canvas.mouseover(function(event) {
+                var tip = part.component.module.properties.tool_tip;
+                if (tip !== undefined) tip = tip.value;
+                else tip = part.component.type();
+                tip += ': drag onto diagram to insert';
+                if (part.can_edit) tip += ', double click to edit';
+                
+                part.diagram.message(tip);
+                return false;
+            });
+
+            part.canvas.mouseleave(function(event) {
+                part.diagram.message('');
+                return false;
+            });
+
+            part.canvas.mousedown(function(event) {
+                part.select(true);
+                part.diagram.new_part = part;
+                event.originalEvent.preventDefault();  // keep Chrome from selecting text
+                return false;
+            });
+
+            part.canvas.mouseup(function(event) {
+                part.select(false);
+                part.diagram.new_part = undefined;
+                return false;
+            });
 
             // you can only edit parts in the parts bin if in hierarchical mode
             if (parts_bin.editor.jade.configuration.hierarchical && part.component.can_view()) {
-                part.canvas.dblclick(part_dblclick);
+                part.canvas.dblclick(function(event) {
+                    part.editor.jade.edit(part.component.module.get_name());
+                    event.preventDefault();
+                    return false;
+                });
                 part.can_edit = true;
             }
 
@@ -1374,7 +1582,7 @@ jade_defs.schematic_view = function(jade) {
         // set up canvas
         this.svg = jade.utils.make_svg('svg',{width: part_w, height: part_w});
         this.canvas = $(this.svg);
-        this.canvas[0].part = this;
+        //this.canvas[0].part = this;
 
         this.property_font = '5pt sans-serif'; // point size for Component property text
         this.annotation_font = '6pt sans-serif'; // point size for diagram annotations
@@ -1417,6 +1625,7 @@ jade_defs.schematic_view = function(jade) {
         // no connection points in the parts bin
     };
 
+    /*
     Part.prototype.moveTo = function(x, y) {
         var xx = Math.floor((x - this.origin_x) * this.scale) + 0.5;
         var yy = Math.floor((y - this.origin_y) * this.scale) + 0.5;
@@ -1520,6 +1729,7 @@ jade_defs.schematic_view = function(jade) {
         event.preventDefault();
         return false;
     }
+     */
 
     ///////////////////////////////////////////////////////////////////////////////
     //

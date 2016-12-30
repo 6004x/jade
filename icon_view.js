@@ -454,16 +454,20 @@ jade_defs.icon_view = function(jade) {
         c.draw_line(diagram, this.coords[0], this.coords[1], x2, y2);
     };
 
-    // return SVG tag
-    Line.prototype.svg = function(c,diagram) {
-        var x1 = this.coords[0];
-        var y1 = this.coords[1];
+    Line.prototype.svg = function(diagram) {
+        var dx = this.coords[3];
+        var dy = this.coords[4];
+
+        return this.svg_line(diagram, 0, 0, dx, dy);
+    };
+
+    Line.prototype.svg_icon = function(c, diagram) {
         var x2 = this.transform_x(this.coords[3], this.coords[4]) + this.coords[0];
         var y2 = this.transform_y(this.coords[3], this.coords[4]) + this.coords[1];
 
-        return jade.utils.make_svg('line',{x1:x1, y1:y1, x2:x2, y2:y2});
+        return c.svg_line(diagram, this.coords[0], this.coords[1], x2, y2);
     };
-
+    
     // compute distance between x,y and nearest point on line
     // http://www.allegro.cc/forums/thread/589720
     Line.prototype.distance = function(x, y) {
@@ -589,7 +593,22 @@ jade_defs.icon_view = function(jade) {
         c.draw_arc(diagram, this.coords[0], this.coords[1], x2, y2, x3, y3);
     };
 
-    Arc.prototype.svg = function(c,diagram) {
+    // draw circle segment from coords[0,1] to coords[3,4] that passes through coords[5,6]
+    Arc.prototype.svg = function(diagram) {
+        var x3, y3;
+        if (this.coords[5] !== undefined) {
+            x3 = this.coords[5];
+            y3 = this.coords[6];
+        }
+        else {
+            x3 = this.coords[3]; // no third point, pretend it's a line
+            y3 = this.coords[4];
+        }
+
+        return this.svg_arc(diagram, 0, 0, this.coords[3], this.coords[4], x3, y3);
+    };
+
+    Arc.prototype.svg_icon = function(c,diagram) {
         var x2 = this.transform_x(this.coords[3], this.coords[4]) + this.coords[0];
         var y2 = this.transform_y(this.coords[3], this.coords[4]) + this.coords[1];
 
@@ -603,7 +622,7 @@ jade_defs.icon_view = function(jade) {
             y3 = y2;
         }
 
-        return jade.utils.svg_arc(this.coords[0],this.coords[1],x2,y2,x3,y3);
+        return c.svg_arc(diagram, this.coords[0], this.coords[1], x2, y2, x3, y3);
     };
     
     // circle: center point + radius
@@ -658,12 +677,14 @@ jade_defs.icon_view = function(jade) {
         c.draw_circle(diagram, this.coords[0], this.coords[1], this.coords[3], false);
     };
 
-    // return SVG tag
-    Circle.prototype.svg = function(c,diagram) {
-        return jade.utils.make_svg('circle',{cx:this.coords[0], cy:this.coords[1],
-                                             r:this.coords[3], fill: 'none'});
+    Circle.prototype.svg = function(diagram) {
+        this.svg_circle(diagram, 0, 0, this.coords[3], false);
     };
 
+    Circle.prototype.svg_icon = function(c, diagram) {
+        return c.svg_circle(diagram, this.coords[0], this.coords[1], this.coords[3], false);
+    };
+    
     // display of one or more module properties, aligned to reference point
     function Property(json) {
         jade.model.Component.call(this);
@@ -737,6 +758,21 @@ jade_defs.icon_view = function(jade) {
         return s.replace(new RegExp("\\{module\\}", "gm"), c.module.get_name());
     }
 
+    Property.prototype.svg = function(diagram) {
+        var svg = jade.utils.make_svg('g');
+
+        if (this.selected) {
+            // "+" marks the reference point for the property
+            svg.appendChild(this.svg_line(diagram, - 1, 0, 1, 0));
+            svg.appendChild(this.svg_line(diagram, 0, - 1, 0, 1));
+        }
+
+        var align =  jade.schematic_view.text_alignments.indexOf(this.properties.align);
+        svg.appendChild(this.svg_text(diagram, this.properties.format || '-no format-',
+                                      0, 0, align, diagram.property_font));
+        return svg;
+    };
+
     Property.prototype.draw_icon = function(c, diagram) {
         var s = prop_string(c,this.properties.format || '-no format-');
         if (s === undefined) return;
@@ -748,7 +784,7 @@ jade_defs.icon_view = function(jade) {
         c.draw_text(diagram, s, this.coords[0], this.coords[1], align, diagram.property_font);
     };
 
-    Property.prototype.svg = function(c,diagram) {
+    Property.prototype.svg_icon = function(c,diagram) {
         var s = prop_string(c,this.properties.format || '-no format-');
         if (s === undefined) return undefined;
 
@@ -756,9 +792,7 @@ jade_defs.icon_view = function(jade) {
         var align =  jade.schematic_view.text_alignments.indexOf(this.properties.align);
         align = jade.model.aOrient[this.coords[2] * 9 + align];
 
-        return jade.utils.svg_text(s, this.coords[0], this.coords[1],
-                                   jade.model.textAlign[align],jade.model.textBaseline[align],
-                                   diagram.property_font);
+        return c.svg_text(diagram, s, this.coords[0], this.coords[1], align, diagram.property_font);
     };
     
     Property.prototype.edit_properties = function(diagram, x, y) {
@@ -832,12 +866,25 @@ jade_defs.icon_view = function(jade) {
         }
     };
 
-    // return SVG tag
-    Terminal.prototype.svg = function(c,diagram) {
+    Terminal.prototype.svg = function(diagram) {
+        var svg = jade.utils.make_svg('g');
+
+        svg.appendChild(this.svg_circle(diagram, 0, 0, jade.model.connection_point_radius, false));
+        if (this.properties.line != 'no')
+            svg.appendChild(this.svg_line(diagram, 0, 0, 8, 0));
+        svg.appendChild(this.svg_text(diagram, this.properties.name, jade.model.connection_point_radius - 4, 0, 5, diagram.property_font));
+
+        return svg;
+    };
+
+    Terminal.prototype.svg_icon = function(c, diagram) {
         if (this.properties.line == 'no') return undefined;
-        var x2 = this.transform_x(8, 0) + this.coords[0];
-        var y2 = this.transform_y(8, 0) + this.coords[1];
-        return jade.utils.make_svg('line',{x1:this.coords[0], y1:this.coords[1], x2:x2, y2:y2});
+
+        var x1 = this.coords[0];
+        var y1 = this.coords[1];
+        var x2 = this.transform_x(8, 0) + x1;
+        var y2 = this.transform_y(8, 0) + y1;
+        return c.svg_line(diagram, x1, y1, x2, y2);
     };
 
     Terminal.prototype.terminal_coords = function() {
