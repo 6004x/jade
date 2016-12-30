@@ -750,15 +750,15 @@ jade_defs.icon_view = function(jade) {
 
     Property.prototype.svg = function(c,diagram) {
         var s = prop_string(c,this.properties.format || '-no format-');
-        if (s === undefined) return;
+        if (s === undefined) return undefined;
 
         // need to adjust alignment accounting for our rotation
         var align =  jade.schematic_view.text_alignments.indexOf(this.properties.align);
         align = jade.model.aOrient[this.coords[2] * 9 + align];
 
-        jade.utils.svg_text(s, this.coords[0], this.coords[1],
-                            jade.model.textAlign[align],jade.model.textBaseline[align],
-                            diagram.property_font);
+        return jade.utils.svg_text(s, this.coords[0], this.coords[1],
+                                   jade.model.textAlign[align],jade.model.textBaseline[align],
+                                   diagram.property_font);
     };
     
     Property.prototype.edit_properties = function(diagram, x, y) {
@@ -834,6 +834,7 @@ jade_defs.icon_view = function(jade) {
 
     // return SVG tag
     Terminal.prototype.svg = function(c,diagram) {
+        if (this.properties.line == 'no') return undefined;
         var x2 = this.transform_x(8, 0) + this.coords[0];
         var y2 = this.transform_y(8, 0) + this.coords[1];
         return jade.utils.make_svg('line',{x1:this.coords[0], y1:this.coords[1], x2:x2, y2:y2});

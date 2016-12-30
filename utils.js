@@ -693,45 +693,63 @@ jade_defs.utils = function (jade) {
         // compute start and end angles relative to circle's center.
         // remember that y axis is positive *down* the page;
         // canvas arc angle measurements: 0 = x-axis, then clockwise from there
-        var start_angle = 2 * Math.PI - Math.atan2(-(0 - uy), 0 - ux);
-        var end_angle = 2 * Math.PI - Math.atan2(-(by - uy), bx - ux);
+        ux += x1;
+        uy += y1;
+        var start_angle = Math.atan2(uy-y1,x1-ux);
+        if (start_angle < 0) start_angle += 2*Math.PI;
+        var end_angle = Math.atan2(uy-y2,x2-ux);
+        if (end_angle < 0) end_angle += 2*Math.PI;
+        var middle_angle = Math.atan2(uy-y3,x3-ux);
+        if (middle_angle < 0) middle_angle += 2*Math.PI;
 
-        // make sure arc passes through third point
-        var middle_angle = 2 * Math.PI - Math.atan2(-(cy - uy), cx - ux);
-        var angle1 = end_angle - start_angle;
-        if (angle1 < 0) angle1 += 2 * Math.PI;
-        var angle2 = middle_angle - start_angle;
-        if (angle2 < 0) angle2 += 2 * Math.PI;
-        var ccw = (angle2 > angle1);
+        var angle1 = middle_angle - start_angle;   // end angle relative to start
+        if (angle1 < 0) angle1 += 2*Math.PI;
+        var angle2 = end_angle - start_angle;      // middle angle relative to start
+        if (angle2 < 0) angle2 += 2*Math.PI;
 
-        console.log(JSON.stringify([x1,y1,x2,y2,x3,y3,ux+x1,uy+y1,r,angle1,angle2]));
+        var flags;
+        if (angle1 > angle2) {
+            // going clockwise we get to end point before middle point,
+            // so go the other way (sweep = 1)
+            flags = ((2*Math.PI - angle2) > Math.PI) ? '1 1 ': '0 1 ';
+        } else {
+            // going clockwise we get to middle point before end point,
+            // so all is good (sweep = 0)
+            flags = (angle2 > Math.PI) ? '1 0 ' : '0 0 ';
+        }
+
+        //console.log(JSON.stringify([x1,y1,x2,y2,x3,y3,ux+x1,uy+y1,r,start_angle,end_angle,middle_angle]));
 
         var path = "M " + x1.toString() + " " + y1.toString();
         path += " A " + r.toString() + " " + r.toString() + " 0 ";  // rx, ry, x-axis-rotation
-        path += (angle1 > Math.PI) ? "1 " : "0 ";  // large-arc-flag
-        path += ccw ? "1 " : "0 ";  // sweep-flag
-        path += x2.toString() + " " + y2.toString();   // dx,dy
+        path += flags + x2.toString() + " " + y2.toString();   // large_arc, sweep, dx,dy
 
         return make_svg('path',{d: path, fill: 'none'});
     };
 
     // text positioned such that x,y falls at requested horizontal and vertical alignment
     function svg_text(s,x,y,horizontal,vertical,font) {
-        var svg = make_svg('text',{x:x, y:y});
+        var svg = make_svg('text',{x:x, y:y, stroke:'none'});
         if (font) svg.setAttribute('style','font: '+font);
-
-        var bbox = svg.getBBox();  // .height, .width
-        var yoffset = y - bbox.y;
+        svg.textContent = s;
 
         // deal with horizontal postioning (left, center, right)
         if (horizontal == 'left') svg.setAttribute('text-anchor', 'start');
         else if (horizontal == 'center') svg.setAttribute('text-anchor', 'middle');
         else svg.setAttribute('text-anchor', 'end');
 
+        // deal with horizontal postioning (top, middle, bottom)
+        if (vertical == 'top') svg.setAttribute('dy','1em');
+        else if (vertical == 'middle') svg.setAttribute('dy', '0.5em');
+
+        /*
         // deal with vertical positioning (top, middle, bottom)
+        var bbox = svg.getBBox();  // .height, .width
+        var yoffset = y - bbox.y;
         if (vertical == 'top') svg.setAttribute('dy', (y + yoffset).toString());
         else if (vertical == 'middle') svg.setAttribute('dy', (y + yoffset - bbox.height/2).toString());
         else svg.setAttribute('dy', (y + yoffset - bbox.height).toString());
+         */
 
         return svg;
     };
@@ -759,4 +777,3 @@ jade_defs.utils = function (jade) {
     };
 
 };
-

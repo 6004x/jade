@@ -1033,7 +1033,7 @@ jade_defs.model = function (jade) {
         var dx = this.transform_x(x2, y2) + this.coords[0] - x;
         var dy = this.transform_y(x2, y2) + this.coords[1] - y;
         var ex = this.transform_x(x3, y3) + this.coords[0] - x;
-        var ey = this.transform_y(x3, y3) + this.coords[1] - y;
+        var ey = this.transform_y(y3, y3) + this.coords[1] - y;
 
         // compute center of circumscribed circle
         // http://en.wikipedia.org/wiki/Circumscribed_circle
