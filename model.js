@@ -1020,7 +1020,7 @@ jade_defs.model = function (jade) {
         var ny1 = this.transform_y(x1, y1) + this.coords[1];
         var nx2 = this.transform_x(x2, y2) + this.coords[0];
         var ny2 = this.transform_y(x2, y2) + this.coords[1];
-        return jade.utils.make_svg('line',{x1:x1, y1:y1, x2:x2, y2:y2,
+        return jade.utils.make_svg('line',{x1:nx1, y1:ny1, x2:nx2, y2:ny2,
                                            'stroke-width': width || 1, stroke: strokeStyle});
     };
 
@@ -1141,7 +1141,9 @@ jade_defs.model = function (jade) {
 
         var attrs = {fill: fill};
         if (font) attrs.style = 'font: ' + font;
-        return jade.utils.svg_text(text, x, y, textAlign[a], textBaseline[a], attrs);
+        return jade.utils.svg_text(text,
+                                   this.transform_x(x,y) + this.coords[0], this.transform_y(x,y) + this.coords[1],
+                                   textAlign[a], textBaseline[a], attrs);
     };
 
     Component.prototype.draw_text_important = function(diagram, text, x, y, alignment, font, fill) {
@@ -1195,6 +1197,7 @@ jade_defs.model = function (jade) {
             });
         } else {
             // user didn't supply an icon, so fake a stand-in
+            svg.setAttribute('transform','translate('+this.coords[0].toString()+' '+this.coords[1].toString()+')');
             svg.appendChild(jade.utils.svg_text(this.type(),0,0,'center','middle',{font: diagram.annotation_font}));
             svg.appendChild(jade.utils.make_svg('path',{d: 'M -16 -16 l 32 0 l 0 32 l -32 0 Z', fill: 'none'}));
         }

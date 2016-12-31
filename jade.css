@@ -112,6 +112,7 @@
     height: 229px;
     border: 1px solid black;
     outline: none;
+    background-color: rgb(250,250,250);
 }
 .jade-xparts-resize {
     float: right;

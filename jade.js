@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2016 Massachusetts Institute of Technology
+// Copyright (C) 2011-2017 Massachusetts Institute of Technology
 // Chris Terman
 
 // pollute the global namespace with a single variable
@@ -34,7 +34,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.2.55 (2016 \u00A9 MIT EECS)";
+    var version = "Jade 2.3.1 (2017 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
@@ -716,23 +716,9 @@ jade_defs.top_level = function(jade) {
         this.aspect = undefined;
 
         // setup canas
-        this.canvas = $('<canvas></canvas>').addClass(class_name)[0];
-
-        // handle retina devices properly
-        var context = this.canvas.getContext('2d');
-        var devicePixelRatio = window.devicePixelRatio || 1;
-        var backingStoreRatio = context.webkitBackingStorePixelRatio ||
-            context.mozBackingStorePixelRatio ||
-            context.msBackingStorePixelRatio ||
-            context.oBackingStorePixelRatio ||
-            context.backingStorePixelRatio || 1;
-        this.pixelRatio = 1; //devicePixelRatio / backingStoreRatio;
-
-        this.sctl_r = 16; // scrolling control parameters
-        this.sctl_x = this.sctl_r + 8; // upper left
-        this.sctl_y = this.sctl_r + 8;
-        this.zctl_left = this.sctl_x - 8;
-        this.zctl_top = this.sctl_y + this.sctl_r + 8;
+        this.canvas = $('<div style="display:inline-block;"><svg width="100%" height="100%"></svg></div>').addClass(class_name)[0]
+        ;
+        this.svg = this.canvas.children.item(0);
 
         // ethanschoonover.com
         this.background_style = 'rgb(250,250,250)'; // backgrund color for diagram [base3]
@@ -746,13 +732,49 @@ jade_defs.top_level = function(jade) {
         this.property_font = '5pt sans-serif'; // point size for Component property text
         this.annotation_font = '6pt sans-serif'; // point size for diagram annotations
 
-        // repaint simply draws this buffer and then adds selected elements on top
-        this.bg_image = $('<canvas></canvas>')[0];
-        this.bg_image.getContext('2d').scale(this.pixelRatio,this.pixelRatio);
+        // grid in the background
+        this.svg_grid = jade.utils.make_svg('g',{
+            id: 'grid',
+            stroke: this.grid_style,
+            'stroke-width': 0.2,
+            fill: 'none'
+        });
+        this.svg.appendChild(this.svg_grid);
+
+        // then static content
+        this.svg_content = jade.utils.make_svg('g',{
+            id: 'content',
+            stroke: this.normal_style,
+            'stroke-width': 1,
+            'stroke-linecap': 'round',
+            fill: 'none'
+        });
+        this.svg.appendChild(this.svg_content);
+
+        // then selected content
+        this.svg_selected = jade.utils.make_svg('g',{
+            id: 'selected',
+            stroke: this.selected_style,
+            'stroke-width': 1,
+            'stroke-linecap': 'round',
+            fill: 'none'
+        });
+        this.svg.appendChild(this.svg_selected);
+        
+        // scrolling controls on top
+        this.svg.appendChild(this.svg_controls(24,24));
+
+        // module name
+        this.svg_module_name = jade.utils.svg_text('',4,4,'left','bottom',{
+            style: 'font: 12pt sans-serif',
+            fill: this.normal_style,
+            stroke: 'none'
+        });
+        this.svg.appendChild(this.svg_module_name);
 
         this.canvas.tabIndex = 1; // so we get keystrokes
 
-        this.canvas.diagram = this;
+        //this.canvas.diagram = this;
 
         // initial state
         this.dragging = false;
@@ -762,6 +784,7 @@ jade_defs.top_level = function(jade) {
 
         this.origin_x = 0;
         this.origin_y = 0;
+        this.scale = 1;
         this.cursor_x = 0;
         this.cursor_y = 0;
         this.unsel_bbox = [Infinity, Infinity, - Infinity, - Infinity];
@@ -843,8 +866,8 @@ jade_defs.top_level = function(jade) {
 
         if (nscale > this.zoom_min) {
             // keep center of view unchanged
-            this.origin_x += (this.canvas.width / 2) * (1.0 / this.scale - 1.0 / nscale);
-            this.origin_y += (this.canvas.height / 2) * (1.0 / this.scale - 1.0 / nscale);
+            this.origin_x += ($(this.canvas).width() / 2) * (1.0 / this.scale - 1.0 / nscale);
+            this.origin_y += ($(this.canvas).height() / 2) * (1.0 / this.scale - 1.0 / nscale);
             this.scale = nscale;
             this.redraw_background();
         }
@@ -858,8 +881,8 @@ jade_defs.top_level = function(jade) {
         if (diagram_w === 0) this.scale = 1;
         else {
             // compute scales that would make diagram fit, choose smallest
-            var scale_x = this.canvas.width / diagram_w;
-            var scale_y = this.canvas.height / diagram_h;
+            var scale_x = $(this.canvas).width() / diagram_w;
+            var scale_y = $(this.canvas).height() / diagram_h;
             this.scale = Math.pow(this.zoom_factor,
                                   Math.ceil(Math.log(Math.min(scale_x, scale_y)) / Math.log(this.zoom_factor)));
             if (this.scale < this.zoom_min) this.scale = this.zoom_min;
@@ -867,8 +890,8 @@ jade_defs.top_level = function(jade) {
         }
 
         // center the diagram
-        this.origin_x = (this.bbox[2] + this.bbox[0]) / 2 - this.canvas.width / (2 * this.scale);
-        this.origin_y = (this.bbox[3] + this.bbox[1]) / 2 - this.canvas.height / (2 * this.scale);
+        this.origin_x = (this.bbox[2] + this.bbox[0]) / 2 - $(this.canvas).width() / (2 * this.scale);
+        this.origin_y = (this.bbox[3] + this.bbox[1]) / 2 - $(this.canvas).height() / (2 * this.scale);
 
         this.redraw_background();
     };
@@ -978,7 +1001,7 @@ jade_defs.top_level = function(jade) {
         else return Math.floor((v + (grid >> 1)) / grid) * grid;
     };
 
-    // rotate selection about center of its bounding box
+   // rotate selection about center of its bounding box
     Diagram.prototype.rotate = function(rotation) {
         var bbox = this.aspect.selected_bbox();
         var grid = this.aspect.selected_grid();
@@ -1034,9 +1057,18 @@ jade_defs.top_level = function(jade) {
     }
 
     Diagram.prototype.resize = function() {
+        var c = $(this.canvas);
+        this.svg.setAttribute('viewbox','0 0 '+ c.width() + ' ' + c.height());
+
+        /*
         var w = parseFloat($(this.canvas).css('width'));
         var h = parseFloat($(this.canvas).css('height'));
 
+        this.canvas.setAttribute('width',w);
+        this.canvas.setAttribute('height',h);
+         */
+
+        /*
         this.canvas.width = w*this.pixelRatio;
         this.canvas.height = h*this.pixelRatio;
         // after changing dimension, have to reset context 
@@ -1045,6 +1077,7 @@ jade_defs.top_level = function(jade) {
         this.bg_image.width = w*this.pixelRatio;
         this.bg_image.height = h*this.pixelRatio;
         this.bg_image.getContext('2d').scale(this.pixelRatio,this.pixelRatio);
+         */
 
         this.zoomall();
     };
@@ -1058,15 +1091,7 @@ jade_defs.top_level = function(jade) {
     // here to redraw background image containing static portions of the diagram
     // Also redraws dynamic portion.
     Diagram.prototype.redraw_background = function() {
-        var c = this.bg_image.getContext('2d');
-        this.c = c;
-
-        c.lineCap = 'round';
-
-        // paint background color -- use color from style sheet
-        c.fillStyle = this.show_grid ? this.background_style : 'white';
-        c.fillRect(0, 0, this.bg_image.width, this.bg_image.height);
-
+        /*
         if (!this.diagram_only && this.show_grid) {
             // grid
             c.strokeStyle = this.grid_style;
@@ -1088,42 +1113,71 @@ jade_defs.top_level = function(jade) {
             this.draw_arc(0, 0, this.grid / 2, 0, 2 * Math.PI, false, 0.2, false);
         }
 
+         */
+
         // unselected components
         this.unsel_bbox = this.aspect.unselected_bbox();
 
+        // set up offset and scale
+        var transform = 'translate(' +
+                (-this.origin_x*this.scale).toString() + ' ' +
+                (-this.origin_y*this.scale).toString() + ')' +
+                ' scale(' + this.scale.toString() + ')';
+        this.svg_content.setAttribute('transform',transform);
+        this.svg_selected.setAttribute('transform',transform);
+
+        // draw unselected components
+        $(this.svg_content).empty();   // start with a clean slate
         var diagram = this; // for closure below
         this.aspect.map_over_components(function(c) {
-            if (!c.selected) c.draw(diagram);
+            if (c.selected) return;
+            var s = c.svg(diagram);
+            if (s) diagram.svg_content.appendChild(s);
         });
 
         // show name of module in lower right corner
-        if (this.aspect && this.aspect.module) {
-            var name = this.aspect.module.get_name();
-            //if (this.aspect.read_only()) name += ' (read only)';
-            c.textAlign = 'left';
-            c.textBaseline = 'bottom';
-            c.font = '12pt sans-serif';
-            c.fillStyle = this.normal_style;
-            c.fillText(name, 2, this.canvas.height - 2);
-        }
+        var name = '';
+        if (this.aspect && this.aspect.module) name = this.aspect.module.get_name();
+        this.svg_module_name.textContent = name;
+        this.svg_module_name.setAttribute('y',$(this.canvas).height() - 4);
 
         this.redraw(); // background changed, redraw on screen
     };
 
+    Diagram.prototype.svg_controls = function(x,y) {
+        var svg = jade.utils.make_svg('g',{
+            id: 'controls',
+            transform: 'translate(' + x.toString() + ' ' + y.toString() +')',
+            stroke: this.control_style,
+            'stroke-width': 0.5,
+            fill: 'none'
+        });
+
+        // scrolling
+        svg.appendChild(jade.utils.make_svg('circle',{x: 0, y: 0, r: 16, fill: this.background_style}));
+        
+        // direction markers
+        svg.appendChild(jade.utils.make_svg('path',{d: "M 4 -8 l -4 -4 l -4 4", 'stroke-width': 3}));  // north
+        svg.appendChild(jade.utils.make_svg('path',{d: "M 8 4 l 4 -4 l -4 -4", 'stroke-width': 3}));  // east
+        svg.appendChild(jade.utils.make_svg('path',{d: "M 4 8 l -4 4 l -4 -4", 'stroke-width': 3}));  // south
+        svg.appendChild(jade.utils.make_svg('path',{d: "M -8 4 l -4 -4 l 4 -4", 'stroke-width': 3}));  // west
+
+        // zoom controls
+        svg.appendChild(jade.utils.make_svg('path',{d: "M -8 24 l 16 0 l 0 48 l -16 0 Z", fill: this.background_style}));
+        svg.appendChild(jade.utils.make_svg('path',{d: "M -4 32 l 8 0 m -4 -4 l 0 8", 'stroke-width': 1}));  // zoom in
+        svg.appendChild(jade.utils.make_svg('path',{d: "M -4 48 l 8 0", 'stroke-width': 1}));  // zoom out
+        svg.appendChild(jade.utils.make_svg('path',{d: "M -4 60 l 3 0 m 2 0 l 3 0 l 0 3 m 0 2 l 0 3 l -3 0 m -2 0 l -3 0 l 0 -3 m 0 -2 l 0 -3", 'stroke-width': 1}));  // surround
+
+        return svg;
+    };
+
     // redraw what user sees = static image + dynamic parts
     Diagram.prototype.redraw = function() {
-        var c = this.canvas.getContext('2d');
-        this.c = c;
-
-        c.lineCap = 'round';
-
-        // put static image in the background.  Make sure we don't scale twice!
-        c.drawImage(this.bg_image, 0, 0, this.bg_image.width/this.pixelRatio, this.bg_image.height/this.pixelRatio);
-
         // selected components
         this.bbox = this.aspect.selected_bbox(this.unsel_bbox);
         if (this.bbox[0] == Infinity) this.bbox = [0, 0, 0, 0];
 
+        /*
         var diagram = this; // for closure below
         this.aspect.map_over_components(function(c) {
             if (c.selected) c.draw(diagram);
@@ -1157,70 +1211,7 @@ jade_defs.top_level = function(jade) {
             // annotations are callbacks that get a chance to do their thing
             this.annotations[i](this);
         }
-
-        // add scrolling/zooming control
-        var r = this.sctl_r;
-        var x = this.sctl_x;
-        var y = this.sctl_y;
-
-        // circle with border
-        c.fillStyle = this.background_style;
-        c.beginPath();
-        c.arc(x, y, r, 0, 2 * Math.PI);
-        c.fill();
-
-        c.strokeStyle = this.control_style;
-        c.lineWidth = 0.5;
-        c.beginPath();
-        c.arc(x, y, r, 0, 2 * Math.PI);
-        c.stroke();
-
-        // direction markers for scroll
-        c.lineWidth = 3;
-        c.beginPath();
-
-        c.moveTo(x + 4, y - r + 8); // north
-        c.lineTo(x, y - r + 4);
-        c.lineTo(x - 4, y - r + 8);
-
-        c.moveTo(x + r - 8, y + 4); // east
-        c.lineTo(x + r - 4, y);
-        c.lineTo(x + r - 8, y - 4);
-
-        c.moveTo(x + 4, y + r - 8); // south
-        c.lineTo(x, y + r - 4);
-        c.lineTo(x - 4, y + r - 8);
-
-        c.moveTo(x - r + 8, y + 4); // west
-        c.lineTo(x - r + 4, y);
-        c.lineTo(x - r + 8, y - 4);
-
-        c.stroke();
-
-        // zoom control
-        x = this.zctl_left;
-        y = this.zctl_top;
-        c.lineWidth = 0.5;
-        c.fillStyle = this.background_style; // background
-        c.fillRect(x, y, 16, 48);
-        c.strokeStyle = this.control_style; // border
-        c.strokeRect(x, y, 16, 48);
-        c.lineWidth = 1.0;
-        c.beginPath();
-        // zoom in label
-        c.moveTo(x + 4, y + 8);
-        c.lineTo(x + 12, y + 8);
-        c.moveTo(x + 8, y + 4);
-        c.lineTo(x + 8, y + 12);
-        // zoom out label
-        c.moveTo(x + 4, y + 24);
-        c.lineTo(x + 12, y + 24);
-        c.stroke();
-        // surround label
-        c.strokeRect(x + 4, y + 36, 8, 8);
-        c.fillStyle = this.background_style;
-        c.fillRect(x + 7, y + 34, 2, 10);
-        c.fillRect(x + 3, y + 39, 10, 2);
+         */
     };
 
     Diagram.prototype.moveTo = function(x, y) {

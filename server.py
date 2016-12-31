@@ -1,38 +1,31 @@
 #! /usr/bin/env python
 # combo HTTP server (GETs) and key/value store (POSTs)
-# to run: python server.py
+# uses a json file to save user state
 
 import BaseHTTPServer
 import SocketServer
 import mimetypes
-import sqlite3
 import posixpath
 import shutil
 import os
 import cgi
+import json
 
-dbfile = 'modules.db'
+jsonfile = 'labs.json'
 PORT = 8000
-
-table = """create table if not exists key_value (
-  key text primary key,
-  val text
-);"""
-
-# connect to db storing (user,key,value) triples
-db = sqlite3.connect(dbfile)
-c = db.cursor()
-c.execute(table);   # initialize table if necessary
 
 class JadeRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def log_message(self,format,*args):
+        #print format % args
         return
 
+    # serve up static files
     def do_GET(self):
         path = self.path
         path = path.split('?',1)[0]
         path = path.split('#',1)[0]
         path = path.replace('/','')
+        if path == '': path = 'index.html'
         ctype = self.guess_type(path)
         try:
             f = open(path, 'rb')
@@ -65,19 +58,23 @@ class JadeRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             postvars = {}
         key = postvars.get('key',[None])[0]
         value = postvars.get('value',[None])[0]
+        self.log_message('%s',json.dumps([key,value]))
+        
+        # read json file with user's state
+        with open(jsonfile,'r') as f:
+            labs = json.load(f)
 
         response = ''
         if value is None:
-            # return stored value
-            c.execute('select val from key_value where key=?;',(key,))
-            row = c.fetchone()
-            if row is not None:
-                response = row[0]
+            # send state for particular lab to user
+            response = labs.get(key,'{}')
+            response = response.encode('utf-8')
         else:
-            # update stored value
-            c.execute('insert or replace into key_value (key,val) values (?,?);',
-                      (key,value))
-            db.commit()
+            # update state for particular lab
+            response = value
+            labs[key] = value
+            with open(jsonfile,'w') as f:
+                json.dump(labs,f)
                                                         
         self.send_response(200)
         self.send_header("Content-type", 'text/plain')

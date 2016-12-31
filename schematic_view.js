@@ -641,13 +641,6 @@ jade_defs.schematic_view = function(jade) {
         }
     };
 
-    Wire.prototype.draw_icon = function(c, diagram) {
-        var x2 = this.transform_x(this.coords[3], this.coords[4]) + this.coords[0];
-        var y2 = this.transform_y(this.coords[3], this.coords[4]) + this.coords[1];
-
-        c.draw_line(diagram, this.coords[0], this.coords[1], x2, y2);
-    };
-
     Wire.prototype.svg = function(diagram) {
         var svg = jade.utils.make_svg('g');
         var dx = this.coords[3];
@@ -726,13 +719,6 @@ jade_defs.schematic_view = function(jade) {
         return svg;
     };
 
-    Wire.prototype.svg_icon = function(c, diagram) {
-        var x2 = this.transform_x(this.coords[3], this.coords[4]) + this.coords[0];
-        var y2 = this.transform_y(this.coords[3], this.coords[4]) + this.coords[1];
-
-        c.svg_line(diagram, this.coords[0], this.coords[1], x2, y2);
-    };
-    
     // compute distance between x,y and nearest point on line
     // http://www.allegro.cc/forums/thread/589720
     Wire.prototype.distance = function(x, y) {
