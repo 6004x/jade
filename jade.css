@@ -113,6 +113,12 @@
     border: 1px solid black;
     outline: none;
     background-color: rgb(250,250,250);
+    display: inline-block;
+}
+.jade-schematic-diagram svg {
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
 .jade-xparts-resize {
     float: right;
@@ -173,6 +179,13 @@
     min-height: 229px;
     border: 1px solid black;
     outline: none;
+    background-color: rgb(250,250,250);
+    display: inline-block;
+}
+.jade-icon-diagram svg {
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
 #module-select {
     margin-left: 5px;

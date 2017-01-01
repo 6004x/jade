@@ -716,8 +716,9 @@ jade_defs.top_level = function(jade) {
         this.aspect = undefined;
 
         // setup canas
-        this.canvas = $('<div style="display:inline-block;"><svg width="100%" height="100%"></svg></div>').addClass(class_name)[0]
+        this.canvas = $('<div><svg></svg></div>').addClass(class_name)[0]
         ;
+        this.canvas.diagram = this;
         this.svg = this.canvas.children.item(0);
 
         // ethanschoonover.com
@@ -773,8 +774,6 @@ jade_defs.top_level = function(jade) {
         this.svg.appendChild(this.svg_module_name);
 
         this.canvas.tabIndex = 1; // so we get keystrokes
-
-        //this.canvas.diagram = this;
 
         // initial state
         this.dragging = false;
@@ -1091,30 +1090,6 @@ jade_defs.top_level = function(jade) {
     // here to redraw background image containing static portions of the diagram
     // Also redraws dynamic portion.
     Diagram.prototype.redraw_background = function() {
-        /*
-        if (!this.diagram_only && this.show_grid) {
-            // grid
-            c.strokeStyle = this.grid_style;
-            var first_x = this.origin_x;
-            var last_x = first_x + this.bg_image.width / this.scale;
-            var first_y = this.origin_y;
-            var last_y = first_y + this.bg_image.height / this.scale;
-            var i;
-
-            for (i = this.grid * Math.ceil(first_x / this.grid); i < last_x; i += this.grid) {
-                this.draw_line(i, first_y, i, last_y, 0.2);
-            }
-
-            for (i = this.grid * Math.ceil(first_y / this.grid); i < last_y; i += this.grid) {
-                this.draw_line(first_x, i, last_x, i, 0.2);
-            }
-
-            // indicate origin
-            this.draw_arc(0, 0, this.grid / 2, 0, 2 * Math.PI, false, 0.2, false);
-        }
-
-         */
-
         // unselected components
         this.unsel_bbox = this.aspect.unselected_bbox();
 
@@ -1123,8 +1098,32 @@ jade_defs.top_level = function(jade) {
                 (-this.origin_x*this.scale).toString() + ' ' +
                 (-this.origin_y*this.scale).toString() + ')' +
                 ' scale(' + this.scale.toString() + ')';
+        this.svg_grid.setAttribute('transform',transform);
         this.svg_content.setAttribute('transform',transform);
         this.svg_selected.setAttribute('transform',transform);
+
+        if (!this.diagram_only && this.show_grid) {
+            // grid
+            $(this.svg_grid).empty();   // start with a clean slate
+
+            var first_x = this.origin_x;
+            var last_x = first_x + $(this.canvas).width() / this.scale;
+            var first_y = this.origin_y;
+            var last_y = first_y + $(this.canvas).height() / this.scale;
+            var i;
+
+            for (i = this.grid * Math.ceil(first_x / this.grid); i < last_x; i += this.grid) {
+                this.svg_grid.appendChild(jade.utils.make_svg('line',{x1:i, y1:first_y, x2:i, y2:last_y}));
+            }
+
+            for (i = this.grid * Math.ceil(first_y / this.grid); i < last_y; i += this.grid) {
+                this.svg_grid.appendChild(jade.utils.make_svg('line',{x1:first_x, y1:i, x2:last_x, y2:i}));
+            }
+
+            // indicate origin
+            this.svg_grid.appendChild(jade.utils.make_svg('circle',{cx:0, cy:0, r: this.grid/2}));
+        }
+
 
         // draw unselected components
         $(this.svg_content).empty();   // start with a clean slate
@@ -1142,6 +1141,51 @@ jade_defs.top_level = function(jade) {
         this.svg_module_name.setAttribute('y',$(this.canvas).height() - 4);
 
         this.redraw(); // background changed, redraw on screen
+    };
+
+    // redraw what user sees = static image + dynamic parts
+    Diagram.prototype.redraw = function() {
+        // selected components
+        this.bbox = this.aspect.selected_bbox(this.unsel_bbox);
+        if (this.bbox[0] == Infinity) this.bbox = [0, 0, 0, 0];
+
+        // draw selected components
+        $(this.svg_selected).empty();   // start with a clean slate
+        var diagram = this; // for closure below
+        this.aspect.map_over_components(function(c) {
+            if (!c.selected) return;
+            var s = c.svg(diagram);
+            if (s) diagram.svg_selected.appendChild(s);
+        });
+
+        // connection points: draw one at each location
+        for (var location in this.aspect.connection_points) {
+            var cplist = this.aspect.connection_points[location];
+            var s = cplist[0].svg(this, cplist.length);
+            if (s) this.svg_selected.appendChild(s);
+        }
+
+        // draw editor-specific dodads, enable appropriate tools
+        this.editor.redraw(this);
+
+        // draw selection rectangle
+        if (this.select_rect) {
+            var t = this.select_rect;
+            var path = "M "+ t[0].toString() + " " + t[1].toString();
+            path += " L "+ t[2].toString() + " " + t[1].toString();
+            path += " L "+ t[2].toString() + " " + t[3].toString();
+            path += " L "+ t[0].toString() + " " + t[3].toString();
+            path += " Z";
+            this.svg_selected.appendChild(jade.utils.make_svg('path',{d: path}));
+        }
+
+        /*
+        // add any annotations
+        for (var i = 0; i < this.annotations.length; i += 1) {
+            // annotations are callbacks that get a chance to do their thing
+            this.annotations[i](this);
+        }
+         */
     };
 
     Diagram.prototype.svg_controls = function(x,y) {
@@ -1169,49 +1213,6 @@ jade_defs.top_level = function(jade) {
         svg.appendChild(jade.utils.make_svg('path',{d: "M -4 60 l 3 0 m 2 0 l 3 0 l 0 3 m 0 2 l 0 3 l -3 0 m -2 0 l -3 0 l 0 -3 m 0 -2 l 0 -3", 'stroke-width': 1}));  // surround
 
         return svg;
-    };
-
-    // redraw what user sees = static image + dynamic parts
-    Diagram.prototype.redraw = function() {
-        // selected components
-        this.bbox = this.aspect.selected_bbox(this.unsel_bbox);
-        if (this.bbox[0] == Infinity) this.bbox = [0, 0, 0, 0];
-
-        /*
-        var diagram = this; // for closure below
-        this.aspect.map_over_components(function(c) {
-            if (c.selected) c.draw(diagram);
-        });
-
-        // connection points: draw one at each location
-        for (var location in this.aspect.connection_points) {
-            var cplist = this.aspect.connection_points[location];
-            cplist[0].draw(this, cplist.length);
-        }
-
-        // draw editor-specific dodads, enable appropriate tools
-        this.editor.redraw(this);
-
-        // draw selection rectangle
-        if (this.select_rect) {
-            var t = this.select_rect;
-            c.lineWidth = 1;
-            c.strokeStyle = this.selected_style;
-            c.beginPath();
-            c.moveTo(t[0], t[1]);
-            c.lineTo(t[0], t[3]);
-            c.lineTo(t[2], t[3]);
-            c.lineTo(t[2], t[1]);
-            c.lineTo(t[0], t[1]);
-            c.stroke();
-        }
-
-        // add any annotations
-        for (var i = 0; i < this.annotations.length; i += 1) {
-            // annotations are callbacks that get a chance to do their thing
-            this.annotations[i](this);
-        }
-         */
     };
 
     Diagram.prototype.moveTo = function(x, y) {
@@ -1437,8 +1438,8 @@ jade_defs.top_level = function(jade) {
             if (!reselect) this.unselect_all(which);
 
             // if there's nothing to drag, set up a selection rectangle
-            if (!this.dragging) this.select_rect = [this.mouse_x, this.mouse_y,
-                                                    this.mouse_x, this.mouse_y];
+            if (!this.dragging) this.select_rect = [this.aspect_x, this.aspect_y,
+                                                    this.aspect_x, this.aspect_y];
         } else if (!this.dragging) {
             // shift-click on background starts a pan
             this.panning = true;
@@ -1470,8 +1471,8 @@ jade_defs.top_level = function(jade) {
         }
         else if (this.select_rect) {
             // update moving corner of selection rectangle
-            this.select_rect[2] = this.mouse_x;
-            this.select_rect[3] = this.mouse_y;
+            this.select_rect[2] = this.aspect_x;
+            this.select_rect[3] = this.aspect_y;
         }
         else if (this.panning) {
             // see how far we moved
@@ -1512,8 +1513,8 @@ jade_defs.top_level = function(jade) {
             // in mouse_down handler
             if (r[0] != r[2] || r[1] != r[3]) {
                 // convert to diagram coordinates
-                var s = [r[0] / this.scale + this.origin_x, r[1] / this.scale + this.origin_y,
-                         r[2] / this.scale + this.origin_x, r[3] / this.scale + this.origin_y];
+                //var s = [r[0] / this.scale + this.origin_x, r[1] / this.scale + this.origin_y, r[2] / this.scale + this.origin_x, r[3] / this.scale + this.origin_y];
+                var s = [r[0],r[1],r[2],r[3]];
                 jade.model.canonicalize(s);
 
                 if (!shiftKey) this.unselect_all();

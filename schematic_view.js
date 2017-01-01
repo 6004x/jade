@@ -297,8 +297,7 @@ jade_defs.schematic_view = function(jade) {
         // draw new wire
         var r = diagram.wire;
         if (r) {
-            diagram.c.strokeStyle = diagram.selected_style;
-            diagram.draw_line(r[0], r[1], r[2], r[3], 1);
+            diagram.svg_selected.appendChild(jade.utils.make_svg('line',{x1: r[0], y1: r[1], x2: r[2], y2: r[3]}));
         }
     };
 

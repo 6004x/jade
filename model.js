@@ -1392,6 +1392,12 @@ jade_defs.model = function (jade) {
                                             connection_point_radius, n > 2);
     };
 
+    ConnectionPoint.prototype.svg = function(diagram, n) {
+        if (n == 2) return undefined;
+        return this.parent.svg_circle(diagram, this.offset_x, this.offset_y,
+                                      connection_point_radius, n > 2);
+    };
+
     ConnectionPoint.prototype.draw_x = function(diagram) {
         this.parent.draw_line(diagram, this.offset_x - 2, this.offset_y - 2,
                               this.offset_x + 2, this.offset_y + 2, diagram.grid_style);
