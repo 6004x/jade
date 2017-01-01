@@ -1059,25 +1059,6 @@ jade_defs.top_level = function(jade) {
         var c = $(this.canvas);
         this.svg.setAttribute('viewbox','0 0 '+ c.width() + ' ' + c.height());
 
-        /*
-        var w = parseFloat($(this.canvas).css('width'));
-        var h = parseFloat($(this.canvas).css('height'));
-
-        this.canvas.setAttribute('width',w);
-        this.canvas.setAttribute('height',h);
-         */
-
-        /*
-        this.canvas.width = w*this.pixelRatio;
-        this.canvas.height = h*this.pixelRatio;
-        // after changing dimension, have to reset context 
-        this.canvas.getContext('2d').scale(this.pixelRatio,this.pixelRatio);
-
-        this.bg_image.width = w*this.pixelRatio;
-        this.bg_image.height = h*this.pixelRatio;
-        this.bg_image.getContext('2d').scale(this.pixelRatio,this.pixelRatio);
-         */
-
         this.zoomall();
     };
 
@@ -1102,10 +1083,9 @@ jade_defs.top_level = function(jade) {
         this.svg_content.setAttribute('transform',transform);
         this.svg_selected.setAttribute('transform',transform);
 
+        // grid
+        $(this.svg_grid).empty();   // start with a clean slate
         if (!this.diagram_only && this.show_grid) {
-            // grid
-            $(this.svg_grid).empty();   // start with a clean slate
-
             var first_x = this.origin_x;
             var last_x = first_x + $(this.canvas).width() / this.scale;
             var first_y = this.origin_y;
@@ -1179,13 +1159,11 @@ jade_defs.top_level = function(jade) {
             this.svg_selected.appendChild(jade.utils.make_svg('path',{d: path}));
         }
 
-        /*
         // add any annotations
         for (var i = 0; i < this.annotations.length; i += 1) {
             // annotations are callbacks that get a chance to do their thing
             this.annotations[i](this);
         }
-         */
     };
 
     Diagram.prototype.svg_controls = function(x,y) {
@@ -1196,9 +1174,15 @@ jade_defs.top_level = function(jade) {
             'stroke-width': 0.5,
             fill: 'none'
         });
+        this.sctl_x = x;
+        this.sctl_y = y;
+        this.sctl_r = 16;
+        this.zctl_left = x - 8;
+        this.zctl_top = y + 24;
 
         // scrolling
-        svg.appendChild(jade.utils.make_svg('circle',{x: 0, y: 0, r: 16, fill: this.background_style}));
+        svg.appendChild(jade.utils.make_svg('circle',{x: 0, y: 0, r: this.sctl_r,
+                                                      fill: this.background_style}));
         
         // direction markers
         svg.appendChild(jade.utils.make_svg('path',{d: "M 4 -8 l -4 -4 l -4 4", 'stroke-width': 3}));  // north
@@ -1384,14 +1368,14 @@ jade_defs.top_level = function(jade) {
         if (sx * sx + sy * sy <= this.sctl_r * this.sctl_r) { // click in scrolling control
             // click on scrolling control, check which quadrant
             if (Math.abs(sy) > Math.abs(sx)) { // N or S
-                delta = this.canvas.height / (8 * this.scale);
+                delta = $(this.canvas).height() / (8 * this.scale);
                 if (sy > 0) delta = -delta;
                 temp = this.origin_y - delta;
                 if (temp > this.origin_min * this.grid && temp < this.origin_max * this.grid)
                     this.origin_y = temp;
             }
             else { // E or W
-                delta = this.canvas.width / (8 * this.scale);
+                delta = $(this.canvas).width() / (8 * this.scale);
                 if (sx < 0) delta = -delta;
                 temp = this.origin_x + delta;
                 if (temp > this.origin_min * this.grid && temp < this.origin_max * this.grid)

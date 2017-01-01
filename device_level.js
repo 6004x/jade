@@ -145,14 +145,18 @@ jade_defs.device_level = function(jade) {
             var label = v.toFixed(2) + 'V';
 
             // first draw some solid blocks in the background
-            diagram.c.globalAlpha = 0.85;
-            this.parent.draw_text(diagram, '\u2588\u2588\u2588', this.offset_x, this.offset_y,
-                                  4, diagram.annotation_font, diagram.background_style);
-            diagram.c.globalAlpha = 1.0;
+            var svg = jade.utils.make_svg('g',{opacity: 0.85});
+            svg.appendChild(this.parent.svg_text(diagram, '\u2588\u2588\u2588',
+                                                 this.offset_x, this.offset_y,
+                                                 4, diagram.annotation_font,
+                                                 diagram.background_style));
+            diagram.svg_selected.appendChild(svg);
 
             // display the node voltage at this connection point
-            this.parent.draw_text(diagram, label, this.offset_x, this.offset_y,
-                                  4, diagram.annotation_font, diagram.annotation_style);
+            svg = this.parent.svg_text(diagram, label, this.offset_x, this.offset_y,
+                                       4, diagram.annotation_font,
+                                       diagram.annotation_style);
+            diagram.svg_selected.appendChild(svg);
 
             // only display each node voltage once
             delete vmap[this.label];
