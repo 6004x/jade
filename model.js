@@ -1001,6 +1001,7 @@ jade_defs.model = function (jade) {
         'black': 'rgb(0,0,0)'
     };
 
+    /*
     Component.prototype.draw_line = function(diagram, x1, y1, x2, y2, width) {
         diagram.c.strokeStyle = this.selected ? diagram.selected_style :
             this.type() == 'wire' ? (diagram.show_grid ? diagram.normal_style : 'rgb(0,0,0)') :
@@ -1011,6 +1012,7 @@ jade_defs.model = function (jade) {
         var ny2 = this.transform_y(x2, y2) + this.coords[1];
         diagram.draw_line(nx1, ny1, nx2, ny2, width || 1);
     };
+     */
 
     Component.prototype.svg_line = function(diagram, x1, y1, x2, y2, width) {
         var strokeStyle = this.selected ? diagram.selected_style :
@@ -1024,6 +1026,7 @@ jade_defs.model = function (jade) {
                                            'stroke-width': width || 1, stroke: strokeStyle});
     };
 
+    /*
     Component.prototype.draw_circle = function(diagram, x, y, radius, filled) {
         if (filled) diagram.c.fillStyle = this.selected ? diagram.selected_style : diagram.normal_style;
         else diagram.c.strokeStyle = this.selected ? diagram.selected_style :
@@ -1034,6 +1037,7 @@ jade_defs.model = function (jade) {
 
         diagram.draw_arc(nx, ny, radius, 0, 2 * Math.PI, false, 1, filled);
     };
+     */
 
     Component.prototype.svg_circle = function(diagram, x, y, radius, filled) {
         var fillStyle = 'none';
@@ -1049,6 +1053,7 @@ jade_defs.model = function (jade) {
                                              fill: fillStyle, stroke: strokeStyle});
     };
     
+    /*
     // draw arc from [x1,y1] to [x2,y2] passing through [x3,y3]
     Component.prototype.draw_arc = function(diagram, x1, y1, x2, y2, x3, y3) {
         diagram.c.strokeStyle = this.selected ? diagram.selected_style : this.type() == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : 'rgb(0,0,0)'));
@@ -1090,6 +1095,7 @@ jade_defs.model = function (jade) {
 
         diagram.draw_arc(cx + x, cy + y, r, start_angle, end_angle, ccw, 1, false);
     };
+     */
 
     // draw arc from [x1,y1] to [x2,y2] passing through [x3,y3]
     Component.prototype.svg_arc = function(diagram, x1, y1, x2, y2, x3, y3) {
@@ -1122,6 +1128,7 @@ jade_defs.model = function (jade) {
 
     var textBaseline = ['top', 'top', 'top', 'middle', 'middle', 'middle', 'bottom', 'bottom', 'bottom'];
 
+    /*
     Component.prototype.draw_text = function(diagram, text, x, y, alignment, font, fill) {
         var a = aOrient[this.coords[2] * 9 + alignment];
         diagram.c.textAlign = textAlign[a];
@@ -1133,6 +1140,7 @@ jade_defs.model = function (jade) {
                           this.transform_y(x, y) + this.coords[1],
                           font);
     };
+     */
 
     Component.prototype.svg_text = function(diagram, text, x, y, alignment, font, fill) {
         var a = aOrient[this.coords[2] * 9 + alignment];
@@ -1146,6 +1154,7 @@ jade_defs.model = function (jade) {
                                    textAlign[a], textBaseline[a], attrs);
     };
 
+    /*
     Component.prototype.draw_text_important = function(diagram, text, x, y, alignment, font, fill) {
         var a = aOrient[this.coords[2] * 9 + alignment];
         diagram.c.textAlign = textAlign[a];
@@ -1176,6 +1185,7 @@ jade_defs.model = function (jade) {
             this.draw_line(diagram,-16,16,-16,-16,1);
         }
     };
+     */
 
     Component.prototype.svg = function(diagram) {
         // see if icon has been defined recently...

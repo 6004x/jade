@@ -297,8 +297,8 @@ jade_defs.schematic_view = function(jade) {
         // draw new wire
         var r = diagram.wire;
         if (r) {
-            diagram.svg_selected.appendChild(jade.utils.make_svg('line',{x1: r[0], y1: r[1], x2: r[2], y2: r[3]}));
-        }
+            return jade.utils.make_svg('line',{x1: r[0], y1: r[1], x2: r[2], y2: r[3]});
+        } else return undefined;
     };
 
     function schematic_down(diagram) {
@@ -565,6 +565,7 @@ jade_defs.schematic_view = function(jade) {
         }
     };
 
+    /*
     Wire.prototype.draw = function(diagram) {
         var dx = this.coords[3];
         var dy = this.coords[4];
@@ -639,6 +640,7 @@ jade_defs.schematic_view = function(jade) {
             }
         }
     };
+     */
 
     Wire.prototype.svg = function(diagram) {
         var svg = jade.utils.make_svg('g');
@@ -838,12 +840,14 @@ jade_defs.schematic_view = function(jade) {
         this.update_coords(); // update bbox
     };
 
+    /*
     Ground.prototype.draw = function(diagram) {
         this.draw_line(diagram,0,0,0,8);
         this.draw_line(diagram,-6,8,6,8);
         this.draw_line(diagram,-6,8,0,14);
         this.draw_line(diagram,6,8,0,14);
     };
+     */
 
     Ground.prototype.svg = function(diagram) {
         var svg = jade.utils.make_svg('g');
@@ -887,11 +891,13 @@ jade_defs.schematic_view = function(jade) {
         this.update_coords(); // update bbox
     };
 
+    /*
     Vdd.prototype.draw = function(diagram) {
         this.draw_line(diagram,0,0,0,-8);
         this.draw_line(diagram,-6,-8,6,-8);
         this.draw_text(diagram,this.properties.global_signal,0,-10,7,diagram.property_font);
     };
+     */
 
     Vdd.prototype.svg = function(diagram) {
         var svg = jade.utils.make_svg('g');
@@ -935,9 +941,11 @@ jade_defs.schematic_view = function(jade) {
         this.update_coords(); // update bbox
     };
 
+    /*
     Jumper.prototype.draw = function(diagram) {
         this.draw_arc(diagram, 0,0, 8,0, 4,-4);  // a "bump" to distinguish jumper from wire
     };
+     */
 
     Jumper.prototype.svg = function(diagram) {
         return this.svg_arc(diagram, 0,0, 8,0, 4,-4);  // a "bump" to distinguish jumper from wire
@@ -975,6 +983,7 @@ jade_defs.schematic_view = function(jade) {
         this.update_coords(); // update bbox
     };
 
+    /*
     Port.prototype.draw = function(diagram) {
         this.draw_line(diagram,0,0,-8,0);
         this.draw_line(diagram,-8,0,-12,-4);
@@ -995,6 +1004,7 @@ jade_defs.schematic_view = function(jade) {
             this.draw_line(diagram,-20,0,-18,2);
         }
     };
+     */
 
     Port.prototype.svg = function(diagram) {
         var svg = jade.utils.make_svg('g');
@@ -1132,6 +1142,7 @@ jade_defs.schematic_view = function(jade) {
         return true;
     };
 
+    /*
     Text.prototype.draw = function(diagram) {
         if (this.selected) {
             // "+" marks the reference point for the property
@@ -1150,6 +1161,7 @@ jade_defs.schematic_view = function(jade) {
 
         c.draw_text(diagram, this.properties.text, this.coords[0], this.coords[1], align, this.properties.font);
     };
+     */
 
     Text.prototype.svg = function(diagram) {
         var svg = jade.utils.make_svg('g');
@@ -1294,6 +1306,7 @@ jade_defs.schematic_view = function(jade) {
         this.rebuild_connections();
     };
 
+    /*
     Memory.prototype.draw = function(diagram) {
         // draw bbox
         var bb = this.bounding_box;
@@ -1331,6 +1344,7 @@ jade_defs.schematic_view = function(jade) {
         var nlocns = 1 << this.properties.naddr;
         this.draw_text(diagram,nlocns.toString()+"\u00D7"+this.properties.ndata,36,-16,1,diagram.property_font);
     };
+     */
 
     Memory.prototype.svg = function(diagram) {
         var svg = jade.utils.make_svg('g');

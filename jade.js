@@ -1139,14 +1139,16 @@ jade_defs.top_level = function(jade) {
         });
 
         // connection points: draw one at each location
+        var s;
         for (var location in this.aspect.connection_points) {
             var cplist = this.aspect.connection_points[location];
-            var s = cplist[0].svg(this, cplist.length);
+            s = cplist[0].svg(this, cplist.length);
             if (s) this.svg_selected.appendChild(s);
         }
 
         // draw editor-specific dodads, enable appropriate tools
-        this.editor.redraw(this);
+        s = this.editor.redraw(this);
+        if (s) this.svg_selected.appendChild(s);
 
         // draw selection rectangle
         if (this.select_rect) {
@@ -1199,6 +1201,7 @@ jade_defs.top_level = function(jade) {
         return svg;
     };
 
+    /*
     Diagram.prototype.moveTo = function(x, y) {
         var xx = Math.floor((x - this.origin_x) * this.scale);
         var yy = Math.floor((y - this.origin_y) * this.scale);
@@ -1267,6 +1270,13 @@ jade_defs.top_level = function(jade) {
     Diagram.prototype.draw_text_important = function(text, x, y, font) {
         this.draw_text(text, x, y, font);
     };
+     */
+
+    ///////////////////////////////////////////////////////////////////////////////
+    //
+    //  Event handling
+    //
+    ////////////////////////////////////////////////////////////////////////////////
 
     // convert event coordinates into
     //   mouse_x,mouse_y = coords relative to upper left of canvas
@@ -1281,12 +1291,6 @@ jade_defs.top_level = function(jade) {
         this.cursor_x = this.on_grid(this.aspect_x);
         this.cursor_y = this.on_grid(this.aspect_y);
     };
-
-    ///////////////////////////////////////////////////////////////////////////////
-    //
-    //  Event handling
-    //
-    ////////////////////////////////////////////////////////////////////////////////
 
     // process keystrokes, consuming those that are meaningful to us
     Diagram.prototype.key_down = function(event) {

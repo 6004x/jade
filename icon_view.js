@@ -153,18 +153,22 @@ jade_defs.icon_view = function(jade) {
         // draw our own grid-quantized cursor
         var editor = diagram.editor;
         if (editor.mode != 'select') {
-            // "X" marks the spot
             var x = diagram.cursor_x;
             var y = diagram.cursor_y;
-            diagram.c.strokeStyle = diagram.normal_style;
-            diagram.draw_line(x - 2, y - 2, x + 2, y + 2, 0.1);
-            diagram.draw_line(x + 2, y - 2, x - 2, y + 2, 0.1);
+            var svg = jade.utils.make_svg('g',{
+                transform: 'translate('+x.toString()+' '+y.toString()+')',
+                'stroke-width': 0.2,
+                stroke: diagram.normal_style
+            });
 
-            diagram.c.textAlign = 'left';
-            diagram.c.textBaseline = 'middle';
-            diagram.c.fillStyle = diagram.normal_style;
-            diagram.draw_text(editor.mode, x + 4, y, diagram.property_font);
-        }
+            // "X" marks the spot
+            svg.appendChild(jade.utils.make_svg('path',{d: "M -2 -2 l 4 4 m -4 0 l 4 -4"}));
+            svg.appendChild(jade.utils.svg_text(editor.mode,4,0,'left','middle',{
+                style: 'font: ' + diagram.property_font,
+                fill: diagram.normal_style
+            }));
+            return svg;
+        } else return undefined;
     };
 
     var icon_prompts = {
@@ -440,6 +444,7 @@ jade_defs.icon_view = function(jade) {
         return true;
     };
 
+    /*
     Line.prototype.draw = function(diagram) {
         var dx = this.coords[3];
         var dy = this.coords[4];
@@ -453,6 +458,7 @@ jade_defs.icon_view = function(jade) {
 
         c.draw_line(diagram, this.coords[0], this.coords[1], x2, y2);
     };
+     */
 
     Line.prototype.svg = function(diagram) {
         var dx = this.coords[3];
@@ -561,6 +567,7 @@ jade_defs.icon_view = function(jade) {
         return true;
     };
 
+    /*
     // draw circle segment from coords[0,1] to coords[3,4] that passes through coords[5,6]
     Arc.prototype.draw = function(diagram) {
         var x3, y3;
@@ -592,6 +599,7 @@ jade_defs.icon_view = function(jade) {
 
         c.draw_arc(diagram, this.coords[0], this.coords[1], x2, y2, x3, y3);
     };
+     */
 
     // draw circle segment from coords[0,1] to coords[3,4] that passes through coords[5,6]
     Arc.prototype.svg = function(diagram) {
@@ -669,6 +677,7 @@ jade_defs.icon_view = function(jade) {
         return true;
     };
 
+    /*
     Circle.prototype.draw = function(diagram) {
         this.draw_circle(diagram, 0, 0, this.coords[3], false);
     };
@@ -676,6 +685,7 @@ jade_defs.icon_view = function(jade) {
     Circle.prototype.draw_icon = function(c, diagram) {
         c.draw_circle(diagram, this.coords[0], this.coords[1], this.coords[3], false);
     };
+     */
 
     Circle.prototype.svg = function(diagram) {
         this.svg_circle(diagram, 0, 0, this.coords[3], false);
@@ -731,6 +741,7 @@ jade_defs.icon_view = function(jade) {
         return true;
     };
 
+    /*
     Property.prototype.draw = function(diagram) {
         if (this.selected) {
             // "+" marks the reference point for the property
@@ -741,6 +752,7 @@ jade_defs.icon_view = function(jade) {
         var align =  jade.schematic_view.text_alignments.indexOf(this.properties.align);
         this.draw_text(diagram, this.properties.format || '-no format-', 0, 0, align, diagram.property_font);
     };
+     */
 
     function prop_string(c,s) {
         // name property is special
@@ -773,6 +785,7 @@ jade_defs.icon_view = function(jade) {
         return svg;
     };
 
+    /*
     Property.prototype.draw_icon = function(c, diagram) {
         var s = prop_string(c,this.properties.format || '-no format-');
         if (s === undefined) return;
@@ -783,6 +796,7 @@ jade_defs.icon_view = function(jade) {
 
         c.draw_text(diagram, s, this.coords[0], this.coords[1], align, diagram.property_font);
     };
+     */
 
     Property.prototype.svg_icon = function(c,diagram) {
         var s = prop_string(c,this.properties.format || '-no format-');
@@ -849,6 +863,7 @@ jade_defs.icon_view = function(jade) {
         return true;
     };
 
+    /*
     Terminal.prototype.draw = function(diagram) {
         this.draw_circle(diagram, 0, 0, jade.model.connection_point_radius, false);
         if (this.properties.line != 'no') this.draw_line(diagram, 0, 0, 8, 0);
@@ -865,6 +880,7 @@ jade_defs.icon_view = function(jade) {
             c.draw_line(diagram, x1, y1, x2, y2);
         }
     };
+     */
 
     Terminal.prototype.svg = function(diagram) {
         var svg = jade.utils.make_svg('g');

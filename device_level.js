@@ -172,7 +172,8 @@ jade_defs.device_level = function(jade) {
             var v = vmap[label];
             if (v !== undefined) {
                 var i = jade.utils.engineering_notation(v, 2) + 'A';
-                this.draw_text(diagram, i, 8, 5, 1, diagram.annotation_font, diagram.annotation_style);
+                var svg = this.svg_text(diagram, i, 8, 5, 1, diagram.annotation_font, diagram.annotation_style);
+                diagram.svg_selected.appendChild(svg);
 
                 // only display each current once
                 delete vmap[label];
