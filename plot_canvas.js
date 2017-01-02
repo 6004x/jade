@@ -190,13 +190,8 @@ jade_defs.plot = function(jade) {
             dataset.ymax = ymax;
 
             // set up canvas for DOM, also one for background image
-            dataset.canvas = $('<div class="plot-canvas"><svg></svg></div>');
+            dataset.canvas = $('<canvas class="plot-canvas"></canvas>');
             dataset.canvas[0].plot_dataset = dataset;  // for event processing
-            dataset.svg = dataset.canvas[0].children.item(0);
-            dataset.svg_waveform = jade.utils.make_svg('g');
-            dataset.svg.appendChild(dataset.svg_waveform);
-            dataset.svg_cursor = jade.utils.make_svg('g');
-            dataset.svg.appendChild(dataset.svg_cursor);
 
             // handle click in close box
             dataset.canvas.on('click',function (event) {
@@ -297,7 +292,6 @@ jade_defs.plot = function(jade) {
                 }
             });
 
-            /*
             dataset.bg_image = $('<canvas></canvas>');
 
             // handle retina devices properly
@@ -310,9 +304,8 @@ jade_defs.plot = function(jade) {
                     context.backingStorePixelRatio || 1;
             dataset.pixelRatio = devicePixelRatio / backingStoreRatio;
 
-            //dataset.canvas.insertBefore(container.find('.plot-scrollbar-wrapper'));
-             */
             waveforms.append(dataset.canvas);
+            //dataset.canvas.insertBefore(container.find('.plot-scrollbar-wrapper'));
 
         }
 
@@ -407,6 +400,14 @@ jade_defs.plot = function(jade) {
         $.each(dataseries,function (index,dataset) {
             dataset.canvas.width(w);
             dataset.canvas.height(plot_h);
+            dataset.canvas[0].width = w*dataset.pixelRatio;
+            dataset.canvas[0].height = plot_h*dataset.pixelRatio;
+            // after changing dimension, have to reset context 
+            dataset.canvas[0].getContext('2d').scale(dataset.pixelRatio,dataset.pixelRatio);
+
+            dataset.bg_image[0].width = w*dataset.pixelRatio;
+            dataset.bg_image[0].height = plot_h*dataset.pixelRatio;
+            dataset.bg_image[0].getContext('2d').scale(dataset.pixelRatio,dataset.pixelRatio);
 
             if (dataset.ylabel !== undefined) left_margin = 70.5;
             if (dataset.xlabel !== undefined) bottom_margin = 35.5;
@@ -436,7 +437,6 @@ jade_defs.plot = function(jade) {
             dataset.top = top_margin;
             dataset.wplot = wplot;
             dataset.hplot = hplot;
-            dataset.max_x = left_margin + wplot;
 
             // draw the plot
             dataset_plot(dataset);
@@ -460,7 +460,7 @@ jade_defs.plot = function(jade) {
         }
     }
 
-    // redraw the plot for a particular dataset
+    // redraw the plot for a particular dataset by filling in background image
     function dataset_plot(dataset) {
         var xstart = dataset.dataseries.xstart;
         var xend = dataset.dataseries.xend;
@@ -468,70 +468,67 @@ jade_defs.plot = function(jade) {
         // compute info for drawing grids -- shoot for a grid line every 100 pixels
         var xtick = tick_interval(xstart,xend,dataset.wplot/100);
         xtick.push(xend);  // when to stop drawing x grid
-        var ytick = tick_interval(dataset.ymin,dataset.ymax,dataset.hplot/100);
         var tick_length = 5;
 
         // start by painting an opaque background for the plot itself
-        $(dataset.svg_waveform).empty();
+        var c = dataset.bg_image[0].getContext('2d');
 
-        var msvg = jade.utils.make_svg;
-        var mtxt = jade.utils.svg_text;
-        function wadd(tag,attrs) {
-            dataset.svg_waveform.appendChild(msvg(tag,attrs));
-        }
+        c.clearRect(0, 0, dataset.bg_image[0].width, dataset.bg_image[0].height);
 
-        wadd('rect',{x: dataset.left, y:dataset.top, width: dataset.wplot, height: dataset.hplot,
-                     fill: element_style});
-
-        // for grid and labels
-        var svg = jade.utils.make_svg('g',{
-            stroke: grid_style,
-            fill: normal_style,
-            style: 'font: ' + graph_font
-        });
-        dataset.svg_waveform.appendChild(svg);
+        c.fillStyle = element_style;
+        c.fillRect(dataset.left, dataset.top, dataset.wplot, dataset.hplot);
 
         // draw xgrid and tick labels
-        var t,temp,t2;
+        c.strokeStyle = grid_style;
+        c.fillStyle = normal_style;
+        c.font = graph_font;
+        c.textAlign = 'center';
+        c.textBaseline = 'top';
+        var t,temp;
         var xunits = dataset.xunits || '';
         for (t = xtick[0]; t < xtick[2]; t += xtick[1]) {
             temp = Math.floor(dataset.plotx(t)) + 0.5;
-            t2 = dataset.top + dataset.hplot;
-            svg.appendChild(msvg('line',{x1:temp, y1: dataset.top, x2: temp, y2: t2}));
-            svg.appendChild(mtxt(jade.utils.engineering_notation(t, 2)+xunits,temp, t2,
-                                'center','top'));
+
+            c.beginPath();
+            c.moveTo(temp,dataset.top); c.lineTo(temp,dataset.top + dataset.hplot);
+            c.stroke();
+            c.fillText(jade.utils.engineering_notation(t, 2)+xunits, temp, dataset.top + dataset.hplot);
         }
 
+        var ytick = tick_interval(dataset.ymin,dataset.ymax,dataset.hplot/100);
         // draw ygrid and tick labels
-        var yunits = dataset.yunits || '';
+        c.textAlign = 'right';
+        c.textBaseline = 'middle';
         for (t = ytick[0]; t < dataset.ymax; t += ytick[1]) {
             temp = Math.floor(dataset.ploty(t)) + 0.5;
-            t2 = dataset.left + dataset.wplot;
-            svg.appendChild(msvg('line',{x1: dataset.left, y1: temp, x2: t2, y2: temp}));
-            svg.appendChild(mtxt(jade.utils.engineering_notation(t, 2)+yunits,dataset.left-2,temp,
-                                'right','middle'));
+            
+            c.beginPath();
+            c.moveTo(dataset.left,temp); c.lineTo(dataset.left + dataset.wplot,temp);
+            c.stroke();
+            c.fillText(jade.utils.engineering_notation(t, 2)+dataset.yunits,dataset.left-2,temp);
         }
 
         // draw axis labels
+        c.font = graph_legend_font;
         if (dataset.xlabel) {
-            svg.appendChild(mtxt(dataset.xlabel,dataset.left + dataset.wplot/2, dataset.bg_image[0].height-5,
-                                 'center','bottom',{style: 'font: ' + graph_legend_font}));
+            c.textAlign = 'center';
+            c.textBaseline = 'bottom';
+            c.fillText(dataset.xlabel, dataset.left + dataset.wplot/2, dataset.bg_image[0].height-5);
         }
         if (dataset.ylabel) {
-            temp = dataset.top + dataset.hplot/2,
-            svg.appendChild(mtxt(dataset.ylabel,10,temp,'middle','bottom',{
-                transform: 'rotate(90 10 '+temp.toString()+')',
-                style: 'font: ' + graph_legend_font
-            }));
+            c.save();
+            c.textAlign = 'center';
+            c.textBaseline = 'top';
+            c.translate(10, dataset.top + dataset.hplot/2);
+            c.rotate(-Math.PI / 2);
+            c.fillText(dataset.ylabel, 0, 0);
+            c.restore();
         }
 
-        // for waveforms
-        svg = jade.utils.make_svg('g',{
-            'stroke-width': 2,
-            'clip': make_clip(dataset.left,dataset.top,dataset.wplot,dataset.hplot)
-        });
-        dataset.svg_waveform.appendChild(svg);
-
+        c.save();
+        c.beginPath();
+        c.rect(dataset.left,dataset.top,dataset.wplot,dataset.hplot);
+        c.clip();   // clip waveform plot to waveform region of canvas
         // we need a separate plot for each node in the dataset
         for (var dindex = 0; dindex < dataset.xvalues.length; dindex += 1) {
             var xvalues = dataset.xvalues[dindex];
@@ -540,24 +537,34 @@ jade_defs.plot = function(jade) {
             var xv = xvalues[i];
             var x,y,y0,y1;
 
-            var color = dataset.color[dindex] || '#268bd2';
-            var nx,ny;
+            c.strokeStyle = dataset.color[dindex] || '#268bd2';
+            c.fillStyle = c.strokeStyle;
+            c.lineWidth = 2;
+
             if (dataset.type[dindex] == 'analog') {
                 // plot the analog waveform
                 x = dataset.plotx(xv);
                 y = dataset.ploty(yvalues[i]);
+                c.beginPath();
+                c.moveTo(x, y);
                 while (xv <= xend) {
                     i += 1;
                     if (i > xvalues.length) break;
                     xv = xvalues[i];
                     if (xv === undefined) break;
-                    nx = dataset.plotx(xv);
-                    ny = dataset.ploty(yvalues[i]);
-                    svg.appendChild(msvg('line',{x1:x, y1:y, x2: nx, y2: ny,
-                                                 stroke: color}));
+                    var nx = dataset.plotx(xv);
+                    var ny = dataset.ploty(yvalues[i]);
+                    c.lineTo(nx, ny);
                     x = nx;
                     y = ny;
+                    if (i % 100 == 99) {
+                        // too many lineTo's cause canvas to break
+                        c.stroke();
+                        c.beginPath();
+                        c.moveTo(x, y);
+                    }
                 }
+                c.stroke();
             } else if (dataset.type[dindex] == 'digital') {
                 // plot the digital waveform
                 y0 = dataset.ploty(0);
@@ -566,27 +573,35 @@ jade_defs.plot = function(jade) {
 
                 x = dataset.plotx(xv);
                 y = yvalues[i];
+                c.beginPath();
                 while (xv <= xend) {
                     i += 1;
                     if (i > xvalues.length) break;
                     xv = xvalues[i];
                     if (xv === undefined) break;
-                    nx = dataset.plotx(xv);
-
-                    if (x < dataset.left) x = dataset.left;
-                    if (nx > dataset.max_x) nx = dataset.max_x;  // poor-man's clipping
+                    var nx = dataset.plotx(xv);
 
                     if (y != 2) {   // 0, 1, Z values are lines
                         y = (y==0) ? y0 : ((y==1) ? y1 : yz);
-                        svg.appendChild(msvg('line',{x1:x, y1: y, x2:nx, y2: y, stroke: color}));
+                        c.moveTo(x,y);
+                        c.lineTo(nx,y);
                     } else {        // X values are filled rectangles
-                        svg.appendChild(msvg('rect',{x:x, y: y1, width:nx-x, height: y0-y1,
-                                                     stroke: color, fill: color}));
+                        c.rect(x,y0,nx-x,y1-y0);
                     }
 
                     x = nx;
                     y = yvalues[i];
+                    if (i % 100 == 99) {
+                        // too many lineTo's cause canvas to break
+                        c.stroke();
+                        c.fill();
+                        c.beginPath();
+                    }
                 }
+
+                // draw any remaining path
+                c.stroke();
+                c.fill();
             } else if (dataset.type[dindex] == 'string') {
                 // like digital except that value is a string
                 y0 = dataset.ploty(0);
@@ -594,7 +609,10 @@ jade_defs.plot = function(jade) {
                 var ylabel = (y0 + y1)/2;
                 var w;
 
-                var style = 'font: ' + value_font;
+                c.font = value_font;
+                c.lineWidth = 1;
+                c.textAlign = 'center';
+                c.textBaseline = 'middle';
 
                 x = dataset.plotx(xv);
                 y = yvalues[i];
@@ -603,33 +621,23 @@ jade_defs.plot = function(jade) {
                     if (i > xvalues.length) break;  // past end of data...
                     xv = xvalues[i];
                     if (xv === undefined) break;
-                    nx = dataset.plotx(xv);
-
-                    if (x < dataset.left) x = dataset.left;
-                    if (nx > dataset.max_x) nx = dataset.max_x;  // poor-man's clipping
+                    var nx = dataset.plotx(xv);
 
                     if (typeof y == 'number') {  // indicates a Z value
-                        svg.append(msvg('line',{x1:x, y1:ylabel, x2:nx, y2:ylabel,
-                                                stroke: color,
-                                                'stroke-width':1}));
+                        c.beginPath();
+                        c.moveTo(x,ylabel);
+                        c.lineTo(nx,ylabel);
+                        c.stroke();
                     } else {
-                        svg.append(msvg('rect',{x:x, y:y1, width:nx-x, height:y0-y1,
-                                                stroke: color,
-                                                'stroke-width':1,
-                                                fill: (y === undefined) ? (dataset.color[dindex] || '#268bd2') : 'none'
-                                               }));
-                        if (y !== undefined) {
+                        c.strokeRect(x,y0,nx-x,y1-y0);
+                        if (y === undefined) c.fillRect(x,y0,nx-x,y1-y0);
+                        else {
+                            // fill in value label if it fits
+                            w = c.measureText(y).width;
                             // center in visible portion of waveform
-                            var x0 = x; //Math.max(dataset.left,x);
-                            var x1 = nx; //Math.min(dataset.max_x,nx);
-                            // rough check to see if label fits...
-                            if (x1-x0 > 6*y.length) {
-                                svg.append(mtxt(y,(x0+x1)/2,ylabel,'center','middle',{
-                                    style: style,
-                                    'clip': make_clip(x0,y0,x1-x0,y0-y1),
-                                    fill: color
-                                }));
-                            }
+                            var x0 = Math.max(dataset.left,x);
+                            var x1 = Math.min(dataset.left + dataset.wplot,nx);
+                            if (w < x1 - x0) c.fillText(y,(x0 + x1)/2,ylabel);
                         }
                     }
 
@@ -638,8 +646,8 @@ jade_defs.plot = function(jade) {
                 }
             }
         }
+        c.restore();
 
-        /*
         // add plot border last so it's on top
         c.lineWidth = 1;
         c.strokeStyle = normal_style;
@@ -678,7 +686,6 @@ jade_defs.plot = function(jade) {
             dataset.legend_top.push(top);
             top += 15;
         }
-         */
     }
 
     function graph_redraw(dataseries) {
@@ -686,7 +693,6 @@ jade_defs.plot = function(jade) {
 
         // redraw each plot with cursor overlay
         $.each(dataseries,function(index,dataset) {
-            /*
             var c = dataset.canvas[0].getContext('2d');
             c.clearRect(0, 0, dataset.canvas.width(), dataset.canvas.height());
             c.drawImage(dataset.bg_image[0], 0, 0, dataset.canvas.width(), dataset.canvas.height());
@@ -784,7 +790,6 @@ jade_defs.plot = function(jade) {
                     }
                 }
             }
-             */
         });
     }
 
@@ -803,13 +808,6 @@ jade_defs.plot = function(jade) {
             else end = index - 1;
         }
         return start;
-    }
-
-    // build css clip specification
-    function make_clip(x,y,w,h) {
-        // top, right, bottom, left
-        return 'rect(' + y.toString() + ' ' + (x+w).toString() + ' ' +
-             (y+h).toString() + ' ' + x.toString() + ')';
     }
 
     var zoom_icon = 'data:image/gif;base64,R0lGODlhEAAQAMT/AAAAAP///zAwYT09bpGRqZ6et5iYsKWlvbi40MzM5cXF3czM5OHh5tTU2fDw84uMom49DbWKcfLy8g0NDcDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABQALAAAAAAQABAAAAVZICWOZFlOwCQF5pg2TDMJbDs1DqI8g2TjOsSC0DMBGEGF4UAz3RQ6wiFRLEkmj8WyUC0FBAMpNdWiBCQD8DWCKq98lEkEAiiTAJB53S7Cz/kuECuAIzWEJCEAIf5PQ29weXJpZ2h0IDIwMDAgYnkgU3VuIE1pY3Jvc3lzdGVtcywgSW5jLiBBbGwgUmlnaHRzIFJlc2VydmVkLg0KSkxGIEdSIFZlciAxLjANCgA7';

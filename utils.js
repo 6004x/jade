@@ -736,8 +736,10 @@ jade_defs.utils = function (jade) {
         attrs.x = x;
         attrs.y = y;
         attrs.stroke = 'none';
-        attrs['text-anchor'] = {left: 'start', center: 'middle', right: 'end'}[horizontal];
-        attrs.dy = {top: '0.9em', middle: '0.4em', bottom: '-0.1em'}[vertical];
+        if (horizontal)
+            attrs['text-anchor'] = {left: 'start', center: 'middle', right: 'end'}[horizontal];
+        if (vertical)
+            attrs.dy = {top: '0.9em', middle: '0.4em', bottom: '-0.1em'}[vertical];
 
         var svg = make_svg('text',attrs);
         svg.textContent = s;
