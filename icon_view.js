@@ -677,16 +677,6 @@ jade_defs.icon_view = function(jade) {
         return true;
     };
 
-    /*
-    Circle.prototype.draw = function(diagram) {
-        this.draw_circle(diagram, 0, 0, this.coords[3], false);
-    };
-
-    Circle.prototype.draw_icon = function(c, diagram) {
-        c.draw_circle(diagram, this.coords[0], this.coords[1], this.coords[3], false);
-    };
-     */
-
     Circle.prototype.svg = function(diagram) {
         this.svg_circle(diagram, 0, 0, this.coords[3], false);
     };
@@ -741,19 +731,6 @@ jade_defs.icon_view = function(jade) {
         return true;
     };
 
-    /*
-    Property.prototype.draw = function(diagram) {
-        if (this.selected) {
-            // "+" marks the reference point for the property
-            this.draw_line(diagram, - 1, 0, 1, 0);
-            this.draw_line(diagram, 0, - 1, 0, 1);
-        }
-
-        var align =  jade.schematic_view.text_alignments.indexOf(this.properties.align);
-        this.draw_text(diagram, this.properties.format || '-no format-', 0, 0, align, diagram.property_font);
-    };
-     */
-
     function prop_string(c,s) {
         // name property is special
         if (/\{name\}/.test(s)) {
@@ -784,19 +761,6 @@ jade_defs.icon_view = function(jade) {
                                       0, 0, align, diagram.property_font));
         return svg;
     };
-
-    /*
-    Property.prototype.draw_icon = function(c, diagram) {
-        var s = prop_string(c,this.properties.format || '-no format-');
-        if (s === undefined) return;
-
-        // need to adjust alignment accounting for our rotation
-        var align =  jade.schematic_view.text_alignments.indexOf(this.properties.align);
-        align = jade.model.aOrient[this.coords[2] * 9 + align];
-
-        c.draw_text(diagram, s, this.coords[0], this.coords[1], align, diagram.property_font);
-    };
-     */
 
     Property.prototype.svg_icon = function(c,diagram) {
         var s = prop_string(c,this.properties.format || '-no format-');
@@ -862,25 +826,6 @@ jade_defs.icon_view = function(jade) {
         // nothing to do
         return true;
     };
-
-    /*
-    Terminal.prototype.draw = function(diagram) {
-        this.draw_circle(diagram, 0, 0, jade.model.connection_point_radius, false);
-        if (this.properties.line != 'no') this.draw_line(diagram, 0, 0, 8, 0);
-        this.draw_text(diagram, this.properties.name, jade.model.connection_point_radius - 4, 0, 5, diagram.property_font);
-    };
-
-    Terminal.prototype.draw_icon = function(c, diagram) {
-        if (this.properties.line != 'no') {
-            var x1 = this.coords[0];
-            var y1 = this.coords[1];
-            var x2 = this.transform_x(8, 0) + this.coords[0];
-            var y2 = this.transform_y(8, 0) + this.coords[1];
-
-            c.draw_line(diagram, x1, y1, x2, y2);
-        }
-    };
-     */
 
     Terminal.prototype.svg = function(diagram) {
         var svg = jade.utils.make_svg('g');

@@ -327,31 +327,6 @@ jade_defs.top_level = function(jade) {
         }
     };
 
-    /*
-    Jade.prototype.load_library = function(json) {
-        if (this.id === undefined) return;
-
-        // create a library for this particular instance, initialize from div body
-        json = $.trim(json);
-        if (json.length == 0) json = '{}';
-
-        // replace an existing library with the one we're loading!
-        // prevent load from marking state as dirty
-        new Library(this.id,JSON.parse(json));
-
-        // update current module to the one in the new library!
-        if (this.module)
-            this.module = find_module(this.module.get_name());
-
-        this.refresh();   // update all the editors since library changed
-    };
-
-    Jade.prototype.save_library = function() {
-        if (this.id === undefined || libraries[this.id] === undefined) return '{}';
-        return JSON.stringify(libraries[this.id].json());
-    };
-     */
-
     Jade.prototype.edit = function(module) {
         if (typeof module == 'string') module = jade.model.find_module(module);
         this.module = module;
@@ -639,71 +614,6 @@ jade_defs.top_level = function(jade) {
                $('<span>Click OK to discard all work on this problem and start over again.</span>'),
                restart,offset);
     }
-
-    /*
-    function copy_library(diagram) {
-        var j = diagram.editor.jade;
-        var offset = j.settings.offset();
-        j.settings.toggle();   // all done with settings pop-up
-        
-        var content = $('<div style="margin:10px;"><div id="msg" style="display:none;color:red;margin-bottom:10px;"></div></div>');
-        content.append('New library name:');
-        var input = build_input('text',10,'library');
-        $(input).css('vertical-align','middle');
-        content.append(input);
-
-        function copy() {
-            var lib = $(input).val();
-
-            function try_again(msg) {
-                $('#msg',content).text(msg);
-                $('#msg',content).show();
-                dialog('Copy Library',content,copy,offset);
-            }
-
-            // load/make the requested library
-            lib = jade.model.load_library(lib);
-
-            if (Object.keys(lib.modules).length != 0 || lib.read_only) {
-                try_again('Library already exists: '+lib.name);
-                return;
-            }
-
-            // grab json representation of current library
-            var module = diagram.aspect.module;
-            var json = module.library.json();
-
-            // update instances of lib's modules to instances
-            // of the module in the new library.
-            // iterate through each module in library
-            var cur_lib_name = module.library.name;
-            var new_lib_name = lib.name;
-            $.each(json,function (mname,mod) {
-                if (mod.schematic) {
-                    // iterate through each schematic component
-                    $.each(mod.schematic,function (index,component) {
-                        // if component is an instance of a module in the current
-                        // library, update it to be an instance of the same
-                        // module in the new library
-                        var type = component[0].split(':');
-                        if (type.length == 2 && type[0] == cur_lib_name)
-                            component[0] = new_lib_name + ':' + type[1];
-                    });
-                }
-            });
-
-            // now load updated json into new library
-            lib.load(json);
-            jade.save_to_server(lib);   // save new library to server
-
-            // find current module in new library and edit that!
-            module = lib.module(module.name);
-            j.edit(module.get_name());
-        }
-
-        dialog('Copy Library',content,copy,offset);
-    }
-     */
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -1200,77 +1110,6 @@ jade_defs.top_level = function(jade) {
 
         return svg;
     };
-
-    /*
-    Diagram.prototype.moveTo = function(x, y) {
-        var xx = Math.floor((x - this.origin_x) * this.scale);
-        var yy = Math.floor((y - this.origin_y) * this.scale);
-        if ((this.c.lineWidth & 1) == 1) {
-            // odd line width, offset to avoid fuzziness
-            xx += 0.5;
-            yy += 0.5;
-        }
-        this.c.moveTo(xx,yy);
-    };
-
-    Diagram.prototype.lineTo = function(x, y) {
-        var xx = Math.floor((x - this.origin_x) * this.scale);
-        var yy = Math.floor((y - this.origin_y) * this.scale);
-        if ((this.c.lineWidth & 1) == 1) {
-            // odd line width, offset to avoid fuzziness
-            xx += 0.5;
-            yy += 0.5;
-        }
-        this.c.lineTo(xx,yy);
-    };
-
-    Diagram.prototype.line_width = function(width) {
-        // integer line widths help us avoid the horrors of antialiasing on H and V lines
-        return Math.max(1,Math.floor(width * this.scale));
-    };
-
-    Diagram.prototype.draw_line = function(x1, y1, x2, y2, width) {
-        var c = this.c;
-        c.lineWidth = this.line_width(width);
-        c.beginPath();
-        this.moveTo(x1,y1);
-        this.lineTo(x2,y2);
-        c.stroke();
-    };
-
-    Diagram.prototype.draw_arc = function(x, y, radius, start_radians, end_radians, anticlockwise, width, filled) {
-        var c = this.c;
-        c.lineWidth = this.line_width(width);
-        c.beginPath();
-        var xx = Math.floor((x - this.origin_x) * this.scale);
-        var yy = Math.floor((y - this.origin_y) * this.scale);
-        if ((this.c.lineWidth & 1) == 1) {
-            // odd line width, offset to avoid fuzziness => match lines
-            xx += 0.5;
-            yy += 0.5;
-        }
-        c.arc(xx, yy, radius * this.scale, start_radians, end_radians, anticlockwise);
-        if (filled) c.fill();
-        else c.stroke();
-    };
-
-    Diagram.prototype.draw_text = function(text, x, y, font) {
-        var c = this.c;
-
-        // scale font size appropriately
-        var s = font.match(/\d+/)[0];
-        s = Math.max(2, Math.round(s * this.scale));
-        c.font = font.replace(/\d+/, s.toString());
-
-        var xx = Math.floor((x - this.origin_x) * this.scale);
-        var yy = Math.floor((y - this.origin_y) * this.scale);
-        c.fillText(text, xx, yy);
-    };
-
-    Diagram.prototype.draw_text_important = function(text, x, y, font) {
-        this.draw_text(text, x, y, font);
-    };
-     */
 
     ///////////////////////////////////////////////////////////////////////////////
     //
