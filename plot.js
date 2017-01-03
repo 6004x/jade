@@ -476,11 +476,13 @@ jade_defs.plot = function(jade) {
 
         var msvg = jade.utils.make_svg;
         var mtxt = jade.utils.svg_text;
-        function wadd(tag,attrs) {
-            dataset.svg_waveform.appendChild(msvg(tag,attrs));
+
+        function wadd(tag,attr) {
+            dataset.svg_waveform.appendChild(msvg(tag,attr));
         }
 
-        wadd('rect',{x: dataset.left, y:dataset.top, width: dataset.wplot, height: dataset.hplot,
+        wadd('rect',{x: dataset.left, y:dataset.top,
+                     width: dataset.wplot, height: dataset.hplot,
                      fill: element_style});
 
         // for grid and labels
@@ -528,7 +530,7 @@ jade_defs.plot = function(jade) {
         // for waveforms
         svg = jade.utils.make_svg('g',{
             'stroke-width': 2,
-            'clip': make_clip(dataset.left,dataset.top,dataset.wplot,dataset.hplot)
+            'style': 'clip: ' + make_clip(dataset.left,dataset.top,dataset.wplot,dataset.hplot)
         });
         dataset.svg_waveform.appendChild(svg);
 
@@ -573,8 +575,9 @@ jade_defs.plot = function(jade) {
                     if (xv === undefined) break;
                     nx = dataset.plotx(xv);
 
+                    // can't get clip: to work???
                     if (x < dataset.left) x = dataset.left;
-                    if (nx > dataset.max_x) nx = dataset.max_x;  // poor-man's clipping
+                    if (nx > dataset.max_x) nx = dataset.max_x;
 
                     if (y != 2) {   // 0, 1, Z values are lines
                         y = (y==0) ? y0 : ((y==1) ? y1 : yz);
@@ -598,12 +601,14 @@ jade_defs.plot = function(jade) {
 
                 x = dataset.plotx(xv);
                 y = yvalues[i];
+                var xcenter;
                 while (xv <= xend) {  // stop at end of plot window
                     i += 1;
                     if (i > xvalues.length) break;  // past end of data...
                     xv = xvalues[i];
                     if (xv === undefined) break;
                     nx = dataset.plotx(xv);
+                    xcenter = (nx + x)/2;
 
                     if (x < dataset.left) x = dataset.left;
                     if (nx > dataset.max_x) nx = dataset.max_x;  // poor-man's clipping
@@ -616,14 +621,14 @@ jade_defs.plot = function(jade) {
                         svg.append(msvg('rect',{x:x, y:y1, width:nx-x, height:y0-y1,
                                                 stroke: color,
                                                 'stroke-width':1,
-                                                fill: (y === undefined) ? (dataset.color[dindex] || '#268bd2') : 'none'
+                                                fill: (y === undefined) ? color : 'none'
                                                }));
                         if (y !== undefined) {
                             // center in visible portion of waveform
                             var x0 = x; //Math.max(dataset.left,x);
                             var x1 = nx; //Math.min(dataset.max_x,nx);
                             // rough check to see if label fits...
-                            if (x1-x0 > 6*y.length) {
+                            if (xcenter > x && xcenter < nx && x1-x0 > 6*y.length) {
                                 svg.append(mtxt(y,(x0+x1)/2,ylabel,'center','middle',{
                                     style: style,
                                     'clip': make_clip(x0,y0,x1-x0,y0-y1),
@@ -639,18 +644,12 @@ jade_defs.plot = function(jade) {
             }
         }
 
-        /*
-        // add plot border last so it's on top
-        c.lineWidth = 1;
-        c.strokeStyle = normal_style;
-        c.strokeRect(dataset.left, dataset.top, dataset.wplot, dataset.hplot);
+        wadd('rect',{x: dataset.left, y:dataset.top,
+                     width: dataset.wplot, height: dataset.hplot,
+                     fill: 'none', stroke: normal_style});
 
-        // add close box
-        c.strokeRect(5.5,5.5,10,10);
-        c.beginPath();
-        c.moveTo(7.5,7.5); c.lineTo(13.5,13.5);
-        c.moveTo(13.5,7.5); c.lineTo(7.5,13.5);
-        c.stroke();
+        wadd('path',{d: "M 5.5 5.5 l 10 0 l 0 10 l -10 0 l 0 -10 l 10 10 m -10 0 l 10 -10",
+                     fill: 'none', stroke: normal_style});
 
         // add legend: translucent background with 5px padding, 10x10 color key, signal label
         var left = dataset.left;
@@ -658,27 +657,25 @@ jade_defs.plot = function(jade) {
         dataset.legend_right = [];
         dataset.legend_top = [];
         for (var dindex = 0; dindex < dataset.xvalues.length; dindex += 1) {
-            var w = c.measureText(dataset.name[dindex]).width;
-            c.globalAlpha = 0.7;
-            c.fillStyle = element_style;
-            c.fillRect(left, top, w + 30, 20);
-            c.globalAlpha = 1.0;
+            var w = 6*dataset.name[dindex].length;
+            
+            wadd('rect',{x:left, y:top, width: w+30, height: 20,
+                         fill: element_style, stroke: 'none',
+                         opacity: 0.8});
 
-            c.fillStyle = dataset.color[dindex];
-            c.fillRect(left+5, top+5, 10, 10);
-            c.strokeRect(left+5, top+5, 10, 10);
+            wadd('rect',{x:left+5, y:top+5, width: 10, height: 10,
+                         fill: dataset.color[dindex], stroke: 'none'});
 
-            c.fillStyle = normal_style;
-            c.textAlign = 'left';
-            c.textBaseline = 'bottom';
-            c.fillText(dataset.name[dindex], left + 20, top+18);
+            dataset.svg_waveform.appendChild(
+                mtxt(dataset.name[dindex],left+20,top+10,'left','middle',
+                     {style: 'font: ' + value_font,
+                      fill: normal_style}));
 
             // remember where legend ends so we can add cursor readout later
             dataset.legend_right.push(left + 20 + w);
             dataset.legend_top.push(top);
             top += 15;
         }
-         */
     }
 
     function graph_redraw(dataseries) {
@@ -808,8 +805,8 @@ jade_defs.plot = function(jade) {
     // build css clip specification
     function make_clip(x,y,w,h) {
         // top, right, bottom, left
-        return 'rect(' + y.toString() + ' ' + (x+w).toString() + ' ' +
-             (y+h).toString() + ' ' + x.toString() + ')';
+        return 'rect(' + y.toString() + 'px ' + (x+w).toString() + 'px ' +
+             (y+h).toString() + 'px ' + x.toString() + 'px)';
     }
 
     var zoom_icon = 'data:image/gif;base64,R0lGODlhEAAQAMT/AAAAAP///zAwYT09bpGRqZ6et5iYsKWlvbi40MzM5cXF3czM5OHh5tTU2fDw84uMom49DbWKcfLy8g0NDcDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABQALAAAAAAQABAAAAVZICWOZFlOwCQF5pg2TDMJbDs1DqI8g2TjOsSC0DMBGEGF4UAz3RQ6wiFRLEkmj8WyUC0FBAMpNdWiBCQD8DWCKq98lEkEAiiTAJB53S7Cz/kuECuAIzWEJCEAIf5PQ29weXJpZ2h0IDIwMDAgYnkgU3VuIE1pY3Jvc3lzdGVtcywgSW5jLiBBbGwgUmlnaHRzIFJlc2VydmVkLg0KSkxGIEdSIFZlciAxLjANCgA7';
