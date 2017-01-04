@@ -680,65 +680,57 @@ jade_defs.plot = function(jade) {
 
     function graph_redraw(dataseries) {
         $(dataseries.container).find('#zoomsel').toggleClass('plot-tool-enabled',dataseries.sel0!==undefined && dataseries.sel1!==undefined);
+        var msvg = jade.utils.make_svg;
+        var mtxt = jade.utils.svg_text;
 
         // redraw each plot with cursor overlay
         $.each(dataseries,function(index,dataset) {
-            /*
-            var c = dataset.canvas[0].getContext('2d');
-            c.clearRect(0, 0, dataset.canvas.width(), dataset.canvas.height());
-            c.drawImage(dataset.bg_image[0], 0, 0, dataset.canvas.width(), dataset.canvas.height());
+            var svg = dataset.svg_cursor;
+            $(svg).empty();
 
             // show selection region, if any
             if (dataseries.sel0 && dataseries.sel1) {
-                c.fillStyle = 'rgba(207,191,194,0.4)';
                 var xsel = Math.min(dataseries.sel0,dataseries.sel1);
                 var wsel = Math.abs(dataseries.sel0 - dataseries.sel1);
-                c.fillRect(xsel,dataset.top,wsel,dataset.hplot);
-
-                c.strokeStyle = 'rgba(207,191,194,0.8)';
-                c.lineWidth = 1;
-                c.beginPath();
-                c.moveTo(xsel,dataset.top); c.lineTo(xsel,dataset.top+dataset.hplot);
-                c.moveTo(xsel+wsel,dataset.top); c.lineTo(xsel+wsel,dataset.top+dataset.hplot);
-                c.stroke();
+                svg.appendChild(msvg('rect',{x:xsel, y:dataset.top, width: wsel, height:dataset.hplot,
+                                             fill: 'rgb(207,191,194)',
+                                             stroke: 'rgb(207,191,194)',
+                                             opacity: 0.4}));
 
                 if (dataseries.sel0 !== dataseries.sel1) {
                     var delta = Math.abs(dataset.datax(dataseries.sel0) - dataset.datax(dataseries.sel1));
                     var v = jade.utils.engineering_notation(delta,3);
-                    c.font = value_font;
-                    c.textAlign = 'right';
-                    c.textBaseline = 'top';
-                    c.fillStyle = 'rgb(0,0,0)';
-                    var background = '';
-                    for (var i = 0; i < v.length+5; i += 1) background += '\u2588';
-                    c.fillText(background,xsel+wsel,dataset.top);
-                    c.fillStyle = 'rgb(255,255,255)'; //'rgb(207,191,194)';
-                    c.fillText('dx='+v+' ',xsel+wsel,dataset.top);
+                    var w = 6*v.length;
+                    svg.appendChild(msvg('rect',{x:xsel+wsel, y:dataset.top, width: w, height:10,
+                                                 fill: 'black'}));
+                    svg.appendChild(mtxt('dx='+v,xsel+wsel,dataset.top,'left','top',
+                                         {stroke: 'white', style: 'font: '+value_font}));
                 }
             }
 
             if (dataseries.cursor !== undefined) {
-                // overlay vertical plot cursor
-                c.lineWidth = 1;
-                c.strokeStyle = normal_style;
-                c.beginPath();
-                c.moveTo(dataseries.cursor,dataset.top);
-                c.lineTo(dataseries.cursor,dataset.top + dataset.hplot);
-                c.stroke();
-
-                var x = dataset.datax(dataseries.cursor);  // convert cursor coord to x value
+                svg.appendChild(msvg('line',{x1:dataseries.cursor, y1: dataset.top,
+                                             x2:dataseries.cursor, y1: dataset.top + dataset.hplot,
+                                             'stroke-width': 1,
+                                             stroke: normal_style}));
 
                 // add x-axis label
+                var x = dataset.datax(dataseries.cursor);  // convert cursor coord to x value
                 var label = jade.utils.engineering_notation(x,4);
                 if (dataset.xunits) label += dataset.xunits;
-                c.font = graph_font;
-                c.textAlign = 'center';
-                c.textBaseline = 'top';
-                c.fillStyle = background_style;
-                c.fillText('\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588', dataseries.cursor, dataset.top + dataset.hplot);
-                c.fillStyle = normal_style;
-                c.fillText(label, dataseries.cursor, dataset.top + dataset.hplot);
+                svg.appendChild(mtxt('\u2588\u2588\u2588\u2588\u2588\u2588',
+                                     dataseries.cursor,dataset.top+dataset.hplot+1,
+                                     'center','top',{
+                                         style: 'font: ' + graph_font,
+                                         fill: background_style
+                                     }));
+                svg.appendChild(mtxt(label,dataseries.cursor,dataset.top+dataset.hplot,
+                                     'center','top',{
+                                         style: 'font: ' + graph_font,
+                                         fill: normal_style
+                                     }));
 
+                /*
                 // draw fiducial at intersection of cursor and curve
                 if (dataset.type[0] == 'analog') {
                     for (var dindex = 0; dindex < dataset.xvalues.length; dindex += 1) {
@@ -780,8 +772,8 @@ jade_defs.plot = function(jade) {
                         c.fillText(label,lx,ly+18);
                     }
                 }
-            }
              */
+            }
         });
     }
 
