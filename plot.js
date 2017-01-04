@@ -297,23 +297,7 @@ jade_defs.plot = function(jade) {
                 }
             });
 
-            /*
-            dataset.bg_image = $('<canvas></canvas>');
-
-            // handle retina devices properly
-            var context = dataset.canvas[0].getContext('2d');
-            var devicePixelRatio = window.devicePixelRatio || 1;
-            var backingStoreRatio = context.webkitBackingStorePixelRatio ||
-                    context.mozBackingStorePixelRatio ||
-                    context.msBackingStorePixelRatio ||
-                    context.oBackingStorePixelRatio ||
-                    context.backingStorePixelRatio || 1;
-            dataset.pixelRatio = devicePixelRatio / backingStoreRatio;
-
-            //dataset.canvas.insertBefore(container.find('.plot-scrollbar-wrapper'));
-             */
             waveforms.append(dataset.canvas);
-
         }
 
         // compute value bounds, set up canvas
@@ -516,13 +500,13 @@ jade_defs.plot = function(jade) {
 
         // draw axis labels
         if (dataset.xlabel) {
-            svg.appendChild(mtxt(dataset.xlabel,dataset.left + dataset.wplot/2, dataset.bg_image[0].height-5,
-                                 'center','bottom',{style: 'font: ' + graph_legend_font}));
+            svg.appendChild(mtxt(dataset.xlabel,dataset.left + dataset.wplot/2, dataset.hplot+20,
+                                 'center','top',{style: 'font: ' + graph_legend_font}));
         }
         if (dataset.ylabel) {
             temp = dataset.top + dataset.hplot/2,
-            svg.appendChild(mtxt(dataset.ylabel,10,temp,'middle','bottom',{
-                transform: 'rotate(90 10 '+temp.toString()+')',
+            svg.appendChild(mtxt(dataset.ylabel,10,temp,'middle','top',{
+                transform: 'rotate(270 10 '+temp.toString()+')',
                 style: 'font: ' + graph_legend_font
             }));
         }
@@ -730,7 +714,6 @@ jade_defs.plot = function(jade) {
                                          fill: normal_style
                                      }));
 
-                /*
                 // draw fiducial at intersection of cursor and curve
                 if (dataset.type[0] == 'analog') {
                     for (var dindex = 0; dindex < dataset.xvalues.length; dindex += 1) {
@@ -747,32 +730,27 @@ jade_defs.plot = function(jade) {
 
                         var gx = dataset.plotx(x);
                         var gy = dataset.ploty(y);
-                        c.strokeStyle = dataset.color[dindex] || '#268bd2';
-                        c.beginPath();
-                        c.arc(gx,gy,5,0,2*Math.PI);
-                        c.stroke();
+                        svg.appendChild(msvg('circle',{cx: gx, cy: gy, r: 5,
+                                                       fill: 'none',
+                                                       stroke: dataset.color[dindex] || '#268bd2'}));
 
                         // add y value readout in legend
                         var lx = dataset.legend_right[dindex];
                         var ly = dataset.legend_top[dindex];
                         label = '='+jade.utils.engineering_notation(y,2) + dataset.yunits;
-                        c.font = graph_legend_font;
+                        w = 6 * label.length;
 
                         // translucent background so graph doesn't obscure label
-                        var w = c.measureText(label).width;
-                        c.fillStyle = element_style;
-                        c.globalAlpha = 0.7;
-                        c.fillRect(lx,ly,w+5,20);
+                        svg.appendChild(msvg('rect',{x:lx, y:ly, width:w+5, height:20,
+                                                     fill: element_style, opacity:0.7}));
 
                         // now plot the label itself
-                        c.textAlign = 'left';
-                        c.textBaseline = 'bottom';
-                        c.fillStyle = normal_style;
-                        c.globalAlpha = 1.0;
-                        c.fillText(label,lx,ly+18);
+                        svg.appendChild(mtxt(label,lx,ly+10,'left','middle',{
+                            style: 'font: '+ value_font,
+                            fill: normal_style
+                        }));
                     }
                 }
-             */
             }
         });
     }
