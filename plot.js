@@ -700,11 +700,11 @@ jade_defs.plot = function(jade) {
                 if (dataseries.sel0 !== dataseries.sel1) {
                     var delta = Math.abs(dataset.datax(dataseries.sel0) - dataset.datax(dataseries.sel1));
                     var v = jade.utils.engineering_notation(delta,3);
-                    var w = 6*v.length;
-                    svg.appendChild(msvg('rect',{x:xsel+wsel, y:dataset.top, width: w, height:10,
+                    var w = 6*v.length + 18;
+                    svg.appendChild(msvg('rect',{x:xsel+wsel, y:dataset.top, width: w, height:12,
                                                  fill: 'black'}));
                     svg.appendChild(mtxt('dx='+v,xsel+wsel,dataset.top,'left','top',
-                                         {stroke: 'white', style: 'font: '+value_font}));
+                                         {fill: 'white', style: 'font: '+value_font}));
                 }
             }
 
