@@ -353,11 +353,10 @@
   text-align: center;
 }
 .plot-tool {
-  padding: 2px;
-  border: 1px solid #EEEEEE;
-  vertical-align: middle;
-  font: small-caps small sans-serif;
-  opacity: 0.2;
+    display: inline-block;
+    padding: 2px;
+    border: 1px solid #EEEEEE;
+    opacity: 0.2;
 }
 .plot-tool-spacer {
   display: inline;

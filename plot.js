@@ -54,10 +54,16 @@ jade_defs.plot = function(jade) {
 
         // add toolbar
         var toolbar = $('<div class="plot-toolbar"></div>');
-        var zoom = $('<img class="plot-tool" id="zoom">').attr('src',zoom_icon);
+        var zoom = $('<div class="plot-tool" id="zoom"></div>').html(zoom_icon);
+        var zoomin = $('<div class="plot-tool plot-tool-enabled" id="zoomin"></div>').html(zoomin_icon);
+        var zoomout = $('<div class="plot-tool" id="zoomout"></div>').html(zoomout_icon);
+        var zoomsel = $('<div class="plot-tool" id="zoomsel"></div>').html(zoomsel_icon);
+
+        /*
         var zoomin = $('<img class="plot-tool plot-tool-enabled" id="zoomin">').attr('src',zoomin_icon);
         var zoomout = $('<img class="plot-tool" id="zoomout">').attr('src',zoomout_icon);
         var zoomsel = $('<img class="plot-tool" id="zoomsel">').attr('src',zoomsel_icon);
+         */
         toolbar.append(zoom,zoomin,zoomout,zoomsel);
 
         if (dataseries.add_plot) {
@@ -779,13 +785,28 @@ jade_defs.plot = function(jade) {
              (y+h).toString() + 'px ' + x.toString() + 'px)';
     }
 
-    var zoom_icon = 'data:image/gif;base64,R0lGODlhEAAQAMT/AAAAAP///zAwYT09bpGRqZ6et5iYsKWlvbi40MzM5cXF3czM5OHh5tTU2fDw84uMom49DbWKcfLy8g0NDcDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABQALAAAAAAQABAAAAVZICWOZFlOwCQF5pg2TDMJbDs1DqI8g2TjOsSC0DMBGEGF4UAz3RQ6wiFRLEkmj8WyUC0FBAMpNdWiBCQD8DWCKq98lEkEAiiTAJB53S7Cz/kuECuAIzWEJCEAIf5PQ29weXJpZ2h0IDIwMDAgYnkgU3VuIE1pY3Jvc3lzdGVtcywgSW5jLiBBbGwgUmlnaHRzIFJlc2VydmVkLg0KSkxGIEdSIFZlciAxLjANCgA7';
+    var zoom_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
+            '<line x1="9" y1="9" x2="15" y2="15" stroke="black" stroke-width="3"/>' +
+            '<circle cx="6" cy="6" r="5.5" stroke="black" stroke-width="1" fill="#CCCCCC"/>' +
+            '</svg>';
 
-    var zoomin_icon = 'data:image/gif;base64,R0lGODlhEAAQAMT/AAAAAP///zAwYT09boSEnIqKopiYsJ6etqurxL+/18XF3dnZ8sXF0OHh5tTU2ePj5piZr2EwAMKXfg0NDcDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABQALAAAAAAQABAAAAVXICWOZFkCE2CWaeMwwLCKQPNMBCQEa/0UAEXiIFhNHKmkYcA7MQgKwMGw2PUgiYkBsWuWBoJpNTWjBATgAECCKgfelHVkUh5NIpJ5XXTP7/kRcH9mgyUhADshACH+T0NvcHlyaWdodCAyMDAwIGJ5IFN1biBNaWNyb3N5c3RlbXMsIEluYy4gQWxsIFJpZ2h0cyBSZXNlcnZlZC4NCkpMRiBHUiBWZXIgMS4wDQoAOw==';
+    var zoomin_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
+            '<line x1="9" y1="9" x2="15" y2="15" stroke="black" stroke-width="3"/>' +
+            '<circle cx="6" cy="6" r="5.5" stroke="black" stroke-width="1" fill="#CCCCCC"/>' +
+            '<path d="M 3 6 l 6 0 m -3 -3 l 0 6" stroke="black" stroke-width="1"/>' +
+            '</svg>';
+    
+    var zoomout_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
+            '<line x1="9" y1="9" x2="15" y2="15" stroke="black" stroke-width="3"/>' +
+            '<circle cx="6" cy="6" r="5.5" stroke="black" stroke-width="1" fill="#CCCCCC"/>' +
+            '<path d="M 3 6 l 6 0" stroke="black" stroke-width="1"/>' +
+            '</svg>';
 
-    var zoomout_icon = 'data:image/gif;base64,R0lGODlhEAAQAMT/AAAAAP///zAwYT09bn19lYSEnJGRqZ6et5iYsJ6etqWlvbi40MzM5cXF3czM5Li4w+Hh5tTU2fDw84uMom49DbWKcQ0NDcDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABcALAAAAAAQABAAAAVX4CWOZFlagGWWaQQ9lrCKViQVxjQEay0RjYXDMFgBIKmkQsA7PQyLhEHB2PUmDoTisGuWBINpNTW7BAbggKWCKgfelzUFUB4BKJV5XXTP7/kUcH9mgyUhADshACH+T0NvcHlyaWdodCAyMDAwIGJ5IFN1biBNaWNyb3N5c3RlbXMsIEluYy4gQWxsIFJpZ2h0cyBSZXNlcnZlZC4NCkpMRiBHUiBWZXIgMS4wDQoAOw==';
-
-    var zoomsel_icon = 'data:image/gif;base64,R0lGODlhEAAQAIQBAAAAAP///zAwYT09bpGRqZ6et5iYsKWlvbi40MzM5cXF3czM5OHh5tTU2fDw84uMom49DbWKcfLy8g0NDf///////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACH5BAEAAB8ALAAAAAAQABAAAAVY4CeOZFlOwCQF5pg2TDMJbIsCODBIdgMgCgSAsDMBGICgAnCgmSY+IAGQKJYkt5y1FBAMCIdqqvUJSAZebARFXvE+kwgEQCYBIHJ6XXSX710QK38jNYMkIQA7';
+    var zoomsel_icon = '<svg width="16" height="16" viewBox="0 0 16 16">' +
+            '<line x1="9" y1="9" x2="15" y2="15" stroke="black" stroke-width="3"/>' +
+            '<circle cx="6" cy="6" r="5.5" stroke="black" stroke-width="1" fill="#CCCCCC"/>' +
+            '<path d="M 3 3 l 2 0 m 2 0 l 2 0 l 0 2 m 0 2 l 0 2 l -2 0 m -2 0 l -2 0 l 0 -2 m 0 -2 l 0 -2" stroke="black" stroke-width="1"/>' +
+            '</svg>';
 
     // module exports
     return {
