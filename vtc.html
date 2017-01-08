@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link type="text/css" href="jade.css" rel="Stylesheet"/>
+<!-- build:js jade.min.js -->
+<script type="text/javascript" src="jquery-1.11.2.js"></script>
+<script type="text/javascript" src="jade.js"></script>
+<script type="text/javascript" src="model.js"></script>
+<script type="text/javascript" src="netlist.js"></script>
+<script type="text/javascript" src="icons.js"></script>
+<script type="text/javascript" src="schematic_view.js"></script>
+<script type="text/javascript" src="icon_view.js"></script>
+<script type="text/javascript" src="property_view.js"></script>
+<script type="text/javascript" src="test_view.js"></script>
+<script type="text/javascript" src="utils.js"></script>
+<script type="text/javascript" src="plot.js"></script>
+<script type="text/javascript" src="device_level.js"></script>
+<script type="text/javascript" src="cktsim.js"></script>
+<script type="text/javascript" src="gate_level.js"></script>
+<script type="text/javascript" src="gatesim.js"></script>
+<script type="text/javascript" src="jade_standalone.js"></script>
+<script type="text/javascript" src="analog.js"></script>
+<script type="text/javascript" src="gates.js"></script>
+</head>
+<body>
+<div class="jade">{
+ "parts": ["/lab1/VTC"],
+  "readonly": "true",
+  "tools": ["sweep"],
+  "editors": ["schematic"],
+  "edit": "/lab1/VTC",
+  "initial_state": {
+"/lab1/VTC":{"properties":{"name":{"edit":"yes","type":"name","value":"","label":"Name"},"Sweep 1_vstart":{"edit":"yes","type":"string","value":"0","label":"Sweep 1_vstart"},"Sweep 1_vstop":{"edit":"yes","type":"string","value":3,"label":"Sweep 1_vstop"},"Sweep 1_vstep":{"edit":"yes","type":"string","value":0.001,"label":"Sweep 1_vstep"},"Sweep 1_source":{"edit":"yes","type":"string","value":"Vgs","label":"Sweep 1_source"},"Sweep 2_vstart":{"edit":"yes","type":"string","value":"","label":"Sweep 2_vstart"},"Sweep 2_vstop":{"edit":"yes","type":"string","value":"","label":"Sweep 2_vstop"},"Sweep 2_vstep":{"edit":"yes","type":"string","value":"","label":"Sweep 2_vstep"},"Sweep 2_source":{"edit":"yes","type":"string","value":"","label":"Sweep 2_source"}},"schematic":[["/analog/pfet",[8,-24,0],{"name":"pfet","W":"8"}],["/analog/nfet",[8,8,0],{"name":"nfet","W":"8"}],["wire",[8,8,0,32,0],{"signal":"out"}],["/analog/v_probe",[40,8,0],{"name":"$/analog/v_probe_1"}],["/analog/v_source",[-112,-16,0],{"name":"Vdd","value":"dc(3)"}],["/analog/v_source",[-48,8,0],{"name":"Vgs","value":"dc(3)"}],["wire",[8,-40,0,-120,0],{"signal":"Vdd"}],["wire",[8,40,0,0,16]],["wire",[-112,56,0,64,0]],["wire",[8,56,0,-56,0]],["ground",[-48,56,0]],["wire",[-48,8,0,32,0],{"signal":"in"}],["wire",[-16,24,0,0,-16]],["wire",[-16,-8,0,0,16]],["wire",[8,-24,0,0,-16]],["wire",[-112,32,0,0,24]],["wire",[-112,-16,0,0,-24]]],"test":[["test",""]]}
+  }
+}</div>
+</body>
+</html>
