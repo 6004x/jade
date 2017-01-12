@@ -545,6 +545,20 @@ jade_defs.plot = function(jade) {
                     if (xv === undefined) break;
                     nx = dataset.plotx(xv);
                     ny = dataset.ploty(yvalues[i]);
+
+                    // do our own clipping until we can get SVG to do it for us?
+                    if (x != nx) {
+                        var slope = (ny - y)/(nx - x);
+                        if (x < dataset.left) {
+                            y += slope*(dataset.left - x);
+                            x = dataset.left;
+                        }
+                        if (nx > dataset.max_x) {
+                            ny += slope*(nx - dataset.max_x);
+                            nx = dataset.max_x;
+                        }
+                    }
+
                     svg.appendChild(msvg('line',{x1:x, y1:y, x2: nx, y2: ny,
                                                  stroke: color}));
                     x = nx;
