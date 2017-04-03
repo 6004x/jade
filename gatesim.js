@@ -1326,7 +1326,17 @@ jade_defs.gatesim = function(jade) {
 
         // 9/11/14 SAW: DREG terminal names seem to be upper case, fixed refs here:
         this.d = connections.d;
-        this.clk = (type == 'dreg') ? connections.clk : connections.g;
+        
+        if (type == 'dreg') {
+            this.clk = connections.clk;
+        } else if (type == 'dlatch') {
+            this.clk = connections.g;
+        } else if (type == 'dlatchn') {
+            this.clk = connections.gn;
+        } else {
+            throw "Found unknown storage type: " + type + ", expected dreg, dlatch or dlatchn";
+        }
+        
         this.q = connections.q;
 
         this.d.add_fanout(this);
