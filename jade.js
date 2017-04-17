@@ -86,6 +86,7 @@ jade_defs.top_level = function(jade) {
         this.module_tools.append(this.module_tool(jade.icons.download_icon,'download-modules','Save modules to module clipboard',download_modules));
         this.module_tools.append(this.module_tool(jade.icons.upload_icon,'upload-modules','Select modules to load from module clipboard',upload_modules));
 
+        /*
         var export_tool = this.module_tool(jade.icons.export_modules_icon,'export-modules','Choose modules to export');
         // convert button to a link, update href when clicked
         export_tool.off('click');
@@ -96,8 +97,10 @@ jade_defs.top_level = function(jade) {
             action(owner.jade,e.originalEvent.currentTarget);
         });
         this.module_tools.append(export_tool);
+         */
 
-        this.module_tools.append(this.module_tool(jade.icons.import_modules_icon,'import-modules','Choose modules to import',import_modules));
+        this.module_tools.append(this.module_tool(jade.icons.export_modules_icon,'export-modules','Export modules',export_modules));
+        this.module_tools.append(this.module_tool(jade.icons.import_modules_icon,'import-modules','Import modules',import_modules));
 
         // too dangerous!
         // this.module_tools.append(this.module_tool(jade.icons.recycle_icon,'start-over','Discard all work on this problem and start over',start_over));
@@ -650,7 +653,7 @@ jade_defs.top_level = function(jade) {
     };
 
     // let user select which modules to export to their Downloads directory
-    function export_modules(j,a) {
+    function export_modules(j) {
         var all_modules = jade.model.json_modules().json;
         var mnames = Object.keys(all_modules).sort();
 
@@ -658,7 +661,7 @@ jade_defs.top_level = function(jade) {
         var contents = module_table(mnames);
 
         // add a link to download the selected modules
-        a = $('<a download="modules.json" target="_blank"><button>Click to export modules</button></a>');
+        var a = $('<a download="modules.json" target="_blank"><button>Click to export modules</button></a>');
         a.on('click',function (e) {
             var selected = {};
             $('input',contents).each(function (index,input) {
@@ -668,7 +671,7 @@ jade_defs.top_level = function(jade) {
                     selected[mname] = all_modules[mname];
                 }
             });
-            e.originalEvent.currentTarget.href = 'data:,'+JSON.stringify(selected);
+            e.originalEvent.currentTarget.href = 'data:,'+JSON.stringify(['Jade',selected]);
             // close dialog box
             window_close(win[0]);
         });
@@ -676,12 +679,64 @@ jade_defs.top_level = function(jade) {
         contents.append($('<tr align="center"></tr>').append(doit));
 
         var offset = $('.jade-tabs-div',j.top_level).offset();
-        win = jade_window('Select modules to export', contents, offset);
+        win = jade_window('Export modules', contents, offset);
     };
 
     // allow user to select which modules to load from an exported file
     function import_modules(j) {
-        console.log('import_modules');
+        var win;
+        var contents = $('<div style="padding:10px;"><p>1. Select module file to open</p><p><form><input id="modules" type="file"></form></p><p id="message"></p><p>2. Choose which modules to import:</p><div id="select"></div>');
+
+        function do_import(modules) {
+            var mnames = Object.keys(modules).sort();
+            var tbl = module_table(mnames);
+            var button = $('<button>Import selected modules</button>').on('click',upload);
+            var doit = $('<td></td>').attr('colspan',$('#select-all',tbl).attr('colspan')).append(button);
+            tbl.append($('<tr align="center"></tr>').append(doit));
+
+            $('#select',contents).append(tbl);
+
+            // find checked items and load them
+            function upload () {
+                $('input',tbl).each(function (index,input) {
+                    input = $(input);
+                    var mname = input.attr('name');
+                    if (input[0].checked) {
+                        //console.log(mname + ' is checked');
+                        jade.model.find_module(mname,modules[mname]);
+                    }
+                });
+
+                window_close(win);
+                jade.model.save_modules(true);
+                j.edit(j.module);  // trigger rebuild of module list
+            }
+        }
+
+        $('#modules',contents).on('change',function (e) {
+            $('#select',contents).empty();
+            if (this.files.length != 1) return;
+            var file = this.files[0];
+            if (file.type == 'application/json') {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        var json = JSON.parse(e.target.result);
+                        if (Array.isArray(json) && json.length == 2 && json[0] == 'Jade') {
+                            do_import(json[1]);
+                        }
+                    } catch (e) {
+                    }
+                    
+                };
+                reader.readAsText(file);
+            }
+               
+        });
+        
+
+        var offset = $('.jade-tabs-div',j.top_level).offset();
+        win = jade_window('Import modules', contents, offset);
     };
     
 
