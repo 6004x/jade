@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2016 Massachusetts Institute of Technology
+// Copyright (C) 2011-2017 Massachusetts Institute of Technology
 // Chris Terman
 
 // pollute the global namespace with a single variable
@@ -34,7 +34,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.2.55 (2016 \u00A9 MIT EECS)";
+    var version = "Jade 2.2.56 (2017 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
@@ -85,6 +85,20 @@ jade_defs.top_level = function(jade) {
         this.module_tools.append(this.module_tool(jade.icons.delete_module_icon,'delete-module','Delete current module',delete_module,'hierarchy-tool'));
         this.module_tools.append(this.module_tool(jade.icons.download_icon,'download-modules','Save modules to module clipboard',download_modules));
         this.module_tools.append(this.module_tool(jade.icons.upload_icon,'upload-modules','Select modules to load from module clipboard',upload_modules));
+
+        var export_tool = this.module_tool(jade.icons.export_modules_icon,'export-modules','Choose modules to export');
+        // convert button to a link, update href when clicked
+        export_tool.off('click');
+        var a = $('<a download="modules.json" target="_blank"></a>').append(export_tool.html());
+        export_tool.html(a);
+        var action = export_modules;
+        a.on('click',function (e) {
+            action(owner.jade,e.originalEvent.currentTarget);
+        });
+        this.module_tools.append(export_tool);
+
+        this.module_tools.append(this.module_tool(jade.icons.import_modules_icon,'import-modules','Choose modules to import',import_modules));
+
         // too dangerous!
         // this.module_tools.append(this.module_tool(jade.icons.recycle_icon,'start-over','Discard all work on this problem and start over',start_over));
         if (jade.cloud_upload) {
@@ -218,6 +232,8 @@ jade_defs.top_level = function(jade) {
         $('#start-over',this.module_tools).toggle(this.configuration.state && this.configuration.initial_state);
         $('#cloud-upload',this.module_tools).toggle(this.configuration.cloud_url !== undefined);
         $('#cloud-download',this.module_tools).toggle(this.configuration.cloud_url !== undefined);
+        $('#export-modules',this.module_tools).toggle(this.configuration.share_modules !== undefined);
+        $('#import-modules',this.module_tools).toggle(this.configuration.share_modules !== undefined);
 
         // initialize object for recording test results
         if (this.configuration.tests === undefined) this.configuration.tests = {};
@@ -547,6 +563,39 @@ jade_defs.top_level = function(jade) {
         dialog('Copy Module',content,copy,offset);
     }
 
+    // build a 3-col table from a list of module names
+    function module_table(mnames) {
+        // build checkbox selector for each available module
+        var select = [];
+        $.each(mnames,function (index,mname) {
+            var cbox = $('<input type="checkbox" value=""></input>').attr('name',mname);
+            select.push($('<div class="jade-module-select"></div>').append(cbox,mname));
+        });
+
+        // build a dialog using up to 3 columns to list modules
+        var row = $('<tr valign="top"></tr>');
+        var ncols = Math.min(3,Math.ceil(select.length/10));
+        var nitems = Math.ceil(select.length/ncols);
+        var col,index=0,i,j=ncols;
+        while (j > 0) {
+            col = $('<td></td>');
+            for (i = 0; i < nitems; i += 1)
+                col.append(select[index++]);
+            row.append(col);
+            j -= 1;
+        }
+
+        var select_all = $('<td id="select-all"><a href="">Select all</a></td>');
+        $('a',select_all).on('click',function (event) {
+            $('input',row).prop('checked',true);
+            event.preventDefault();
+            return false;
+        });
+        select_all.attr('colspan',ncols.toString());
+
+        return $('<table style="padding:10px;"></table>').append(row,$('<tr align="center"></tr>').append(select_all));
+    }
+
     // add our non-shared modules to localStorage
     function download_modules(j) {
         var saved_modules = JSON.parse(localStorage.getItem('jade_saved_modules') || "{}");
@@ -555,9 +604,10 @@ jade_defs.top_level = function(jade) {
     };
 
     function upload_modules(j,event) {
+        var offset;
         if (event && event.shiftKey) {
             var content = $('<div style="margin:10px;"><textarea rows="5" cols="80"/></div>');
-            var offset = $('.jade-tabs-div',j.top_level).offset();
+            offset = $('.jade-tabs-div',j.top_level).offset();
 
             function load_answer() {
                 var s = eval($('textarea',content).val());
@@ -577,39 +627,12 @@ jade_defs.top_level = function(jade) {
         var modules = JSON.parse(localStorage.getItem('jade_saved_modules') || '{}');
         var mnames = Object.keys(modules).sort();
 
-        // build checkbox selector for each available module
-        var select = [];
-        $.each(mnames,function (index,mname) {
-            var cbox = $('<input type="checkbox" value=""></input>').attr('name',mname);
-            select.push($('<div class="jade-module-select"></div>').append(cbox,mname));
-        });
-
-        // build a dialog using up to 3 columns to list modules
-        var row = $('<tr valign="top"></tr>');
-        var ncols = Math.max(3,Math.ceil(select.length/10));
-        var select_all = $('<td><a href="">Select all</a></td>');
-        select_all.attr('colspan',ncols.toString());
-        var nitems = Math.ceil(select.length/ncols);
-        var col,index=0,i;
-        while (ncols--) {
-            col = $('<td></td>');
-            for (i = 0; i < nitems; i += 1)
-                col.append(select[index++]);
-            row.append(col);
-        }
-        var contents = $('<table></table>').append(row,$('<tr align="center"></tr>').append(select_all));
-
-        // implement select all functionality
-        $('a',select_all).on('click',function (event) {
-            $('input',row).prop('checked',true);
-            event.preventDefault();
-            return false;
-        });
+        var contents = module_table(mnames);
 
         // find checked items and load them
         function upload () {
-            $.each(select,function (index,item) {
-                var input = $('input',item);
+            $('input',contents).each(function (index,input) {
+                input = $(input);
                 var mname = input.attr('name');
                 if (input[0].checked) {
                     //console.log(mname + ' is checked');
@@ -622,9 +645,45 @@ jade_defs.top_level = function(jade) {
         }
 
         // let user choose
-        var offset = $('.jade-tabs-div',j.top_level).offset();
+        offset = $('.jade-tabs-div',j.top_level).offset();
         dialog('Select modules to load',contents,upload,offset);
     };
+
+    // let user select which modules to export to their Downloads directory
+    function export_modules(j,a) {
+        var all_modules = jade.model.json_modules().json;
+        var mnames = Object.keys(all_modules).sort();
+
+        var win;
+        var contents = module_table(mnames);
+
+        // add a link to download the selected modules
+        a = $('<a download="modules.json" target="_blank"><button>Click to export modules</button></a>');
+        a.on('click',function (e) {
+            var selected = {};
+            $('input',contents).each(function (index,input) {
+                input = $(input);
+                var mname = input.attr('name');
+                if (input[0].checked) {
+                    selected[mname] = all_modules[mname];
+                }
+            });
+            e.originalEvent.currentTarget.href = 'data:,'+JSON.stringify(selected);
+            // close dialog box
+            window_close(win[0]);
+        });
+        var doit = $('<td></td>').attr('colspan',$('#select-all',contents).attr('colspan')).append(a);
+        contents.append($('<tr align="center"></tr>').append(doit));
+
+        var offset = $('.jade-tabs-div',j.top_level).offset();
+        win = jade_window('Select modules to export', contents, offset);
+    };
+
+    // allow user to select which modules to load from an exported file
+    function import_modules(j) {
+        console.log('import_modules');
+    };
+    
 
     function start_over(j) {
         function restart() {

@@ -128,4 +128,6 @@ jade_defs.icons = function(jade) {
     jade.icons.cloud_download_icon = '<span class="fa fa-fw fa-lg fa-cloud-download"></span>';
     jade.icons.cloud_upload_icon = '<span class="fa fa-fw fa-lg fa-cloud-upload"></span>';
 
+    jade.icons.export_modules_icon = '<span class="fa fa-fw fa-lg fa-arrow-circle-o-down"></span>';
+    jade.icons.import_modules_icon = '<span class="fa fa-fw fa-lg fa-arrow-circle-o-up"></span>';
 };
