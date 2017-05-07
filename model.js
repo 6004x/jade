@@ -1032,14 +1032,14 @@ jade_defs.model = function (jade) {
         var strokeStyle = this.selected ? diagram.selected_style : this.type() == 'wire' ? diagram.normal_style : (colors_rgb[this.properties.color] ||  (diagram.show_grid ? diagram.component_style : 'rgb(0,0,0)'));
 
         // transform coords, make second two points relative to x,y
-        var x1 = this.transform_x(x1, y1) + this.coords[0];
-        var y1 = this.transform_y(x1, y1) + this.coords[1];
-        var x2 = this.transform_x(x2, y2) + this.coords[0];
-        var y2 = this.transform_y(x2, y2) + this.coords[1];
-        var x3 = this.transform_x(x3, y3) + this.coords[0];
-        var y3 = this.transform_y(y3, y3) + this.coords[1];
+        var _x1 = this.transform_x(x1, y1) + this.coords[0];
+        var _y1 = this.transform_y(x1, y1) + this.coords[1];
+        var _x2 = this.transform_x(x2, y2) + this.coords[0];
+        var _y2 = this.transform_y(x2, y2) + this.coords[1];
+        var _x3 = this.transform_x(x3, y3) + this.coords[0];
+        var _y3 = this.transform_y(x3, y3) + this.coords[1];
 
-        return jade.utils.svg_arc(x1,y1,x2,y2,x3,y3,{stroke: strokeStyle});
+        return jade.utils.svg_arc(_x1,_y1,_x2,_y2,_x3,_y3,{stroke: strokeStyle});
     };
     
     // result of rotating an alignment [rot*9 + align]
