@@ -640,6 +640,316 @@ jade_defs.test_view = function(jade) {
             return dataset;
         }
 
+        // verify results against values specified by test
+        function verify_results(results) {
+            // order test by time
+            var tests = [];
+            $.each(sampled_signals,function(node,tvlist) {
+                $.each(tvlist,function(index,tvpair) {
+                    tests.push({n: node, t: tvpair.t, v: tvpair.v, i: tvpair.i});
+                });
+            });
+            tests.sort(function(t1,t2) {
+                // sort by time, then by name
+                if (t1.t == t2.t) {
+                    if (t1.n < t2.n) return -1;
+                    else if (t1.n > t2.n) return 1;
+                    else return 0;
+                } else return t1.t - t2.t;
+            });
+
+            // check the sampled node values for each test cycle
+            var hcache = {};  // cache histories we retrieve
+            var errors = [];
+            var t_error;
+            var v,test,history;
+            for (var i = 0; i < tests.length; i += 1) {
+                test = tests[i];
+
+                // if we've detected errors at an earlier test, we're done
+                // -- basically just report all the errors for the first failing test
+                if (t_error && t_error < test.i) break;
+
+                // retrieve history for this node
+                history = hcache[test.n];
+                if (history === undefined) {
+                    history = results._network_.history(test.n);
+                    hcache[test.n] = history;
+                }
+
+                // check observed value vs. expected value
+                if (mode == 'device') {
+                    v = history === undefined ? undefined : jade.device_level.interpolate(test.t, history.xvalues, history.yvalues);
+                    if (v === undefined ||
+                        (test.v == 'L' && v > thresholds.Vil) ||
+                        (test.v == 'H' && v < thresholds.Vih)) {
+                        errors.push('Test '+test.i.toString()+': Expected '+test.n+'='+test.v+
+                                    ' at '+jade.utils.engineering_notation(test.t,2)+'s.');
+                        t_error = test.i;
+                    }
+                }
+                else if (mode == 'gate') {
+                    v = history === undefined ? undefined : jade.gate_level.interpolate(test.t, history.xvalues, history.yvalues);
+                    if (v === undefined ||
+                        (test.v == 'L' && v != 0) ||
+                        (test.v == 'H' && v != 1)) {
+                        errors.push('Test '+test.i.toString()+': Expected '+test.n+'='+test.v+
+                                    ' at '+jade.utils.engineering_notation(test.t,2)+'s.');
+                        t_error = test.i;
+                    }
+                }
+                else throw 'Unrecognized simulation mode: '+mode;
+            }
+
+            // perform requested memory verifications
+            $.each(mverify,function (mem_name,a) {
+                var mem = results._network_.device_map[mem_name];
+                if (mem === undefined) {
+                    errors.push('Cannot find memory named "'+mem_name+'", verification aborted.');
+                    return;
+                }
+                mem = mem.get_contents();
+                $.each(a,function (locn,v) {
+                    if (v === undefined) return;  // no check for this location
+                    if (locn < 0 || locn >= mem.nlocations) {
+                        errors.push("Location "+locn.toString()+" out of range for memory "+mem_name);
+                    }
+                    if (mem[locn] !== v) {
+                        var got = mem[locn] === undefined ? 'undefined' : '0x'+mem[locn].toString(16);
+                        errors.push(mem_name+"[0x"+locn.toString(16)+"]: Expected 0x"+v.toString(16)+", got "+got);
+                    }
+                });
+            });
+            mverify_md5sum = jade.utils.md5(mverify_src.join('\n'));  // for server-side verification
+            jade_defs.mverify_md5sum = mverify_md5sum;
+
+            // create log if requested
+            var log = [];
+            $.each(log_times,function (tindex,t) {
+                var values = [];
+                $.each(log_signals,function (sindex,n) {
+                    // retrieve history for this node
+                    var history = hcache[n];
+                    if (history === undefined) {
+                        history = results._network_.history(n);
+                        hcache[n] = history;
+                    }
+                    if (history === undefined) v = '?';
+                    else {
+                        v = jade.gate_level.interpolate(t, history.xvalues, history.yvalues);
+                        v = "01XZ"[v];
+                    }
+                    values.push(v);
+                });
+                log.push(values.join(''));
+            });
+            if (log.length > 0) console.log(log.join('\n'));
+
+            errors.t_error = t_error;   // save t_error for later use
+            return errors;
+        }
+
+        // create requested plots
+        function do_plots(results) {
+            // construct a data set for {signals: [sig...], dfunction: string, name: string}
+            var plot_colors = ['#268bd2','#dc322f','#859900','#b58900','#6c71c4','#d33682','#2aa198'];
+            function new_dataset(plist) {
+                var xvalues = [];
+                var yvalues = [];
+                var name = [];
+                var color = [];
+                var type = [];
+                var xy,f;
+                var yunits = mode == 'device' ? 'V' : '';
+                $.each(plist,function (pindex,pspec) {
+                    if (pspec.dfunction == 'I') {
+                        var sig = pspec.signals[0];
+                        var isig = 'I(' + sig + ')';
+                        var history = results._network_.history(isig);
+                        if (history !== undefined) {
+                            color.push(plot_colors[xvalues.length % plot_colors.length]);
+                            xvalues.push(history.xvalues);
+                            yvalues.push(history.yvalues);
+                            name.push(isig);
+                            type.push(results._network_.result_type());
+                            yunits = 'A';
+                        } else throw "No voltage source named "+sig;
+                    } else if (pspec.dfunction) {
+                        // gather history information for each signal
+                        var xv = [];  // each element is a list of times
+                        var yv = [];  // each element is a list of values
+                        var t = [];
+                        var fn = pspec.dfunction;
+                        $.each(pspec.signals,function (index,sig) {
+                            var history = results._network_.history(sig);
+                            // deal with dfunction here...
+                            if (history !== undefined) {
+                                xv.push(history.xvalues);
+                                yv.push(history.yvalues);
+                                t.push(results._network_.result_type());
+                            } else throw "No node named "+sig;
+                        });
+
+                        // merge multibit xvalues and yvalues into xvalues and integers
+                        xy = multibit_to_int({xvalues: xv, yvalues: yv, type: t});
+
+                        // convert each yvalue to its final representation
+                        $.each(xy.yvalues,function (index,y) {
+                            if (y !== undefined) {
+                                if (y < 0) {
+                                    y = -1;  // indicate Z value for bus
+                                } else if (fn in plotdefs) {
+                                    var v = plotdefs[fn][y];
+                                    if (v) y = v;
+                                    else {
+                                        // use hex if for some reason plotDef didn't supply a string
+                                        y = "0x" + ("0000000000000000" + y.toString(16)).substr(-Math.ceil(xy.nnodes/4));
+                                    }
+                                } else if (fn == 'X' || fn == 'x') {  // format as hex number
+                                    y = "0x" + ("0000000000000000" + y.toString(16)).substr(-Math.ceil(xy.nnodes/4));
+                                } else if (fn == 'O' || fn == 'o') {  // format as octal number
+                                    y = "0" + ("0000000000000000000000" + y.toString(8)).substr(-Math.ceil(xy.nnodes/3));
+                                } else if (fn == 'B' || fn == 'b') {  // format as binary number
+                                    y = "0b" + ("0000000000000000000000000000000000000000000000000000000000000000" + y.toString(2)).substr(-Math.ceil(xy.nnodes));
+                                } else if (fn == 'D' || fn == 'd') {  // format as decimal number
+                                    y = y.toString(10);
+                                } else if (fn == 'SD' || fn == 'sd') {  // format as signed decimal number
+                                    if (y & 1<<(xy.nnodes - 1)) y -= 1 << xy.nnodes;
+                                    y = y.toString(10);
+                                } else throw "No definition for plot function "+fn;
+                                xy.yvalues[index] = y;
+                            }
+                        });
+                        color.push(plot_colors[xvalues.length % plot_colors.length]);
+                        xvalues.push(xy.xvalues);
+                        yvalues.push(xy.yvalues);
+                        name.push(pspec.name);
+                        type.push('string');
+                        yunits = '';
+                    } else {
+                        $.each(pspec.signals,function (index,sig) {
+                            var history = results._network_.history(sig);
+                            // deal with dfunction here...
+                            if (history !== undefined) {
+                                color.push(plot_colors[xvalues.length % plot_colors.length]);
+                                xvalues.push(history.xvalues);
+                                yvalues.push(history.yvalues);
+                                name.push(sig);
+                                type.push(results._network_.result_type());
+                            } else throw "No node named "+sig;
+                        });
+                    }
+                });
+                
+                if (xvalues.length > 0) {
+                    return {xvalues: xvalues,
+                            yvalues: yvalues,
+                            name: name,
+                            xunits: 's',
+                            yunits: yunits,
+                            color: color,
+                            type: type
+                           };
+                } else return undefined;
+            }
+
+            // called by plot.graph when user wants to plot another signal
+            function add_plot(signal) {
+                try {
+                    // construct data set for requested signal
+                    var line = signal.match(/([A-Za-z0-9_.:\[\]]+|=|-|,|\(|\))/g);
+                    var errors = [];
+                    var plist = parse_plot(line,errors);
+                    if (errors.length > 0)
+                        throw '<li>'+errors.join('<li>');
+                    var dataset = new_dataset(plist);
+                    if (dataset) dataseries.push(dataset);
+                } catch (e) {
+                    jade.window("Error in Add Plot",
+                                $('<div class="jade-alert"></div>').html(e),
+                                offset);
+                }
+            }
+
+            // produce requested plots
+            var offset = $(diagram.canvas).offset();
+            if (plots.length > 0) {
+                var dataseries = []; // plots we want
+                $.each(plots,function(index,plist) {
+                    try {
+                        var dataset = new_dataset(plist);
+                    } catch (e) {
+                        errors.push(e);
+                    }
+                    if (dataset) dataseries.push(dataset);
+                });
+
+                // callback to use if user wants to add a new plot
+                dataseries.add_plot = add_plot;  
+
+                // graph the result and display in a window
+                var graph1 = jade.plot.graph(dataseries);
+
+                // provide option for a brief report of stats, if supported
+                if (results.report) {
+                    var b = $('<button style="margin-left:10px">Stats</button>');
+                    b.on('click',function () {
+                        var offset = $(diagram.canvas).offset();
+                        offset.top += 30;
+                        offset.left += 30;
+                        jade.window('Circuit statistics',results.report(),offset);
+                    });
+                    $('.plot-toolbar',graph1).append(b);
+                }
+
+                var win = jade.window('Test Results: '+(errors.length>0 ? 'errors detected':'passed'),graph1,offset);
+
+                // resize window to 75% of test pane
+                var win_w = Math.floor(0.75*$(diagram.canvas).width());
+                var win_h = Math.min(200*plots.length,Math.floor(0.75*$(diagram.canvas).height()));
+                win[0].resize(win_w - win.width(),win_h - win.height());
+                offset.top += win_h + 10;
+            }
+
+            return offset;
+        }
+
+        function report_errors(results,errors,offset) {
+            var t_error = errors.t_error;
+
+            // report any mismatches
+            if (errors.length > 0) {
+                var postscript = '';
+                if (errors.length > 5) {
+                    errors = errors.slice(0,5);
+                    postscript = '<br>...';
+                }
+
+                msg = '';
+                if (help_url && t_error) {
+                    // create a form to visit courseoverflow.org
+                    var url = help_url+'&module='+module.get_name()+'&testNum='+t_error;
+                    if (student_id) {
+                        url += '&student_id='+student_id;
+                    }
+                    msg += '<div style="margin-bottom:5px;"><a href="'+url+'" target="_blank"><button>Click to find or submit a hint for this error</button></a></div>';
+                }
+
+                msg += '<li>'+errors.join('<li>')+postscript;
+                jade.window("Errors detected by test",
+                            $('<div class="jade-alert"></div>').html(msg),
+                            offset);
+                test_results[module.get_name()] = 'Error detected: '+msg;
+            } else {
+                diagram.message('Test successful!');
+
+                // Benmark = 1e-10/(size_in_m**2 * simulation_time_in_s)
+                var benmark = 1e-10/((results._network_.size*1e-12) * results._network_.time);
+
+                test_results[module.get_name()] = 'passed '+md5sum+' '+mverify_md5sum+' '+benmark.toString();
+            }
+        }
+
         // handle results from the simulation
         function process_results(percent_complete,results) {
             if (percent_complete === undefined) {
@@ -652,7 +962,6 @@ jade_defs.test_view = function(jade) {
                                 $(diagram.canvas).offset());
                     //diagram.message(results);
                     test_results[module.get_name()] = 'Error detected: '+results;
-                    return undefined;
                 } else if (results instanceof Error) {
                     results = results.stack.split('\n').join('<br>');
                     jade.window('Error running test',
@@ -660,302 +969,17 @@ jade_defs.test_view = function(jade) {
                                 $(diagram.canvas).offset());
                     //diagram.message(results.stack.split('\n').join('<br>'));
                     test_results[module.get_name()] = 'Error detected: '+results.message;
-                    return undefined;
-                }
-
-                // order test by time
-                var tests = [];
-                $.each(sampled_signals,function(node,tvlist) {
-                    $.each(tvlist,function(index,tvpair) {
-                        tests.push({n: node, t: tvpair.t, v: tvpair.v, i: tvpair.i});
-                    });
-                });
-                tests.sort(function(t1,t2) {
-                    // sort by time, then by name
-                    if (t1.t == t2.t) {
-                        if (t1.n < t2.n) return -1;
-                        else if (t1.n > t2.n) return 1;
-                        else return 0;
-                    } else return t1.t - t2.t;
-                });
-
-                // check the sampled node values for each test cycle
-                var hcache = {};  // cache histories we retrieve
-                var errors = [];
-                var t_error;
-                var v,test,history;
-                for (var i = 0; i < tests.length; i += 1) {
-                    test = tests[i];
-
-                    // if we've detected errors at an earlier test, we're done
-                    // -- basically just report all the errors for the first failing test
-                    if (t_error && t_error < test.i) break;
-
-                    // retrieve history for this node
-                    history = hcache[test.n];
-                    if (history === undefined) {
-                        history = results._network_.history(test.n);
-                        hcache[test.n] = history;
-                    }
-
-                    // check observed value vs. expected value
-                    if (mode == 'device') {
-                        v = history === undefined ? undefined : jade.device_level.interpolate(test.t, history.xvalues, history.yvalues);
-                        if (v === undefined ||
-                            (test.v == 'L' && v > thresholds.Vil) ||
-                            (test.v == 'H' && v < thresholds.Vih)) {
-                            errors.push('Test '+test.i.toString()+': Expected '+test.n+'='+test.v+
-                                        ' at '+jade.utils.engineering_notation(test.t,2)+'s.');
-                            t_error = test.i;
-                        }
-                    }
-                    else if (mode == 'gate') {
-                        v = history === undefined ? undefined : jade.gate_level.interpolate(test.t, history.xvalues, history.yvalues);
-                        if (v === undefined ||
-                            (test.v == 'L' && v != 0) ||
-                            (test.v == 'H' && v != 1)) {
-                            errors.push('Test '+test.i.toString()+': Expected '+test.n+'='+test.v+
-                                        ' at '+jade.utils.engineering_notation(test.t,2)+'s.');
-                            t_error = test.i;
-                        }
-                    }
-                    else throw 'Unrecognized simulation mode: '+mode;
-                }
-
-                // perform requested memory verifications
-                $.each(mverify,function (mem_name,a) {
-                    var mem = results._network_.device_map[mem_name];
-                    if (mem === undefined) {
-                        errors.push('Cannot find memory named "'+mem_name+'", verification aborted.');
-                        return;
-                    }
-                    mem = mem.get_contents();
-                    $.each(a,function (locn,v) {
-                        if (v === undefined) return;  // no check for this location
-                        if (locn < 0 || locn >= mem.nlocations) {
-                            errors.push("Location "+locn.toString()+" out of range for memory "+mem_name);
-                        }
-                        if (mem[locn] !== v) {
-                            var got = mem[locn] === undefined ? 'undefined' : '0x'+mem[locn].toString(16);
-                            errors.push(mem_name+"[0x"+locn.toString(16)+"]: Expected 0x"+v.toString(16)+", got "+got);
-                        }
-                    });
-                });
-                mverify_md5sum = jade.utils.md5(mverify_src.join('\n'));  // for server-side verification
-                jade_defs.mverify_md5sum = mverify_md5sum;
-
-                // create log if requested
-                var log = [];
-                $.each(log_times,function (tindex,t) {
-                    var values = [];
-                    $.each(log_signals,function (sindex,n) {
-                        // retrieve history for this node
-                        var history = hcache[n];
-                        if (history === undefined) {
-                            history = results._network_.history(n);
-                            hcache[n] = history;
-                        }
-                        if (history === undefined) v = '?';
-                        else {
-                            v = jade.gate_level.interpolate(t, history.xvalues, history.yvalues);
-                            v = "01XZ"[v];
-                        }
-                        values.push(v);
-                    });
-                    log.push(values.join(''));
-                });
-                if (log.length > 0) console.log(log.join('\n'));
-
-                // construct a data set for {signals: [sig...], dfunction: string, name: string}
-                var plot_colors = ['#268bd2','#dc322f','#859900','#b58900','#6c71c4','#d33682','#2aa198'];
-                function new_dataset(plist) {
-                    var xvalues = [];
-                    var yvalues = [];
-                    var name = [];
-                    var color = [];
-                    var type = [];
-                    var xy,f;
-                    var yunits = mode == 'device' ? 'V' : '';
-                    $.each(plist,function (pindex,pspec) {
-                        if (pspec.dfunction == 'I') {
-                            var sig = pspec.signals[0];
-                            var isig = 'I(' + sig + ')';
-                            var history = results._network_.history(isig);
-                            if (history !== undefined) {
-                                color.push(plot_colors[xvalues.length % plot_colors.length]);
-                                xvalues.push(history.xvalues);
-                                yvalues.push(history.yvalues);
-                                name.push(isig);
-                                type.push(results._network_.result_type());
-                                yunits = 'A';
-                            } else throw "No voltage source named "+sig;
-                        } else if (pspec.dfunction) {
-                            // gather history information for each signal
-                            var xv = [];  // each element is a list of times
-                            var yv = [];  // each element is a list of values
-                            var t = [];
-                            var fn = pspec.dfunction;
-                            $.each(pspec.signals,function (index,sig) {
-                                var history = results._network_.history(sig);
-                                // deal with dfunction here...
-                                if (history !== undefined) {
-                                    xv.push(history.xvalues);
-                                    yv.push(history.yvalues);
-                                    t.push(results._network_.result_type());
-                                } else throw "No node named "+sig;
-                            });
-
-                            // merge multibit xvalues and yvalues into xvalues and integers
-                            xy = multibit_to_int({xvalues: xv, yvalues: yv, type: t});
-
-                            // convert each yvalue to its final representation
-                            $.each(xy.yvalues,function (index,y) {
-                                if (y !== undefined) {
-                                    if (y < 0) {
-                                        y = -1;  // indicate Z value for bus
-                                    } else if (fn in plotdefs) {
-                                        var v = plotdefs[fn][y];
-                                        if (v) y = v;
-                                        else {
-                                            // use hex if for some reason plotDef didn't supply a string
-                                            y = "0x" + ("0000000000000000" + y.toString(16)).substr(-Math.ceil(xy.nnodes/4));
-                                        }
-                                    } else if (fn == 'X' || fn == 'x') {  // format as hex number
-                                        y = "0x" + ("0000000000000000" + y.toString(16)).substr(-Math.ceil(xy.nnodes/4));
-                                    } else if (fn == 'O' || fn == 'o') {  // format as octal number
-                                        y = "0" + ("0000000000000000000000" + y.toString(8)).substr(-Math.ceil(xy.nnodes/3));
-                                    } else if (fn == 'B' || fn == 'b') {  // format as binary number
-                                        y = "0b" + ("0000000000000000000000000000000000000000000000000000000000000000" + y.toString(2)).substr(-Math.ceil(xy.nnodes));
-                                    } else if (fn == 'D' || fn == 'd') {  // format as decimal number
-                                        y = y.toString(10);
-                                    } else if (fn == 'SD' || fn == 'sd') {  // format as signed decimal number
-                                        if (y & 1<<(xy.nnodes - 1)) y -= 1 << xy.nnodes;
-                                        y = y.toString(10);
-                                    } else throw "No definition for plot function "+fn;
-                                    xy.yvalues[index] = y;
-                                }
-                            });
-                            color.push(plot_colors[xvalues.length % plot_colors.length]);
-                            xvalues.push(xy.xvalues);
-                            yvalues.push(xy.yvalues);
-                            name.push(pspec.name);
-                            type.push('string');
-                            yunits = '';
-                        } else {
-                            $.each(pspec.signals,function (index,sig) {
-                                var history = results._network_.history(sig);
-                                // deal with dfunction here...
-                                if (history !== undefined) {
-                                    color.push(plot_colors[xvalues.length % plot_colors.length]);
-                                    xvalues.push(history.xvalues);
-                                    yvalues.push(history.yvalues);
-                                    name.push(sig);
-                                    type.push(results._network_.result_type());
-                                } else throw "No node named "+sig;
-                            });
-                        }
-                    });
-                        
-                    if (xvalues.length > 0) {
-                        return {xvalues: xvalues,
-                                yvalues: yvalues,
-                                name: name,
-                                xunits: 's',
-                                yunits: yunits,
-                                color: color,
-                                type: type
-                               };
-                    } else return undefined;
-                }
-
-                // called by plot.graph when user wants to plot another signal
-                function add_plot(signal) {
-                    try {
-                        // construct data set for requested signal
-                        var line = signal.match(/([A-Za-z0-9_.:\[\]]+|=|-|,|\(|\))/g);
-                        var errors = [];
-                        var plist = parse_plot(line,errors);
-                        if (errors.length > 0)
-                            throw '<li>'+errors.join('<li>');
-                        var dataset = new_dataset(plist);
-                        if (dataset) dataseries.push(dataset);
-                    } catch (e) {
-                        jade.window("Error in Add Plot",
-                                    $('<div class="jade-alert"></div>').html(e),
-                                    offset);
-                    }
-                }
-
-                // produce requested plots
-                var offset = $(diagram.canvas).offset();
-                if (plots.length > 0) {
-                    var dataseries = []; // plots we want
-                    $.each(plots,function(index,plist) {
-                        try {
-                            var dataset = new_dataset(plist);
-                        } catch (e) {
-                            errors.push(e);
-                        }
-                        if (dataset) dataseries.push(dataset);
-                    });
-
-                    // callback to use if user wants to add a new plot
-                    dataseries.add_plot = add_plot;  
-
-                    // graph the result and display in a window
-                    var graph1 = jade.plot.graph(dataseries);
-
-                    // provide option for a brief report of stats, if supported
-                    if (results.report) {
-                        var b = $('<button style="margin-left:10px">Stats</button>');
-                        b.on('click',function () {
-                            var offset = $(diagram.canvas).offset();
-                            offset.top += 30;
-                            offset.left += 30;
-                            jade.window('Circuit statistics',results.report(),offset);
-                        });
-                        $('.plot-toolbar',graph1).append(b);
-                    }
-
-                    var win = jade.window('Test Results: '+(errors.length>0 ? 'errors detected':'passed'),graph1,offset);
-
-                    // resize window to 75% of test pane
-                    var win_w = Math.floor(0.75*$(diagram.canvas).width());
-                    var win_h = Math.min(200*plots.length,Math.floor(0.75*$(diagram.canvas).height()));
-                    win[0].resize(win_w - win.width(),win_h - win.height());
-                    offset.top += win_h + 10;
-                }
-
-                // report any mismatches
-                if (errors.length > 0) {
-                    var postscript = '';
-                    if (errors.length > 5) {
-                        errors = errors.slice(0,5);
-                        postscript = '<br>...';
-                    }
-
-                    msg = '';
-                    if (help_url && t_error) {
-                        // create a form to visit courseoverflow.org
-                        var url = help_url+'&module='+module.get_name()+'&testNum='+t_error;
-                        if (student_id) {
-                            url += '&student_id='+student_id;
-                        }
-                        msg += '<div style="margin-bottom:5px;"><a href="'+url+'" target="_blank"><button>Click to find or submit a hint for this error</button></a></div>';
-                    }
-
-                    msg += '<li>'+errors.join('<li>')+postscript;
-                    jade.window("Errors detected by test",
-                                $('<div class="jade-alert"></div>').html(msg),
-                                offset);
-                    test_results[module.get_name()] = 'Error detected: '+msg;
                 } else {
-                    diagram.message('Test successful!');
-
-                    // Benmark = 1e-10/(size_in_m**2 * simulation_time_in_s)
-                    var benmark = 1e-10/((results._network_.size*1e-12) * results._network_.time);
-
-                    test_results[module.get_name()] = 'passed '+md5sum+' '+mverify_md5sum+' '+benmark.toString();
+                    // process results after giving UI a chance to update
+                    var msg = jade.window('Post-processing',
+                                          $('<div class="jade-alert"></div>').html('Verifying results...'),
+                                          $(diagram.canvas).offset());
+                    setTimeout(function () {
+                        var errors = verify_results(results);
+                        var offset = do_plots(results);
+                        report_errors(results,errors,offset);
+                        jade.window_close(msg);
+                    },0);
                 }
 
                 return undefined;
