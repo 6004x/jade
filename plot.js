@@ -236,14 +236,17 @@ jade_defs.plot = function(jade) {
                 }
             });
 
-            // use arrow keys to pan (ie, move the scrollbar thumb)  [doesn't work?]
-            dataset.canvas.on('mouseenter',function (event) { dataset.canvas.focus(); });
+            // use arrow keys to pan (ie, move the scrollbar thumb)
+            dataset.canvas.on('mouseenter',function (event) {
+                dataset.canvas.attr('tabindex',0);
+                dataset.canvas.focus();
+            });
             dataset.canvas.on('mouseleave',function (event) { dataset.canvas.blur(); });
-            dataset.canvas.on('keypress',function (event) {
+            dataset.canvas.on('keydown',function (event) {
                 if (event.which == 37) move_thumb(1);
                 else if (event.which == 39) move_thumb(-1);
                 else return;
-                event.prevent_default();
+                event.preventDefault();
             });
 
             // use mouse wheel to pan (ie, move the scrollbar thumb)
