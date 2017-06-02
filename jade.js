@@ -22,6 +22,7 @@ jade_defs.jade = function() {
     j.icon_view = jade_defs.icon_view(j);
     j.property_view = jade_defs.property_view(j);
     j.test_view = jade_defs.test_view(j);
+    j.verilog_view = jade_defs.verilog_view(j);
     j.utils = jade_defs.utils(j);
     j.plot = jade_defs.plot(j);
     j.device_level = jade_defs.device_level(j);
