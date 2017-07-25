@@ -962,6 +962,7 @@ jade_defs.test_view = function(jade) {
                                 $(diagram.canvas).offset());
                     //diagram.message(results);
                     test_results[module.get_name()] = 'Error detected: '+results;
+                    jade.model.save_modules(true);
                 } else if (results instanceof Error) {
                     results = results.stack.split('\n').join('<br>');
                     jade.window('Error running test',
@@ -969,6 +970,7 @@ jade_defs.test_view = function(jade) {
                                 $(diagram.canvas).offset());
                     //diagram.message(results.stack.split('\n').join('<br>'));
                     test_results[module.get_name()] = 'Error detected: '+results.message;
+                    jade.model.save_modules(true);
                 } else {
                     // process results after giving UI a chance to update
                     var msg = jade.window('Post-processing',
@@ -979,6 +981,7 @@ jade_defs.test_view = function(jade) {
                         var offset = do_plots(results);
                         report_errors(results,errors,offset);
                         jade.window_close(msg);
+                        jade.model.save_modules(true);
                     },0);
                 }
 
@@ -989,26 +992,14 @@ jade_defs.test_view = function(jade) {
             }
         }
 
-        function process_results_and_save(percent_complete,results) {
-            var response = process_results(percent_complete,results);
-
-            // if this was the final call, save modules to record any
-            // test result
-            if (percent_complete === undefined) {
-                jade.model.save_modules(true);
-            }
-
-            return response;
-        }
-
         // do the simulation
         var progress = jade.progress_report();
         jade.window('Progress',progress[0],$(diagram.canvas).offset());
         try {
             if (mode == 'device')
-                jade.cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results_and_save, options);
+                jade.cktsim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results, options);
             else if (mode == 'gate')
-                jade.gatesim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results_and_save, options);
+                jade.gatesim.transient_analysis(netlist, time, Object.keys(sampled_signals), process_results, options);
             else 
                 throw 'Unrecognized simulation mode: '+mode;
         } catch (e) {

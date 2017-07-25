@@ -115,8 +115,8 @@ gates.js: files/gates
 
 edx:	analog.js gates.js
 	grunt jade_edx
-	cp build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6.004_mitx/static/
-	cp build/jade_edx.min.js build/jade.css ~/git/6.004_mitx/static/labs/
+	cp build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6.004/mitx/static/
+	cp build/jade_edx.min.js build/jade.css ~/git/6.004/mitx/static/labs/
 	rm jade_edx.zip; zip -j jade_edx.zip build/jade_edx.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.*
 
 standalone: analog.js gates.js
@@ -126,8 +126,8 @@ standalone: analog.js gates.js
 
 workbook:	analog.js gates.js
 	grunt jade_workbook
-	cp build/jade_workbook.html build/jade_workbook.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6004x.github.io/tools/
+	cp build/jade_workbook.html build/jade_workbook.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6.004/notes/tools/
 
 labs:	analog.js gates.js
 	grunt jade_6004
-	cp build/jade_6004.html build/jade_6004.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ../6.004_labs/ssldocs/coursewarex/
+	cp build/jade_6004.html build/jade_6004.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ../6.004/labs/ssldocs/coursewarex/
