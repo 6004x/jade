@@ -425,7 +425,7 @@ jade_defs.test_view = function(jade) {
                 // check for legal test values
                 for (j = 0; j < test.length; j += 1) {
                     if ("01ZLH-".indexOf(test[j]) == -1) {
-                        errors.push('Illegal test value '+test[j]+': '+source[k]);
+                        errors.push('Illegal test value '+test[j]+': '+source[k]+' (must be one of 01ZLH-)');
                         break;
                     }
                 }
