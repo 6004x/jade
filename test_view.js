@@ -750,7 +750,7 @@ jade_defs.test_view = function(jade) {
         }
 
         // create requested plots
-        function do_plots(results) {
+        function do_plots(results, errors) {
             // construct a data set for {signals: [sig...], dfunction: string, name: string}
             var plot_colors = ['#268bd2','#dc322f','#859900','#b58900','#6c71c4','#d33682','#2aa198'];
             function new_dataset(plist) {
@@ -978,7 +978,7 @@ jade_defs.test_view = function(jade) {
                                           $(diagram.canvas).offset());
                     setTimeout(function () {
                         var errors = verify_results(results);
-                        var offset = do_plots(results);
+                        var offset = do_plots(results, errors);
                         report_errors(results,errors,offset);
                         jade.window_close(msg);
                         jade.model.save_modules(true);
