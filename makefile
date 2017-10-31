@@ -72,35 +72,35 @@ push-bugs:	files/bugs
 ################################################################################
 
 run:
-	chrome "http://localhost/jade/jade_local.html?modules=$(USER)"
+	xdg-open "http://localhost/jade/jade_local.html?modules=$(USER)"
 
 # Alternative run commands, pointing at different module directories:
 
 run-cjt:
-	chrome "http://localhost/jade/jade_local.html?modules=cjt"
+	xdg-open "http://localhost/jade/jade_local.html?modules=cjt"
 
 run-ward:
-	chrome "http://localhost/jade/jade_local.html?modules=ward"
+	xdg-open "http://localhost/jade/jade_local.html?modules=ward"
 
 run-notes:
-	chrome "http://localhost/jade/jade_local.html?modules=notes"
+	xdg-open "http://localhost/jade/jade_local.html?modules=notes"
 
 run-bugs:
-	chrome "http://localhost/jade/jade_local.html?modules=bugs"
+	xdg-open "http://localhost/jade/jade_local.html?modules=bugs"
 
 # ad-hoc run commands to show various examples:
 
 run-beta:
-	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/beta/cjttest"
+	xdg-open "http://localhost/jade/jade_local.html?modules=ward&edit=/beta/cjttest"
 
 run-beta-fib:
-	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/beta/testjig"
+	xdg-open "http://localhost/jade/jade_local.html?modules=ward&edit=/beta/testjig"
 
 run-mul32:
-	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/mul/mul32"
+	xdg-open "http://localhost/jade/jade_local.html?modules=ward&edit=/mul/mul32"
 
 run-bug:
-	chrome "http://localhost/jade/jade_local.html?modules=ward&edit=/bugs/mul4_1"
+	xdg-open "http://localhost/jade/jade_local.html?modules=ward&edit=/bugs/mul4_1"
 
 
 # ad-hoc target to show json of a file:
