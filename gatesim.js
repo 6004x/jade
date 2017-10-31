@@ -1341,7 +1341,7 @@ jade_defs.gatesim = function(jade) {
 
         this.properties = properties;
         // by default storage devices aren't lenient
-        this.lenient = (properties.lenient === undefined) ? false : properties.lenient !== 0;
+        this.lenient = (properties.lenient === undefined) ? true : properties.lenient !== 0;
         this.cout = properties.cout || 0;
         this.cin = properties.cin || 0;
         this.tcd = properties.tcd || 0;
