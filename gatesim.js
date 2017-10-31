@@ -1644,7 +1644,8 @@ jade_defs.gatesim = function(jade) {
                 if (word === undefined) {
                     continue;
                 }
-                for (var j = 0; j < this.width; j += 1, word >>= 1)
+                // N.B. the >> operator doesn't work on quantities larger than 32 bits
+                for (var j = 0; j < this.width; j += 1, word /= 2)
                     this.bits[i*this.width + j] = word & 1;
             }
         }

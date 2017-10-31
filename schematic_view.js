@@ -1239,8 +1239,8 @@ jade_defs.schematic_view = function(jade) {
         return [['memory', connections, {
             name: prefix + this.name,
             ports: plist,
-            width: this.properties.ndata,
-            nlocations: 1 << this.properties.naddr,
+            width: jade.utils.parse_number(this.properties.ndata),
+            nlocations: 1 << jade.utils.parse_number(this.properties.naddr),
             contents: contents
         }]];
     };
