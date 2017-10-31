@@ -807,6 +807,7 @@ jade_defs.top_level = function(jade) {
 
     function diagram_toggle_grid(diagram) {
         diagram.show_grid = !diagram.show_grid;
+        $(diagram.canvas).css('background-color',diagram.show_grid ? diagram.background_style : 'white');
         diagram.redraw_background();
     }
 
