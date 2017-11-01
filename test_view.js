@@ -626,6 +626,8 @@ jade_defs.test_view = function(jade) {
             for (vindex = 0; vindex < yv.length; vindex += 1) {
                 yvalues = yv[vindex];
                 y = 0;
+                // NB. doesn't work when nnodes > 53 (max javascript integer)
+                // **** fix someday
                 for (nindex = 0; nindex < nnodes; nindex += 1) {
                     i = yvalues[nindex];
                     if (i === 0 || i == 1) y = y*2 + i;
@@ -794,6 +796,8 @@ jade_defs.test_view = function(jade) {
                         xy = multibit_to_int({xvalues: xv, yvalues: yv, type: t});
 
                         // convert each yvalue to its final representation
+                        // NB. doesn't work when nnodes > 53 (max javascript integer)
+                        // **** fix someday
                         $.each(xy.yvalues,function (index,y) {
                             if (y !== undefined) {
                                 if (y < 0) {
