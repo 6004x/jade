@@ -16,10 +16,15 @@ jade_defs.verilog_view = function(jade) {
         this.aspect = undefined;
         this.verilog_component = undefined;
         this.tab = div.tab;
+
         this.textarea = $('<textarea class="jade-test-editor"></textarea>');
         div.appendChild(this.textarea[0]);
 
-        this.cm = CodeMirror.fromTextArea(this.textarea[0],{ mode: 'verilog' }); 
+        this.cm = CodeMirror.fromTextArea(this.textarea[0],{
+            mode: 'verilog',
+            lineWrapping: true,
+            lineNumbers: true
+        }); 
         // keep component up-to-date
         var editor = this;
         this.cm.on('changes', function (cm) {
@@ -31,9 +36,11 @@ jade_defs.verilog_view = function(jade) {
                 }
             }
         });
+
     }
 
     VerilogEditor.prototype.resize = function(w, h, selected) {
+        /*
         var e = this.textarea;
 
         var w_extra = e.outerWidth(true) - e.width();
@@ -43,6 +50,7 @@ jade_defs.verilog_view = function(jade) {
         var th = h - h_extra;
         e.width(tw);
         e.height(th);
+         */
         this.cm.setSize(tw,th);
     };
 
