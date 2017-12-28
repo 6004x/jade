@@ -1,11 +1,11 @@
-// Copyright (C) 2011-2017 Massachusetts Institute of Technology
+// Copyright (C) 2018 Massachusetts Institute of Technology
 // Chris Terman
 
 jade_defs.verilog_view = function(jade) {
 
     //////////////////////////////////////////////////////////////////////
     //
-    // Verilog editor
+    // Verilog editor/synthesis
     //
     //////////////////////////////////////////////////////////////////////
 
@@ -16,15 +16,13 @@ jade_defs.verilog_view = function(jade) {
         this.aspect = undefined;
         this.verilog_component = undefined;
         this.tab = div.tab;
+        this.textarea = $('<textarea class="jade-test-editor"></textarea>');
+        div.appendChild(this.textarea[0]);
 
-        this.cm = CodeMirror(div, {
-            lineWrapping: true,
-            lineNumbers: true
-        });
-
-        // on changes, update verilog component of module's verilog aspect
-        var editor = this;  // for closure
-        this.cm.on('changes',function() {
+        this.cm = CodeMirror.fromTextArea(this.textarea[0],{ mode: 'verilog' }); 
+        // keep component up-to-date
+        var editor = this;
+        this.cm.on('changes', function (cm) {
             if (editor.verilog_component) {
                 var text = editor.cm.getValue();
                 if (editor.verilog_component.verilog != text) {
@@ -33,14 +31,24 @@ jade_defs.verilog_view = function(jade) {
                 }
             }
         });
-
     }
 
     VerilogEditor.prototype.resize = function(w, h, selected) {
-        this.cm.setSize(w,h);
+        var e = this.textarea;
+
+        var w_extra = e.outerWidth(true) - e.width();
+        var h_extra = e.outerHeight(true) - e.height();
+        
+        var tw = w -  w_extra;
+        var th = h - h_extra;
+        e.width(tw);
+        e.height(th);
+        this.cm.setSize(tw,th);
     };
 
-    VerilogEditor.prototype.show = function() {};
+    VerilogEditor.prototype.show = function() {
+        this.cm.refresh();
+    };
 
     VerilogEditor.prototype.set_aspect = function(module) {
         this.module = module;
@@ -51,6 +59,7 @@ jade_defs.verilog_view = function(jade) {
             this.aspect.add_component(this.verilog_component);
         }
         this.cm.setValue(this.verilog_component.verilog);
+        this.cm.refresh();
 
         $(this.tab).html(VerilogEditor.prototype.editor_name);
 
@@ -64,6 +73,10 @@ jade_defs.verilog_view = function(jade) {
 
     VerilogEditor.prototype.event_coords = function () { };
 
+    VerilogEditor.prototype.check = function () {
+        // more here...
+    };
+
     VerilogEditor.prototype.message = function(msg) {
         this.status.text(msg);
     };
@@ -76,7 +89,7 @@ jade_defs.verilog_view = function(jade) {
     VerilogEditor.prototype.editor_name = 'verilog';
     jade.editors.push(VerilogEditor);
 
-    // Verilog component that lives inside a verilog aspect
+    // Verilog component that lives inside a Verilog aspect
     function Verilog(json) {
         jade.model.Component.call(this);
         this.load(json);
