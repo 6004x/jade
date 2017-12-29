@@ -40,7 +40,6 @@ jade_defs.verilog_view = function(jade) {
     }
 
     VerilogEditor.prototype.resize = function(w, h, selected) {
-        /*
         var e = this.textarea;
 
         var w_extra = e.outerWidth(true) - e.width();
@@ -50,7 +49,6 @@ jade_defs.verilog_view = function(jade) {
         var th = h - h_extra;
         e.width(tw);
         e.height(th);
-         */
         this.cm.setSize(tw,th);
     };
 
