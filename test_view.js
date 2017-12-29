@@ -461,9 +461,9 @@ jade_defs.test_view = function(jade) {
         //console.log('tests: '+JSON.stringify(tests));
 
         // extract netlist and make sure it has the signals referenced by the test
-        if (!module.has_aspect('schematic')) {
-            diagram.message('This module does not have a schematic!');
-            test_results[module.get_name()] = 'Error detected: this module has no schematic!';
+        if (!module.has_aspect('schematic') && !module.has_aspect('verilog')) {
+            diagram.message('This module does not have a schematic or verilog aspect!');
+            test_results[module.get_name()] = 'Error detected: this module has no schematic or verilog aspect!';
             return;
         }
 
@@ -1157,6 +1157,7 @@ jade_defs.test_view = function(jade) {
     //////////////////////////////////////////////////////////////////////////////
 
     return {
+        do_test: do_test
     };
 
 };

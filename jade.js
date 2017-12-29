@@ -35,10 +35,10 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.3.12 (2017 \u00A9 MIT EECS)";
+    var version = "Jade 2.4.0 (2018 \u00A9 MIT EECS)";
 
     var about_msg = version +
-            "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
+            "<p>Chris Terman wrote the schematic entry, testing, verilog synthesis and gate-level simulation tools." +
             "<p>Jacob White wrote the simulation engine for the device-level simulation tools."+
             "<p>We are grateful to Quanta Computer Incorporated for their support of the development of the Jade schematic entry and simulation tool as part of a research project on educational technologies with the MIT Computer Science and Artificial Intelligence Laboratory.";
 
