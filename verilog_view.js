@@ -124,11 +124,15 @@ jade_defs.verilog_view = function(jade) {
         
         // synthesize a netlist from the verilog source
         var netlist = [];
-        var tokens = this.tokenize();
-        if (tokens) {
-            var parse_tree = this.parse(tokens);
-            if (parse_tree) {
-                netlist = this.synthesize(parse_tree, mlist, globals, prefix, port_map, mstack);
+        var result = tokenize(this.module.get_name());
+        if (result.errors.length == 0) {
+            result = parse(result.tokens);
+            if (result.errors.length == 0) {
+                result = synthesize(result.parse_tree, mlist, globals, prefix, port_map, mstack);
+                if (result.errors.length == 0) netlist = result.netlist;
+                else {
+                    // deal with errors here
+                }
             }
         }
 
@@ -157,6 +161,8 @@ jade_defs.verilog_view = function(jade) {
     // Verilog component that lives inside a Verilog aspect
     function Verilog(json) {
         jade.model.Component.call(this);
+        this.verilog = '';
+        this.errors = [];
         this.load(json);
     }
     Verilog.prototype = new jade.model.Component();
@@ -166,6 +172,7 @@ jade_defs.verilog_view = function(jade) {
 
     Verilog.prototype.load = function(json) {
         this.verilog = json[1];
+        this.errors = [];
     };
 
     Verilog.prototype.json = function() {
@@ -179,15 +186,179 @@ jade_defs.verilog_view = function(jade) {
     //////////////////////////////////////////////////////////////////////
 
     // return list of token objects
-    Verilog.prototype.tokenize = function() {
+    function tokenize(module_name) {
+        // patterns for all the lexical elements
+	var string_pattern = /"(\\.|[^"])*"/;     // string: enclosed in quotes, contains escaped chars
+        var comment_multiline_pattern = /\/\*(.|\n)*\*\//;  // comment: /* ... */
+        var comment_pattern = /\/\/.*\n/;          // comment: double slash till the end of the line
+        var attribute_pattern = /\(\*(.|\n)*\*\)/;  // attribute: (* ... *)
+	var directive_pattern = /\`\w+/;
+        var names_pattern = /[A-Za-z_$][A-Za-z0-9_$\.]*|\\\S+/;
+        var integer_pattern = /(\d*)\'(d|sd)([0-9_]+)|(\d*)\'(b|sb)([01xXzZ?_]+)|(\d*)?\'(o|so)([0-7xXzZ?_]+)|(\d*)\'(h|sh)([0-9a-fA-FxXzZ?_]+)|[0-9_]+/;
+        // order matters for oper_pattern!  match longer strings before shorter strings
+        var oper_pattern = /\(|\)|\[|\]|\{|\}|\,|\+|\-|\*|\/|\%|\~\&|\~\||\~\^|\&\&|\&|\|\||\||\^\~|\^|\~|\?|\:|\=\=\=|\=\=|\=|\!\=\=|\!\=|\!|\<\<|\<\=|\<|\>\>|\>\=|\>|\;|[\n]/;
+
+        // pattern for a token.  Order matters for strings and comments.
+        var token_pattern = (
+            string_pattern.source + '|' + 
+            comment_multiline_pattern.source + '|' + 
+            comment_pattern.source + '|' +
+            attribute_pattern.source + '|' +
+            directive_pattern.source + '|' +
+            oper_pattern.source + '|' +
+            names_pattern.source + '|' +
+            integer_pattern.source);
+
+        // a stack of {pattern, contents, filename, line_number, line_offset}
+        // Note that the RegEx patten keeps track of where the next token match will
+        // start when pattern.exec is called.  The other parts of the state are used
+        // when generating error reports.
+        // An `include directive will push another state onto the stack, interrupting
+        // the processing of the current buffer. The last state on the stack is the one
+        // currently being processed.  When that contents is exhausted, the stack
+        // is popped and tokenizing resumes with the buffer that had the 1include.
+        var state_stack = [];
+
+        var included_modules = [];   // list of included modules
+        var tokens = [];   // resulting list of tokens
+        var errors = [];   // list of errors {message: ..., token: ...}
+
+        // work on tokenizing contents, starting with most recently pushed state
+        function scan() {
+            var state = state_stack[state_stack.length - 1];
+
+            var m,type,base,token,offset;
+            var include = false;   // true if next token is name of included module
+
+            while (state !== undefined) {
+                // find next token
+                m = state.pattern.exec(state.contents);
+
+                // all done with this module, return to previous module
+                if (m == null) {
+                    state_stack.pop();   // remove entry for file we just finished
+                    state = state_stack[state_stack.length - 1];  // return to previous module
+                    continue;
+                }
+
+                token = m[0];
+                
+                // take care of comments
+                if (comment_multiline_pattern.test(token) || attribute_pattern.test(token)) {
+                    // account for any matched newlines
+                    m = token.split('\n');
+                    state.line_number += m.length - 1;
+                    state.line_offset = m[m.length - 1].length;
+                    continue;
+                }
+                if (comment_pattern.test(token)) {
+                    state.pattern.lastIndex -= 1;  // leave newline at end for next token to deal with
+                    continue;
+                }
+
+                //set the token's type
+                if (string_pattern.test(token)) {
+                    token = token.slice(1,-1);  // chop off enclosing quotes
+                    type = 'string';
+                }
+                else if (names_pattern.test(token)) {
+                    type = 'name';
+                }
+                else if (integer_pattern.test(token)) {
+                    type = 'number';
+                }
+                else if (directive_pattern.test(token)) {
+                    type = 'directive';
+                    if (token == '`include') {
+                        // next token will be included module name
+                        include = true;
+                        continue;
+                    }
+                    // deal with other directives here...
+                }
+                else type = token;
+                
+                // create a token and do a little post-processing
+                var t = {
+                    type: type,
+                    token: token,
+                    origin_module: state.module,
+                    line: state.line_number,
+                    column: m.index - state.line_offset
+                };
+
+                if (token == "/*") {
+                    // check for unclosed comments
+                    errors.push({message: "Unclosed comment", token: t});
+                    return;
+                }
+                else if (token == "(*") {
+                    // check for unclosed attributes
+                    errors.push({message: "Unclosed attribute", token: t});
+                    return;
+                }
+                else if (type == "number") {
+                    if (/\'(h|sh)'/.test(token)) base = 'hex';
+                    else if (/\'(b|sb)]/.test(token)) base = 'bin';
+                    else if (/\'(o|so)]/.test(token)) base = 'oct';
+                    else base = 'dec';
+                    // parse numbers here
+                }
+                else if (include) {
+                    // push new buffer onto state stack
+                    process_module(token,t);
+                    include = false;
+                    continue;
+                }
+                else if (token == "\n") {
+                    // increment line number and calculate new line offset
+                    state.line_number += 1;
+                    state.line_offset = m.index + 1;
+                    continue;
+                }
+
+                // finally add token to our list and look for the next one
+                tokens.push(t);
+            }
+        }
+
+        // push a state for the new module the state stack and restart tokenizing process
+        function process_module(module_name,t) {
+            if (included_modules.indexOf(module_name) != -1) {
+                errors.push({message: "File included more than once", token:t});
+            } else {
+                included_modules.push(module_name);
+
+                // pattern keeps track of processing state, so make a new one for each file to be processed
+                var pattern = RegExp(token_pattern,'g');
+
+                // get contents of verilog aspect of module
+                var verilog = jade.model.find_module(module_name).aspect('verilog').components[0];
+                if (verilog instanceof Verilog) {
+                    state_stack.push({contents: verilog.verilog + '\n',     // add trailing newline just in case
+                                      module: module_name,
+                                      line_number: 1,
+                                      line_offset: 0,
+                                      pattern: pattern
+                                     });
+                }
+            }
+        }
+
+        // process top-level module
+        process_module(module_name);
+        scan();  // start the ball rolling
+        return {tokens: tokens, errors: errors};
     };
 
     // generate parse tree from list of tokens
-    Verilog.prototype.parse = function(tokens) {
+    function parse(tokens) {
+        return {parse_tree: {}, errors: []};
     };
     
     // generate netlist from parse tree
-    Verilog.prototype.synthesize = function(parse_tree, mlist, globals, prefix, port_map, mstack) {
+    function synthesize(parse_tree, mlist, globals, prefix, port_map, mstack) {
+        return {netlist: [], errors: []};
     };
 
     ///////////////////////////////////////////////////////////////////////////////
