@@ -193,10 +193,10 @@ jade_defs.verilog_view = function(jade) {
         var comment_pattern = /\/\/.*\n/;          // comment: double slash till the end of the line
         var attribute_pattern = /\(\*(.|\n)*\*\)/;  // attribute: (* ... *)
 	var directive_pattern = /\`\w+/;
-        var names_pattern = /[A-Za-z_$][A-Za-z0-9_$\.]*|\\\S+/;
         var integer_pattern = /(\d*)\'(d|sd)([0-9_]+)|(\d*)\'(b|sb)([01xXzZ?_]+)|(\d*)?\'(o|so)([0-7xXzZ?_]+)|(\d*)\'(h|sh)([0-9a-fA-FxXzZ?_]+)|[0-9_]+/;
+        var names_pattern = /[A-Za-z_$][A-Za-z0-9_$\.]*|\\\S+/;
         // order matters for oper_pattern!  match longer strings before shorter strings
-        var oper_pattern = /\(|\)|\[|\]|\{|\}|\,|\+|\-|\*|\/|\%|\~\&|\~\||\~\^|\&\&|\&|\|\||\||\^\~|\^|\~|\?|\:|\=\=\=|\=\=|\=|\!\=\=|\!\=|\!|\<\<|\<\=|\<|\>\>|\>\=|\>|\;|[\n]/;
+        var oper_pattern = /\~\&|\~\||\~\^|\&\&|\|\||\^\~|\=\=\=|\=\=|\!\=\=|\!\=|\<\<|\<\=|\>\>|\>\=|[()[\]{}=.<>,;\n+\-*/%&|^?:~!]/;
 
         // pattern for a token.  Order matters for strings and comments.
         var token_pattern = (
@@ -206,8 +206,8 @@ jade_defs.verilog_view = function(jade) {
             attribute_pattern.source + '|' +
             directive_pattern.source + '|' +
             oper_pattern.source + '|' +
-            names_pattern.source + '|' +
-            integer_pattern.source);
+            integer_pattern.source + '|' +
+            names_pattern.source);
 
         // a stack of {pattern, contents, filename, line_number, line_offset}
         // Note that the RegEx patten keeps track of where the next token match will
@@ -261,11 +261,11 @@ jade_defs.verilog_view = function(jade) {
                     token = token.slice(1,-1);  // chop off enclosing quotes
                     type = 'string';
                 }
-                else if (names_pattern.test(token)) {
-                    type = 'name';
-                }
                 else if (integer_pattern.test(token)) {
                     type = 'number';
+                }
+                else if (names_pattern.test(token)) {
+                    type = 'name';
                 }
                 else if (directive_pattern.test(token)) {
                     type = 'directive';
