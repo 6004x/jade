@@ -197,27 +197,14 @@ jade_defs.verilog_view = function(jade) {
 
     // return list of token objects
     function tokenize(module_name) {
-        // patterns for all the lexical elements
-	var string_pattern = /"(\\.|[^"])*"/;     // string: enclosed in quotes, contains escaped chars
-        var comment_multiline_pattern = /\/\*(.|\n)*\*\//;  // comment: /* ... */
-        var comment_pattern = /\/\/.*\n/;          // comment: double slash till the end of the line
-        var attribute_pattern = /\(\*(.|\n)*\*\)/;  // attribute: (* ... *)
-	var directive_pattern = /\`\w+/;
-        var integer_pattern = /(\d*)\'(d|sd)([0-9_]+)|(\d*)\'(b|sb)([01xXzZ?_]+)|(\d*)?\'(o|so)([0-7xXzZ?_]+)|(\d*)\'(h|sh)([0-9a-fA-FxXzZ?_]+)|[0-9_]+/;
-        var names_pattern = /[A-Za-z_$][A-Za-z0-9_$\.]*|\\\S+/;
-        // order matters for oper_pattern!  match longer strings before shorter strings
-        var oper_pattern = /\~\&|\~\||\~\^|\&\&|\|\||\^\~|\=\=\=|\=\=|\!\=\=|\!\=|\<\<|\<\=|\>\>|\>\=|[()[\]{}=.<>,;\n+\-*/%&|^?:~!]/;
-
-        // pattern for a token.  Order matters for strings and comments.
-        var token_pattern = (
-            string_pattern.source + '|' + 
-            comment_multiline_pattern.source + '|' + 
-            comment_pattern.source + '|' +
-            attribute_pattern.source + '|' +
-            directive_pattern.source + '|' +
-            oper_pattern.source + '|' +
-            integer_pattern.source + '|' +
-            names_pattern.source);
+        // patterns for all the lexical elements, all anchored at start of token
+	var string_pattern = /^"(\\.|[^"])*"/;     // string: enclosed in quotes, contains escaped chars
+        var comment_multiline_pattern = /^\/\*(.|\n)*\*\//;  // comment: /* ... */
+        var comment_pattern = /^\/\/.*\n/;          // comment: double slash till the end of the line
+        var attribute_pattern = /^\(\*(.|\n)*\*\)/;  // attribute: (* ... *)
+	var directive_pattern = /^\`\w+/;
+        var integer_pattern = /^((\d*)\'(d|sd)([0-9_]+)|(\d*)\'(b|sb)([01xXzZ?_]+)|(\d*)?\'(o|so)([0-7xXzZ?_]+)|(\d*)\'(h|sh)([0-9a-fA-FxXzZ?_]+)|[0-9_]+)/;
+        var names_pattern = /^[A-Za-z_$][A-Za-z0-9_$\.]*|^\\\S+/;
 
         // a stack of {pattern, contents, filename, line_number, line_offset}
         // Note that the RegEx patten keeps track of where the next token match will
@@ -317,8 +304,8 @@ jade_defs.verilog_view = function(jade) {
                 else if (include) {
                     // push new buffer onto state stack
                     process_module(token,t);
-                    include = false;
-                    continue;
+                    scan();   // start processing new buffer right away
+                    return;   // recursive call did all the work, so we're done
                 }
                 else if (token == "\n") {
                     // increment line number and calculate new line offset
@@ -335,12 +322,19 @@ jade_defs.verilog_view = function(jade) {
         // push a state for the new module the state stack and restart tokenizing process
         function process_module(module_name,t) {
             if (included_modules.indexOf(module_name) != -1) {
-                errors.push({message: "File included more than once", token:t});
+                errors.push({message: "Module included more than once", token:t});
             } else {
                 included_modules.push(module_name);
 
                 // pattern keeps track of processing state, so make a new one for each file to be processed
-                var pattern = RegExp(token_pattern,'g');
+                // pattern will match, in order:
+                //      anything wrapped in quotes (handles escaped characters)
+                //      /* */ multi-line comments
+                //      (* *) attribute
+                //      // comment to end of line
+                //      a token: a sequence of \w,$,?,',`
+                //      other operators and newline
+                var pattern = /"(\\.|[^"])*"|\/\*(.|\n)*?\*\/|\(\*(.|\n)*?\*\)|\/\/.*\n|[\w$?'`]+|\~\&|\~\||\~\^|\&\&|\|\||\^\~|\=\=\=|\=\=|\!\=\=|\!\=|\<\<|\<\=|\>\>|\>\=|[()[\]{}=.<>,;+\-*/%&|^?:~!\n]/g;
 
                 // get contents of verilog aspect of module
                 var verilog = jade.model.find_module(module_name).aspect('verilog').components[0];
