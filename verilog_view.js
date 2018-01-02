@@ -100,7 +100,14 @@ jade_defs.verilog_view = function(jade) {
             var widget = editor.cm.doc.addLineWidget(t.line-1,
                                                      $('<span class="verilog-error-message">').text(error.message)[0],
                                                      {noHScroll: true, handMouseEvents: true});
+            var i = editor.marked_lines.length;
             editor.marked_lines.push(widget);
+            // editing the line removes the widget and highlighting
+            CodeMirror.on(widget.line, 'change', function () {
+                widget.clear();
+                editor.cm.removeLineClass(widget.line, 'background', 'verilog-error');
+                editor.marked_lines.splice(i,1);   // remove from list of marked lines
+            });
         });
         // make first error visible in editor
         if (errors.length > 0) {
