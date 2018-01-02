@@ -263,7 +263,7 @@ jade_defs.verilog_view = function(jade) {
         var attribute_pattern = /^\(\*(.|\n)*\*\)/;  // attribute: (* ... *)
 	var directive_pattern = /^\`\w+/;
         var names_pattern = /^[A-Za-z_$][A-Za-z0-9_$\.]*|^\\\S+/;
-        var integer_pattern = /^((\d*)\'(d|sd)([0-9_]+)|(\d*)\'(b|sb)([01xXzZ?_]+)|(\d*)?\'(o|so)([0-7xXzZ?_]+)|(\d*)\'(h|sh)([0-9a-fA-FxXzZ?_]+)|[0-9_]+)/;
+        var integer_pattern = /^((\d*)\'(d|sd)([0-9_]+)|(\d*)\'(b|sb)([01xXzZ?_]+)|(\d*)?\'(o|so)([0-7xXzZ?_]+)|(\d*)\'(h|sh)([0-9a-fA-FxXzZ?_]+)|([0-9_]+))/;
 
         // a stack of {pattern, contents, filename, line_number, line_offset}
         // Note that the RegEx patten keeps track of where the next token match will
@@ -354,11 +354,76 @@ jade_defs.verilog_view = function(jade) {
                     return;
                 }
                 else if (type == "number") {
-                    if (/\'(h|sh)'/.test(token)) base = 'hex';
-                    else if (/\'(b|sb)]/.test(token)) base = 'bin';
-                    else if (/\'(o|so)]/.test(token)) base = 'oct';
-                    else base = 'dec';
-                    // parse numbers here
+                    m = integer_pattern.exec(token);
+                    var i;
+                    var digit2bits = {
+                        '0': '0000',
+                        '1': '0001',
+                        '2': '0010',
+                        '3': '0011',
+                        '4': '0100',
+                        '5': '0101',
+                        '6': '0110',
+                        '7': '0111',
+                        '8': '1000',
+                        '9': '1001',
+                        'a': '1010',
+                        'b': '1011',
+                        'c': '1100',
+                        'd': '1101',
+                        'e': '1110',
+                        'f': '1111',
+                        'x': 'xxxx',
+                        'z': 'zzzz',
+                        '?': 'zzzz'
+                    };
+
+                    // convert token string into array of bits
+                    function bits(s,nbits) {
+                        var b = [];
+                        for (var i = 0; i < s.length; i += 1) {
+                            var digit = s.charAt(i);
+                            if (digit == '_') continue;
+                            digit = digit2bits[digit];
+                            for (var j = 4-nbits; j < 4; j += 1) b.push(digit[j]);
+                        }
+                        return b;
+                    }
+
+                    if (m[14] !== undefined) {
+                        // decimal number
+                        i = parseInt(m[14]);
+                        t.value = {bits: i.toString(2).split(''), signed: false};
+                    }
+                    else if (m[3] !== undefined) {
+                        // 'd number
+                        i = parseInt(m[4].split('_').join(''));
+                        t.value = {bits: i.toString(2).split(''), width: m[2], signed: m[3]=='sd'};
+                    }
+                    else if (m[6] !== undefined) {
+                        // 'b number
+                        t.value = {bits: bits(m[7],1), width: m[5], signed: m[6]=='sb'};
+                    }
+                    else if (m[9] !== undefined) {
+                        // 'o number
+                        t.value = {bits: bits(m[10],3), width: m[8], signed: m[9]=='so'};
+                    }
+                    else if (m[12] !== undefined) {
+                        // 'h number
+                        t.value = {bits: bits(m[13],4), width: m[11], signed: m[12]=='sh'};
+                    }
+
+                    // post-process bit array into an array LSB to MSB, adjust width
+                    var v = t.value;
+                    v.bits.reverse();   // LSB to MSB
+                    if (v.width) {
+                        if (v.bits.length < v.width) {
+                            // add padding bits to achieve desired width
+                            m = v.bits[v.bits.length - 1];   // msb
+                            if (m == '1') m = '0';    // if msb is 0 or 1, pad with 0
+                            while (v.bits.length < t.width) v.bits.push(m);
+                        } else v.bits.length = v.width;  // truncate value
+                    }
                 }
                 else if (include) {
                     if (t.type == 'string') {
