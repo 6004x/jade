@@ -19,6 +19,8 @@ jade_defs.verilog_view = function(jade) {
         this.aspect = undefined;
         this.verilog_component = undefined;
         this.tab = div.tab;
+        this.marked_lines = [];   // line handles for lines with widgets
+        this.marked_modules = [];  // modules with errors last time 'round
 
         // set up toolbar
         this.toolbar = new jade.Toolbar(this);
@@ -79,10 +81,40 @@ jade_defs.verilog_view = function(jade) {
         if (this.status && this.status.text() == message) this.status.text('');
     };
 
+    VerilogEditor.prototype.clear_errors = function () {
+        var editor = this;
+        this.marked_lines.every(function (widget) {
+            widget.clear();
+            editor.cm.removeLineClass(widget.line, 'background', 'verilog-error');
+        });
+        editor.marked_lines.length = 0;
+    };
+
+    VerilogEditor.prototype.mark_errors = function () {
+        var editor = this;
+        editor.clear_errors();
+        var errors = editor.verilog_component.errors;
+        errors.every(function (error) {
+            var t = error.token;
+            editor.cm.addLineClass(t.line-1, 'background', 'verilog-error');
+            var widget = editor.cm.doc.addLineWidget(t.line-1,
+                                                     $('<span class="verilog-error-message">').text(error.message)[0],
+                                                     {noHScroll: true, handMouseEvents: true});
+            editor.marked_lines.push(widget);
+        });
+        // make first error visible in editor
+        if (errors.length > 0) {
+            var locn = {line: errors[0].token.line-1, ch: errors[0].token.column};
+            editor.cm.scrollIntoView(locn, 40);
+            editor.cm.setCursor(locn);
+        }
+    };
+    
     VerilogEditor.prototype.show = function() {
         this.resize(this.w,this.h,true);
         this.toolbar.enable_tools(this);
         this.cm.refresh();
+        if (this.verilog_component) this.mark_errors();
     };
 
     VerilogEditor.prototype.set_aspect = function(module) {
@@ -90,7 +122,10 @@ jade_defs.verilog_view = function(jade) {
         this.aspect = module.aspect('verilog');
 
         // we'll synthesize a netlist when one is called for
-        this.aspect.netlist = this.verilog_netlist;
+        var editor = this;
+        this.aspect.netlist = function (mlist, globals, prefix, port_map, mstack) {
+            return verilog_netlist(editor, mlist, globals, prefix, port_map, mstack);
+        };
 
         this.verilog_component = this.aspect.components[0];
         if (this.verilog_component === undefined) {
@@ -99,6 +134,7 @@ jade_defs.verilog_view = function(jade) {
         }
         this.cm.setValue(this.verilog_component.verilog);
         this.cm.refresh();
+        this.mark_errors();
 
         $(this.tab).html(VerilogEditor.prototype.editor_name);
 
@@ -113,8 +149,16 @@ jade_defs.verilog_view = function(jade) {
     // mlist is a list of module names that are the leaves of the extraction tree.
     // port_map is an associative array: local_sig => external_sig
     // mstack is an array of parent module names so we can detect recursion
-    VerilogEditor.prototype.verilog_netlist = function (mlist, globals, prefix, port_map, mstack) {
-        var n = this.module.get_name();
+    function verilog_netlist(editor, mlist, globals, prefix, port_map, mstack) {
+        // clear any errors from last netlisting operation
+        editor.marked_modules.every(function (module) {
+            var verilog = jade.model.find_module(module).aspect('verilog').components[0];
+            if (verilog instanceof Verilog) verilog.errors.length = 0;
+        });
+        editor.marked_modules.length = 0;
+        editor.clear_errors();  // clean up line widgets
+
+        var n = editor.module.get_name();
         if (mstack.indexOf(n) != -1) {
             // oops, recursive use of module.  complain!
             mstack.push(n);  // just to make the message easy to construct
@@ -122,21 +166,39 @@ jade_defs.verilog_view = function(jade) {
         }
         mstack.push(n);  // remember that we're extracting this module
         
+        function post_errors(errors) {
+            // build a dict mapping module => list of errors
+            var edict = {};
+            errors.every(function (error) {
+                var module = error.token.module;
+                if (edict[module] === undefined) edict[module] = [];
+                edict[module].push(error);
+            });
+            // then post errors to each module
+            $.each(edict,function (module,errors) {
+                editor.marked_modules.push(module);
+                var verilog = jade.model.find_module(module).aspect('verilog').components[0];
+                if (verilog instanceof Verilog) verilog.errors = errors;
+            });
+
+            editor.mark_errors();   // show the errors for the current module
+            throw "Modules with errors: " + editor.marked_modules.join(', ');
+        }
+
         // synthesize a netlist from the verilog source
         var netlist = [];
-        var result = tokenize(this.module.get_name());
+        var result = tokenize(editor.module.get_name());
+
         if (result.errors.length == 0) {
             result = parse(result.tokens);
             if (result.errors.length == 0) {
                 result = synthesize(result.parse_tree, mlist, globals, prefix, port_map, mstack);
                 if (result.errors.length == 0) netlist = result.netlist;
-                else {
-                    // deal with errors here
-                }
-            }
-        }
+                else post_errors(result.errors);
+            } else post_errors(result.errors);
+        } else post_errors(result.errors);
 
-        mstack.pop();   // all done with extraction, remove module name
+        mstack.pop();         // all done with extraction, remove module name
         return netlist;
     };
 
@@ -193,8 +255,8 @@ jade_defs.verilog_view = function(jade) {
         var comment_pattern = /^\/\/.*\n/;          // comment: double slash till the end of the line
         var attribute_pattern = /^\(\*(.|\n)*\*\)/;  // attribute: (* ... *)
 	var directive_pattern = /^\`\w+/;
-        var integer_pattern = /^((\d*)\'(d|sd)([0-9_]+)|(\d*)\'(b|sb)([01xXzZ?_]+)|(\d*)?\'(o|so)([0-7xXzZ?_]+)|(\d*)\'(h|sh)([0-9a-fA-FxXzZ?_]+)|[0-9_]+)/;
         var names_pattern = /^[A-Za-z_$][A-Za-z0-9_$\.]*|^\\\S+/;
+        var integer_pattern = /^((\d*)\'(d|sd)([0-9_]+)|(\d*)\'(b|sb)([01xXzZ?_]+)|(\d*)?\'(o|so)([0-7xXzZ?_]+)|(\d*)\'(h|sh)([0-9a-fA-FxXzZ?_]+)|[0-9_]+)/;
 
         // a stack of {pattern, contents, filename, line_number, line_offset}
         // Note that the RegEx patten keeps track of where the next token match will
@@ -269,7 +331,7 @@ jade_defs.verilog_view = function(jade) {
                 var t = {
                     type: type,
                     token: token,
-                    origin_module: state.module,
+                    module: state.module,
                     line: state.line_number,
                     column: m.index - state.line_offset
                 };
@@ -292,10 +354,14 @@ jade_defs.verilog_view = function(jade) {
                     // parse numbers here
                 }
                 else if (include) {
-                    // push new buffer onto state stack
-                    process_module(token,t);
-                    scan();   // start processing new buffer right away
-                    return;   // recursive call did all the work, so we're done
+                    if (t.type == 'string') {
+                        // push new buffer onto state stack
+                        process_module(token,t);
+                        scan();   // start processing new buffer right away
+                        return;   // recursive call did all the work, so we're done
+                    } else {
+                        errors.push({message: "Expected string to follow `include", token: t});
+                    }
                 }
                 else if (token == "\n") {
                     // increment line number and calculate new line offset
@@ -324,7 +390,7 @@ jade_defs.verilog_view = function(jade) {
                 //      // comment to end of line
                 //      a token: a sequence of \w,$,?,',`
                 //      other operators and newline
-                var pattern = /"(\\.|[^"])*"|\/\*(.|\n)*?\*\/|\(\*(.|\n)*?\*\)|\/\/.*\n|[\w$?'`]+|\~\&|\~\||\~\^|\&\&|\|\||\^\~|\=\=\=|\=\=|\!\=\=|\!\=|\<\<|\<\=|\>\>|\>\=|[()[\]{}=.<>,;+\-*/%&|^?:~!\n]/g;
+                var pattern = /"(\\.|[^"])*"|\/\*(.|\n)*?\*\/|\(\*(.|\n)*?\*\)|\/\/.*\n|[\w$?'`]+|\\\S+|\~\&|\~\||\~\^|\&\&|\|\||\^\~|\=\=\=|\=\=|\!\=\=|\!\=|\<\<|\<\=|\>\>|\>\=|[()[\]{}=.<>,;+\-*/%&|^?:~!\n]/g;
 
                 // get contents of verilog aspect of module
                 var verilog = jade.model.find_module(module_name).aspect('verilog').components[0];
@@ -335,14 +401,14 @@ jade_defs.verilog_view = function(jade) {
                                       line_offset: 0,
                                       pattern: pattern
                                      });
-                }
+                } else errors.push({message: "Module doesn't have a non-empty verilog aspect", token: t});
             }
         }
 
         // process top-level module
         process_module(module_name);
         scan();  // start the ball rolling
-        return {tokens: tokens, errors: errors};
+        return {tokens: tokens, errors: errors, modules:included_modules};
     };
 
     // generate parse tree from list of tokens

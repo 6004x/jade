@@ -276,6 +276,14 @@
 .jade-verilog-editor:disabled {
     background-color: #E0E0E0;
 }
+.verilog-error {
+    background-color: #FEE;
+}
+.verilog-error-message {
+    background-color: #FCC;
+    padding-left: 5px;
+    padding-right: 5px;
+}
 .jade-alert {
     padding: 5px;
     color: #b94a48;
