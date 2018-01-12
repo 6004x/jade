@@ -266,6 +266,16 @@
 .jade-test-editor:disabled {
     background-color: #E0E0E0;
 }
+.jade-verilog-editor {
+    resize: none;
+    outline: none;
+    width: 565px;
+    height: 229px;
+    font: 10pt/1.25 "Lucida Console",monospace;
+}
+.jade-verilog-editor:disabled {
+    background-color: #E0E0E0;
+}
 .jade-alert {
     padding: 5px;
     color: #b94a48;
