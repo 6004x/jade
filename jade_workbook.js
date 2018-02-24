@@ -90,21 +90,17 @@ jade_defs.services = function (jade) {
 
                             // if there are tests, see if they've been run
                             answer.message = undefined;
-                            answer.check = undefined;
-                            var completed_tests = state['tests'];
-                            if (completed_tests) {
-                                // make sure all required tests passed
-                                answer.check = 'right';
-                                $.each(state['required-tests'] || [],function (index,test) {
+                            // make sure all required tests passed
+                            answer.check = 'right';
+                            $.each(state['required-tests'] || [],function (index1,rtest) {
+                                var passed = false;
+                                $.each(state['tests'], function (index2, test) {
                                     // test results: error msg or "passed <md5sum> <mverify_md5sum> <benmark>"
-                                    var result = (completed_tests[test] || 'Test has not been run: '+test);
-                                    if (result.lastIndexOf('passed',0) !== 0) {
-                                        if (answer.message) answer.message += '\n' + result;
-                                        else answer.message = result;
-                                        answer.check = 'wrong';
-                                    }
+                                    if (test.indexOf(rtest) != -1 && test.indexOf('passed') == 0)
+                                        passed = true;
                                 });
-                            }
+                                if (!passed) answer.check = 'wrong';
+                            });
 
                             // send it to our host
                             host.postMessage(JSON.stringify(answer),window.location.origin);

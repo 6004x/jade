@@ -19,7 +19,7 @@ standalone: analog.js gates.js
 
 workbook: analog.js gates.js
 	grunt jade_workbook
-	cp build/jade_workbook.html build/jade_workbook.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6.004/notes/tools/
+	cp build/jade_workbook.html build/jade_workbook.min.js build/jade.css build/FontAwesome.otf build/fontawesome-webfont.* ~/git/6.004/6004x.github.io/tools/
 
 labs:	analog.js gates.js
 	grunt jade_6004
