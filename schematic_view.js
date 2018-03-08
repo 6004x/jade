@@ -261,12 +261,12 @@ jade_defs.schematic_view = function(jade) {
 
         var w_extra = e.outerWidth(true) - e.width();
         var h_extra = e.outerHeight(true) - e.height();
-        var w_parts = this.parts_bin ? /*this.resizer.outerWidth(true) + 1 +*/ $(this.parts_bin.top_level).outerWidth(true) + 10 : 0;
+        var w_parts = this.parts_bin ? $(this.parts_bin.top_level)[0].offsetWidth : 0;
         var h_toolbar = this.toolbar.toolbar.outerHeight(true);
         
         var tw = w -  w_extra;
         var th = h - h_extra - h_toolbar;
-        e.width(tw - w_parts);
+        e.width(tw - w_parts - 3);   // leave a small right margin
         e.height(th);
 
         if (this.parts_bin) {
@@ -1267,7 +1267,7 @@ jade_defs.schematic_view = function(jade) {
         this.parts_wanted = parts_wanted;
 
         var bin = $('<div class="jade-xparts-bin"></div>');
-        bin.width(part_w * 2 + 19);    // leave room for scrollbar, border and margin on Windows
+        bin.width(part_w * 2);
         this.top_level = bin[0];
         this.top_level.parts_bin = this;
 
