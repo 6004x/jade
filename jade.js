@@ -34,7 +34,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.3.12 (2017 \u00A9 MIT EECS)";
+    var version = "Jade 2.3.13 (2018 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
@@ -154,11 +154,12 @@ jade_defs.top_level = function(jade) {
             // we're full screen, so resize when window resizes
             $(window).on('resize',function() {
                 var body = $('body');
-                // 8, 12 are fudge factors to avoid scrollbars...
-                var win_w = $(window).width() - (body.outerWidth(true) - body.width()) - 8;
-                var win_h = $(window).height() - (body.outerHeight(true) - body.height()) - 12;
+                body.css('overflow','hidden');   // avoid scrollbars
+                var win_w = $(window).width() - (body.outerWidth(true) - body.width());
+                var win_h = $(window).height() - (body.outerHeight(true) - body.height());
                 me.resize(win_w,win_h);
             });
+            $(window).trigger('resize');  // initial sizing
         }
     }
 
@@ -966,9 +967,16 @@ jade_defs.top_level = function(jade) {
         diagram.rotate(3);
     }
 
-    Diagram.prototype.resize = function() {
-        var c = $(this.canvas);
-        this.svg.setAttribute('viewbox','0 0 '+ c.width() + ' ' + c.height());
+    Diagram.prototype.resize = function(tw,th) {
+        if (tw === undefined) {
+            var c = $(this.canvas);
+            tw = c.width();
+            th = c.height();
+        }
+
+        this.svg.setAttribute('viewbox','0 0 '+ tw + ' ' + th);
+        $(this.svg).width(tw);
+        $(this.svg).height(th);
 
         this.zoomall();
     };

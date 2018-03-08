@@ -111,10 +111,11 @@ jade_defs.icon_view = function(jade) {
     };
 
     Icon.prototype.resize = function(w, h, selected) {
+        console.log('icon resize');
         this.w = w;
         this.h = h;
 
-        // schematic canvas
+        // icon canvas
         var e = $(this.diagram.canvas);
 
         var w_extra = e.outerWidth(true) - e.width();
@@ -127,7 +128,7 @@ jade_defs.icon_view = function(jade) {
         e.height(th);
 
         // adjust diagram to reflect new size
-        if (selected) this.diagram.resize();
+        if (selected) this.diagram.resize(tw,th);
     };
 
     Icon.prototype.show = function() {

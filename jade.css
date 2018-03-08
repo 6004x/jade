@@ -108,8 +108,6 @@
     padding-top: 5px;
 }
 .jade-schematic-diagram {
-    width: 444px;
-    height: 229px;
     border: 1px solid black;
     outline: none;
     background-color: rgb(250,250,250);
@@ -130,11 +128,11 @@
     height: 231px;
 }
 .jade-xparts-bin {
+    margin-left: 3px;
+    padding-left: 3px;
+    border-left: 3px solid black;
     float:right;
-    height: 231px;
-    width: 115px; /*73px;*/
-    /*min-width: 50px;*/
-    /*max-width: 73px;*/
+    width: 84px; /*73px;*/
     vertical-align: top;
     overflow-y: auto;
     overflow-x: none;
@@ -173,10 +171,6 @@
     pointer-events: none;
 }
 .jade-icon-diagram {
-    width: 568px;
-    min-width: 568px;
-    height: 229px;
-    min-height: 229px;
     border: 1px solid black;
     outline: none;
     background-color: rgb(250,250,250);

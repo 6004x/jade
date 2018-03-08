@@ -176,6 +176,7 @@ jade_defs.schematic_view = function(jade) {
             this.parts_bin = new PartsBin(this,parent.configuration.parts);
             div.appendChild(this.parts_bin.top_level);
 
+            /*
             // set up resizer
             this.resizer = $('<div class="jade-xparts-resize"></div>');
             var sch = this;
@@ -223,6 +224,7 @@ jade_defs.schematic_view = function(jade) {
             });
 
             div.appendChild(this.resizer[0]);
+             */
         }
     }
 
@@ -252,12 +254,14 @@ jade_defs.schematic_view = function(jade) {
     };
 
     Schematic.prototype.resize = function(w, h, selected) {
+        console.log('schematic resize');
+
         // schematic canvas
         var e = $(this.diagram.canvas);
 
         var w_extra = e.outerWidth(true) - e.width();
         var h_extra = e.outerHeight(true) - e.height();
-        var w_parts = this.parts_bin ? this.resizer.outerWidth(true) + 1 + $(this.parts_bin.top_level).outerWidth(true) : 0;
+        var w_parts = this.parts_bin ? /*this.resizer.outerWidth(true) + 1 +*/ $(this.parts_bin.top_level).outerWidth(true) + 10 : 0;
         var h_toolbar = this.toolbar.toolbar.outerHeight(true);
         
         var tw = w -  w_extra;
@@ -266,13 +270,15 @@ jade_defs.schematic_view = function(jade) {
         e.height(th);
 
         if (this.parts_bin) {
+            /*
             e = this.resizer;
             e.height(th);
+            */
             this.parts_bin.resize(tw, th, selected);
         }
 
         // adjust diagram to reflect new size
-        if (selected) this.diagram.resize();
+        if (selected) this.diagram.resize(tw,th);
     };
 
     Schematic.prototype.show = function() {
@@ -1261,6 +1267,7 @@ jade_defs.schematic_view = function(jade) {
         this.parts_wanted = parts_wanted;
 
         var bin = $('<div class="jade-xparts-bin"></div>');
+        bin.width(part_w * 2 + 19);    // leave room for scrollbar, border and margin on Windows
         this.top_level = bin[0];
         this.top_level.parts_bin = this;
 
@@ -1383,8 +1390,9 @@ jade_defs.schematic_view = function(jade) {
 
         // bug?  nudge DOM's redraw so it will actually display the newly added part
         // without this, sometimes the parts contents aren't shown ?!
-        bin.width(bin.width()-1);
-        bin.width(bin.width()+1);
+        var h = bin.height();
+        bin.height(h-1);
+        bin.height(h+1);
     };
 
     // one instance will be created for each part in the parts bin
