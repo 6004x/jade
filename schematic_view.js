@@ -264,9 +264,9 @@ jade_defs.schematic_view = function(jade) {
         var w_parts = this.parts_bin ? $(this.parts_bin.top_level)[0].offsetWidth : 0;
         var h_toolbar = this.toolbar.toolbar.outerHeight(true);
         
-        var tw = w -  w_extra;
+        var tw = w -  w_extra - w_parts - 3;  // leave a small right margin
         var th = h - h_extra - h_toolbar;
-        e.width(tw - w_parts - 3);   // leave a small right margin
+        e.width(tw);
         e.height(th);
 
         if (this.parts_bin) {

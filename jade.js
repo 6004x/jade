@@ -34,7 +34,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.3.14 (2018 \u00A9 MIT EECS)";
+    var version = "Jade 2.3.15 (2018 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
