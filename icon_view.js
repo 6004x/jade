@@ -111,7 +111,7 @@ jade_defs.icon_view = function(jade) {
     };
 
     Icon.prototype.resize = function(w, h, selected) {
-        console.log('icon resize');
+        //console.log('icon resize');
         this.w = w;
         this.h = h;
 
