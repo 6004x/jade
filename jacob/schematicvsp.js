@@ -3259,7 +3259,7 @@ schematic = (function() {
 	    this.canvas.style.cursor = 'default';
 	    //this.canvas.height = part_w;
 	    //this.canvas.width = part_h;
-	    this.canvas.part = this;
+	    this.canvas.xpart = this;
 
 	    this.canvas.addEventListener('mouseover',part_enter,false);
 	    this.canvas.addEventListener('mouseout',part_leave,false);
@@ -3351,7 +3351,7 @@ schematic = (function() {
 	function part_enter(event) {
 	    if (!event) event = window.event;
 	    var canvas = (window.event) ? event.srcElement : event.target;
-	    var part = canvas.part;
+	    var part = canvas.xpart;
 
 	    // avoid Chrome bug that changes to text cursor whenever
 	    // drag starts.  We'll restore the default handler at
@@ -3368,7 +3368,7 @@ schematic = (function() {
 	function part_leave(event) {
 	    if (!event) event = window.event;
 	    var canvas = (window.event) ? event.srcElement : event.target;
-	    var part = canvas.part;
+	    var part = canvas.xpart;
 
 	    if (typeof part.sch.new_part == 'undefined') {
 		// leaving with no part selected?  revert handler
@@ -3382,7 +3382,7 @@ schematic = (function() {
 
 	function part_mouse_down(event) {
 	    if (!event) event = window.event;
-	    var part = (window.event) ? event.srcElement.part : event.target.part;
+	    var part = (window.event) ? event.srcElement.xpart : event.target.xpart;
 
 	    part.select(true);
 	    part.sch.new_part = part;
@@ -3391,8 +3391,7 @@ schematic = (function() {
 
 	function part_mouse_up(event) {
 	    if (!event) event = window.event;
-	    var part = (window.event) ? event.srcElement.part : event.target.part;
-
+	    var part = (window.event) ? event.srcElement.xpart : event.target.x;
 	    part.select(false);
 	    part.sch.new_part = undefined;
 	    return false;
