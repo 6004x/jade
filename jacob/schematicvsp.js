@@ -3391,7 +3391,7 @@ schematic = (function() {
 
 	function part_mouse_up(event) {
 	    if (!event) event = window.event;
-	    var part = (window.event) ? event.srcElement.xpart : event.target.x;
+	    var part = (window.event) ? event.srcElement.xpart : event.target.xpart;
 	    part.select(false);
 	    part.sch.new_part = undefined;
 	    return false;
