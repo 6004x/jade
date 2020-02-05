@@ -254,8 +254,6 @@ jade_defs.schematic_view = function(jade) {
     };
 
     Schematic.prototype.resize = function(w, h, selected) {
-        console.log('schematic resize');
-
         // schematic canvas
         var e = $(this.diagram.canvas);
 
