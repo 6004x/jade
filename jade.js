@@ -286,6 +286,23 @@ jade_defs.top_level = function(jade) {
             jade.model.load_json(this.configuration.state,false);
         }
 
+        // load additional modules from the server
+        if (this.configuration.shared_modules) {
+            $.each(this.configuration.shared_modules, function (index,filename) {
+                console.log('loading '+filename);
+                $.ajax(filename,{
+                    dataType: 'json',
+                    error: function(jqXHR,textStatus,errorThrown) {
+                        console.log('oops, error loading '+filename);
+                    },
+                    success: function(data,jqXHR,textStatus,errorThrown) {
+                        jade.model.load_json(data,true);
+                        console.log('finished loading '+filename);
+                    }
+                });
+            });
+        }
+
         // starting module?
         var edit = this.configuration.edit || '/user/untitled';
         if (edit[0] != '/') edit = '/user/'+edit;
