@@ -34,7 +34,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.3.15 (2018 \u00A9 MIT EECS)";
+    var version = "Jade 2.3.16 (2020 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
@@ -114,7 +114,7 @@ jade_defs.top_level = function(jade) {
         this.selected_tab = undefined;
 
         // add status line at the bottom
-        this.status.text('Copyright \u00A9 MIT EECS 2011-2015');
+        this.status.text('Copyright \u00A9 MIT EECS 2011, 2020');
 
         // set up handler to resize jade
         var me = this;
@@ -289,15 +289,16 @@ jade_defs.top_level = function(jade) {
         // load additional modules from the server
         if (this.configuration.shared_modules) {
             $.each(this.configuration.shared_modules, function (index,filename) {
-                console.log('loading '+filename);
+                console.log('sync loading '+filename);
                 $.ajax(filename,{
                     dataType: 'json',
+                    async: false,
                     error: function(jqXHR,textStatus,errorThrown) {
                         console.log('oops, error loading '+filename);
                     },
                     success: function(data,jqXHR,textStatus,errorThrown) {
                         jade.model.load_json(data,true);
-                        console.log('finished loading '+filename);
+                        console.log('finished sync loading '+filename);
                     }
                 });
             });
