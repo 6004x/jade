@@ -277,16 +277,7 @@ jade_defs.top_level = function(jade) {
             this.resize($(this.parent).width(),$(this.parent).height());
         else $(window).trigger('resize');  // let editors know their size
 
-        // load state (dictionary of module_name:json).  Start with initial_state
-        // then overwrite with user's state
-        if (this.configuration.initial_state) {
-            jade.model.load_json(this.configuration.initial_state,true);
-        }
-        if (this.configuration.state) {
-            jade.model.load_json(this.configuration.state,false);
-        }
-
-        // load additional modules from the server
+        // start by loading shared modules from the server
         if (this.configuration.shared_modules) {
             $.each(this.configuration.shared_modules, function (index,filename) {
                 console.log('sync loading '+filename);
@@ -302,6 +293,15 @@ jade_defs.top_level = function(jade) {
                     }
                 });
             });
+        }
+
+        // load state (dictionary of module_name:json).  Start with initial_state
+        // then overwrite with user's state
+        if (this.configuration.initial_state) {
+            jade.model.load_json(this.configuration.initial_state,true);
+        }
+        if (this.configuration.state) {
+            jade.model.load_json(this.configuration.state,false);
         }
 
         // starting module?
