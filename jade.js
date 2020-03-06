@@ -34,7 +34,7 @@ jade_defs.jade = function() {
 
 jade_defs.top_level = function(jade) {
 
-    var version = "Jade 2.3.16 (2020 \u00A9 MIT EECS)";
+    var version = "Jade 2.3.17 (2020 \u00A9 MIT EECS)";
 
     var about_msg = version +
             "<p>Chris Terman wrote the schematic entry, testing and gate-level simulation tools." +
@@ -1562,7 +1562,7 @@ jade_defs.top_level = function(jade) {
 
     function jade_window(title, content, offset) {
         // create the div for the top level of the window
-        var win = $('<div class="jade-window">'+
+        var win = $('<div class="jade-window" style="max-width: '+ (window.innerWidth - 10) +'px; overflow: auto;">'+
                     ' <div class="jade-window-title">' + title + '<span style="float:right;cursor: pointer">'+jade.icons.close_icon + '</span></div>' + //'<img style="float: right"></img></div>' +
                     '</div>');
         win[0].content = content;
