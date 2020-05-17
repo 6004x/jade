@@ -146,6 +146,7 @@
 }
 .jade-xparts-list {
     margin-bottom: 3px;
+    cursor: pointer;
     /*
     width: 73px;
     min-width: 73px;
