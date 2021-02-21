@@ -112,7 +112,8 @@ class JadeRequestHandler(BaseHTTPRequestHandler):
     extensions_map.update({
         '': 'application/octet-stream', # Default
     })
-        
+
+socketserver.TCPServer.allow_reuse_address = True
 httpd = socketserver.TCPServer(("",PORT),JadeRequestHandler)
 
 def cleanup():
