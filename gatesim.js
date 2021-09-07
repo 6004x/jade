@@ -86,8 +86,20 @@ jade_defs.gatesim = function(jade) {
                 tinfo = tpd[i];
                 result += '<p>  t<sub>PD</sub> from '+tinfo.get_tpd_source().name+' to '+tinfo.name+' ('+(tinfo.pd_sum*1e9).toFixed(3)+'ns):';
                 result += ' <button onclick="$(\'#detail'+div_counter+'\').toggle()">Details</button>\n<div id="detail'+div_counter+'" style="display:none;">';
+                result += '<table class="timing_details">';
+                result += '<tr>';
+                result += '<th>tpd (ns)</th>';
+                result += '<th>pd_sum (ns)</th>';
+                result += '<th>signal name</th>';
+                result += '<th>device name</th>';
+                result += '<th>device type</th>';                
+                result += '<th>fanout (#)</th>';
+                result += '<th>load (pf)</th>';
+                result += '<th>load PD (ns)</th>';
+                result += '</tr>';                
                 result += tinfo.describe_tpd();
-                result += '<br></div>';
+                result += '</table>';
+                result += '</div>';
                 div_counter += 1;
             }
 
@@ -1884,6 +1896,45 @@ jade_defs.gatesim = function(jade) {
 
         this.tcd = tcd || 0;  // specs for driving gate, capacitance accounted for
         this.tpd = tpd || 0;
+        this.buffer_advantage = undefined;
+
+        this.load_pd = undefined;
+
+        if (device !== undefined) {
+            var tr = device.tpdr + device.tr*node.capacitance;
+            var tf = device.tpdf + device.tf*node.capacitance;
+
+            if (tr > tf) {
+                this.load_pd = device.tr*node.capacitance
+            }
+            else if (tr < tf) {
+                this.load_pd = device.tf*node.capacitance
+            }
+            else {
+                this.load_pd = Math.min(device.tr, device.tf) * node.capacitance;
+            }
+
+            if (this.node.fanouts !== undefined) {
+                if (this.node.fanouts.length > 1) {
+                    var buffer_h_load_capacitance = 0.005*1e-12;
+                    var buffer_h_tpdr = 0.07*1e-9;
+                    var buffer_h_tpdf = 0.07*1e-9;
+                    var buffer_h_base_tr = 1100;
+                    var buffer_h_base_tf = 600;
+
+                    var buffer_h_tr = buffer_h_tpdr + buffer_h_base_tr * node.capacitance;
+                    var buffer_h_tf = buffer_h_tpdf + buffer_h_base_tf * node.capacitance;
+                    var buffer_h_pd = Math.max(buffer_h_tr, buffer_h_tf);
+
+                    var driver_tr = device.tpdr + device.tr * buffer_h_load_capacitance;
+                    var driver_tf = device.tpdf + device.tf * buffer_h_load_capacitance;
+                    var driver_pd =  Math.max(driver_tr, driver_tf);
+
+                    var total_pd = buffer_h_pd + driver_pd;
+                    this.buffer_advantage = total_pd - this.tpd;
+                }
+            }
+        }
     }
 
     TimingInfo.prototype.get_tcd_source = function () {
@@ -1929,8 +1980,26 @@ jade_defs.gatesim = function(jade) {
         if (this.pd_link !== undefined) result = this.pd_link.describe_tpd();
         else result = '';
 
-        var driver_name = (this.device !== undefined) ? ' ['+this.device.name+' '+this.device.type+']' : '';
-        result += '    + '+format_float(this.tpd*1e9,6,3)+"ns = "+format_float(this.pd_sum*1e9,6,3)+"ns "+this.name+driver_name+'\n';
+        var device_name = (this.device !== undefined) ? this.device.name : '';
+        var device_type = (this.device !== undefined) ? this.device.type : '';
+
+        result += '<tr>'
+        result += '<td>' + format_float(this.tpd*1e9,6,3);
+
+        if (this.buffer_advantage !== undefined && this.buffer_advantage < 0.0) {
+            result += ' <span class="important_timing_detail">(' + format_float(this.buffer_advantage*1e9,6,3) + ')<span>'
+        }
+
+        result += '</td>';
+        result += '<td>' + format_float(this.pd_sum*1e9,6,3) + '</td>'
+        result += '<td>' + this.name + '</td>'
+        result += '<td>' + device_name + '</td>'
+        result += '<td>' + device_type + '</td>'
+        result += '<td>' + ((this.node.fanouts !== undefined) ? this.node.fanouts.length : '') + '</td>';
+        result += '<td>' + format_float(this.node.capacitance * 1e12, 6, 3) + '</td>';
+        result += '<td>' + ((this.load_pd !== undefined) ? format_float(this.load_pd * 1e9, 6, 3) : '') +'</td>';
+        result += '</tr>';
+
         return result;
     };
 

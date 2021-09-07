@@ -4,10 +4,12 @@
 try:
     from BaseHTTPServer import BaseHTTPRequestHandler
     import SocketServer as socketserver
+    from cgi import parse_qs
 except:
     # python 3 compatibility
     from http.server import BaseHTTPRequestHandler
     import socketserver
+    from urllib.parse import parse_qs
 
 import mimetypes
 import posixpath
@@ -65,7 +67,7 @@ class JadeRequestHandler(BaseHTTPRequestHandler):
         elif ctype == 'application/x-www-form-urlencoded':
             length = int(self.headers['content-length'])
             content = self.rfile.read(length)
-            for k,v in cgi.parse_qs(content, keep_blank_values=1).items():
+            for k,v in parse_qs(content, keep_blank_values=1).items():
                 # python3 returns everything as bytes, so decode into strings
                 if type(k) == bytes: k = k.decode()
                 postvars[k] = [s.decode() if type(s) == bytes else s for s in v]
@@ -94,7 +96,11 @@ class JadeRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", 'text/plain')
         self.send_header("Content-Length", str(len(response)))
         self.end_headers()
-        self.wfile.write(response.encode())
+        try:
+            self.wfile.write(response.encode())
+        except AttributeError:
+            # python 3 compatibility
+            self.wfile.write(response)
 
     def guess_type(self, path):
         base, ext = posixpath.splitext(path)
@@ -112,7 +118,8 @@ class JadeRequestHandler(BaseHTTPRequestHandler):
     extensions_map.update({
         '': 'application/octet-stream', # Default
     })
-        
+
+socketserver.TCPServer.allow_reuse_address = True
 httpd = socketserver.TCPServer(("",PORT),JadeRequestHandler)
 
 def cleanup():
