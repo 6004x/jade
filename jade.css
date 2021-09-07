@@ -2419,3 +2419,14 @@
 .fa-fonticons:before {
   content: "\f280";
 }
+table.timing_details {
+  border-collapse: collapse;
+}
+table.timing_details th, table.timing_details td {
+    border: solid 1px;
+    padding: 2px;
+}
+.important_timing_detail {
+  color:#dc322f;
+  font-weight: bold;
+}
