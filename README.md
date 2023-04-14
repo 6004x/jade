@@ -52,3 +52,22 @@ To use this repo and keep up-to-date with changes:
         git merge upstream/master
         git push               # save updates in local repo
 
+Docker
+======
+
+You can run jade in docker container now. It requires python2.7, so
+it is the easiest way to use it on local machine. To build container
+go to the project root and run
+
+        docker build -t jade .
+
+Then run it.
+
+        docker run -p 8000:8000 jade
+
+6004 labs will be available on
+
+        localhost:8000/lab1.html
+        localhost:8000/lab1.htm1
+
+and so on

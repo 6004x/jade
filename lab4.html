@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link type="text/css" href="../jade.css" rel="Stylesheet"/>
+<!-- build:js jade.min.js -->
+<script type="text/javascript" src="../jquery-1.11.2.js"></script>
+<script type="text/javascript" src="../jade.js"></script>
+<script type="text/javascript" src="../model.js"></script>
+<script type="text/javascript" src="../netlist.js"></script>
+<script type="text/javascript" src="../icons.js"></script>
+<script type="text/javascript" src="../schematic_view.js"></script>
+<script type="text/javascript" src="../icon_view.js"></script>
+<script type="text/javascript" src="../property_view.js"></script>
+<script type="text/javascript" src="../test_view.js"></script>
+<script type="text/javascript" src="../utils.js"></script>
+<script type="text/javascript" src="../plot.js"></script>
+<script type="text/javascript" src="../device_level.js"></script>
+<script type="text/javascript" src="../cktsim.js"></script>
+<script type="text/javascript" src="../gate_level.js"></script>
+<script type="text/javascript" src="../gatesim.js"></script>
+<script type="text/javascript" src="../jade_standalone.js"></script>
+<script type="text/javascript" src="../analog.js"></script>
+<script type="text/javascript" src="../gates.js"></script>
+</head>
+<body>
+<div class="jade">{ "shared_modules": ["../exercises/alu/alu_modules"],
+    "hierarchical": "true",
+    "parts": ["/gates/.*","/alu/.*","/user/.*"],
+    "tools": ["check"],
+    "editors": ["schematic","icon","test"],
+    "edit": "/alu/alu",
+    "required_tests": ["936fccfa4372c323a3f696b9fa670991"],
+    "initial_state": {
+        "/alu/cmp": {
+            "properties": {
+                "icon-readonly": "true",
+                "test-readonly": "true",
+                "name": {
+                    "label": "Name",
+                    "type": "string",
+                    "value": "",
+                    "edit": "yes",
+                    "choices": [
+                        ""
+                    ]
+                },
+                "test-readonly": {
+                    "label": "Test readonly",
+                    "type": "string",
+                    "value": "true",
+                    "edit": "yes",
+                    "choices": [
+                        ""
+                    ]
+                }
+            },
+            "schematic": [
+                [
+                    "port",
+                    [
+                        -56,
+                        0,
+                        0
+                    ],
+                    {
+                        "signal": "V"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -56,
+                        -16,
+                        0
+                    ],
+                    {
+                        "signal": "N"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        24,
+                        -16,
+                        4
+                    ],
+                    {
+                        "signal": "Y[31:1]",
+                        "direction": "out"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        24,
+                        0,
+                        4
+                    ],
+                    {
+                        "signal": "Y[0]",
+                        "direction": "out"
+                    }
+                ],
+                [
+                    "jumper",
+                    [
+                        16,
+                        -16,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        16,
+                        -16,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "0'31"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -56,
+                        -32,
+                        0
+                    ],
+                    {
+                        "signal": "Z"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -56,
+                        16,
+                        0
+                    ],
+                    {
+                        "signal": "CFN[1:0]"
+                    }
+                ],
+                [
+                    "jumper",
+                    [
+                        16,
+                        0,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        16,
+                        0,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "0'1"
+                    }
+                ]
+            ],
+            "icon": [
+                [
+                    "text",
+                    [
+                        0,
+                        19,
+                        0
+                    ],
+                    {
+                        "text": "CMP",
+                        "font": "bold 6pt sans-serif",
+                        "align": "center"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -16,
+                        -16,
+                        7
+                    ],
+                    {
+                        "name": "Z"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        0,
+                        -16,
+                        7
+                    ],
+                    {
+                        "name": "V"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        16,
+                        -16,
+                        7
+                    ],
+                    {
+                        "name": "N"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        32,
+                        8,
+                        4
+                    ],
+                    {
+                        "name": "Y[31:0]"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        16,
+                        -7,
+                        0
+                    ],
+                    {
+                        "text": "N",
+                        "font": "4pt sans-serif",
+                        "align": "top-center"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -16,
+                        -7,
+                        0
+                    ],
+                    {
+                        "text": "Z",
+                        "font": "4pt sans-serif",
+                        "align": "top-center"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        8,
+                        0
+                    ],
+                    {
+                        "text": "CFN[1:0]",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        23,
+                        8,
+                        0
+                    ],
+                    {
+                        "text": "Y[31:0]",
+                        "font": "4pt sans-serif",
+                        "align": "center-right"
+                    }
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        -8,
+                        0,
+                        48,
+                        0
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        24,
+                        24,
+                        0,
+                        -48,
+                        0
+                    ]
+                ],
+                [
+                    "property",
+                    [
+                        0,
+                        25,
+                        0
+                    ],
+                    {
+                        "format": "{name}",
+                        "align": "top-center"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        0,
+                        -7,
+                        0
+                    ],
+                    {
+                        "text": "V",
+                        "font": "4pt sans-serif",
+                        "align": "top-center"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        8,
+                        0
+                    ],
+                    {
+                        "name": "CFN[1:0]"
+                    }
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        -8,
+                        0,
+                        0,
+                        32
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        24,
+                        -8,
+                        0,
+                        0,
+                        32
+                    ]
+                ]
+            ],
+            "test": [
+                [
+                    "test",
+                    ".power Vdd=1\n.thresholds Vol=0 Vil=0.1 Vih=0.9 Voh=1\n\n.group inputs CFN[1:0] Z V N\n.group outputs Y[31:0]\n\n.mode gate\n\n.cycle assert inputs tran 99n sample outputs tran 1n\n\n01 000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  1: cfn=CMPEQ, z=0, v=0, n=0, y=0\n10 000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  2: cfn=CMPLT, z=0, v=0, n=0, y=0\n11 000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  3: cfn=CMPLE, z=0, v=0, n=0, y=0\n01 001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  4: cfn=CMPEQ, z=0, v=0, n=1, y=0\n10 001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH //  5: cfn=CMPLT, z=0, v=0, n=1, y=1\n11 001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH //  6: cfn=CMPLE, z=0, v=0, n=1, y=1\n01 010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  7: cfn=CMPEQ, z=0, v=1, n=0, y=0\n10 010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH //  8: cfn=CMPLT, z=0, v=1, n=0, y=1\n11 010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH //  9: cfn=CMPLE, z=0, v=1, n=0, y=1\n01 011 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL // 10: cfn=CMPEQ, z=0, v=1, n=1, y=0\n10 011 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL // 11: cfn=CMPLT, z=0, v=1, n=1, y=0\n11 011 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL // 12: cfn=CMPLE, z=0, v=1, n=1, y=0\n01 100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH // 13: cfn=CMPEQ, z=1, v=0, n=0, y=1\n10 100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL // 14: cfn=CMPLT, z=1, v=0, n=0, y=0\n11 100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH // 15: cfn=CMPLE, z=1, v=0, n=0, y=1\n01 101 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH // 16: cfn=CMPEQ, z=1, v=0, n=1, y=1\n10 101 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH // 17: fn=CMPLT, z=1, v=0, n=1, y=1\n11 101 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH // 18: fn=CMPLE, z=1, v=0, n=1, y=1\n01 110 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH // 19: fn=CMPEQ, z=1, v=1, n=0, y=1\n10 110 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH // 20: fn=CMPLT, z=1, v=1, n=0, y=1\n11 110 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH // 21: fn=CMPLE, z=1, v=1, n=0, y=1\n      \n.plot X(CFN[1:0])\n.plot Z\n.plot V\n.plot N\n.plot X(Y[31:0])\n"
+                ]
+            ]
+        },
+        "/alu/shift": {
+            "properties": {
+                "icon-readonly": "true",
+                "test-readonly": "true",
+                "name": {
+                    "label": "Name",
+                    "type": "string",
+                    "value": "",
+                    "edit": "yes",
+                    "choices": [
+                        ""
+                    ]
+                },
+                "test-readonly": {
+                    "label": "Test readonly",
+                    "type": "string",
+                    "value": "true",
+                    "edit": "yes",
+                    "choices": [
+                        ""
+                    ]
+                }
+            },
+            "schematic": [
+                [
+                    "port",
+                    [
+                        -200,
+                        -88,
+                        0
+                    ],
+                    {
+                        "signal": "A[31:0]"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -200,
+                        -72,
+                        0
+                    ],
+                    {
+                        "signal": "B[4:0]"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -200,
+                        -56,
+                        0
+                    ],
+                    {
+                        "signal": "SFN[1:0]"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -128,
+                        -72,
+                        4
+                    ],
+                    {
+                        "signal": "Y[31:0]",
+                        "direction": "out"
+                    }
+                ],
+                [
+                    "jumper",
+                    [
+                        -136,
+                        -72,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        -136,
+                        -72,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "0'32"
+                    }
+                ]
+            ],
+            "icon": [
+                [
+                    "text",
+                    [
+                        0,
+                        -11,
+                        0
+                    ],
+                    {
+                        "text": "SHIFT",
+                        "font": "bold 6pt sans-serif",
+                        "align": "center"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        0,
+                        0
+                    ],
+                    {
+                        "name": "A[31:0]"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        8,
+                        0
+                    ],
+                    {
+                        "name": "B[4:0]"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        16,
+                        0
+                    ],
+                    {
+                        "name": "SFN[1:0]"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        32,
+                        0,
+                        4
+                    ],
+                    {
+                        "name": "Y[31:0]"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        8,
+                        0
+                    ],
+                    {
+                        "text": "B[4:0]",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        0,
+                        0
+                    ],
+                    {
+                        "text": "A[31:0]",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        16,
+                        0
+                    ],
+                    {
+                        "text": "SFN[1:0]",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        23,
+                        0,
+                        0
+                    ],
+                    {
+                        "text": "Y[31:0]",
+                        "font": "4pt sans-serif",
+                        "align": "center-right"
+                    }
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        -16,
+                        0,
+                        48,
+                        0
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        24,
+                        24,
+                        0,
+                        -48,
+                        0
+                    ]
+                ],
+                [
+                    "property",
+                    [
+                        0,
+                        -17,
+                        0
+                    ],
+                    {
+                        "format": "{name}",
+                        "align": "bottom-center"
+                    }
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        -16,
+                        0,
+                        0,
+                        40
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        24,
+                        -16,
+                        0,
+                        0,
+                        40
+                    ]
+                ]
+            ],
+            "test": [
+                [
+                    "test",
+                    ".power Vdd=1\n.thresholds Vol=0 Vil=0.1 Vih=0.9 Voh=1\n\n.group inputs SFN[1:0] A[31:0] B[4:0]\n.group outputs Y[31:0]\n\n.mode gate\n\n.cycle assert inputs tran 99n sample outputs tran 1n\n\n00 00000000000000000000000000000000 00000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //   1: fn=SHL, a=0X00000000, b= 0, y=0X00000000\n01 00000000000000000000000000000000 00000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //   2: fn=SHR, a=0X00000000, b= 0, y=0X00000000\n11 00000000000000000000000000000000 00000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //   3: fn=SRA, a=0X00000000, b= 0, y=0X00000000\n00 00000000000000000000000000000000 00001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //   4: fn=SHL, a=0X00000000, b= 1, y=0X00000000\n01 00000000000000000000000000000000 00001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //   5: fn=SHR, a=0X00000000, b= 1, y=0X00000000\n11 00000000000000000000000000000000 00001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //   6: fn=SRA, a=0X00000000, b= 1, y=0X00000000\n00 00000000000000000000000000000000 00010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //   7: fn=SHL, a=0X00000000, b= 2, y=0X00000000\n01 00000000000000000000000000000000 00010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //   8: fn=SHR, a=0X00000000, b= 2, y=0X00000000\n11 00000000000000000000000000000000 00010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //   9: fn=SRA, a=0X00000000, b= 2, y=0X00000000\n00 00000000000000000000000000000000 00100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  10: fn=SHL, a=0X00000000, b= 4, y=0X00000000\n01 00000000000000000000000000000000 00100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  11: fn=SHR, a=0X00000000, b= 4, y=0X00000000\n11 00000000000000000000000000000000 00100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  12: fn=SRA, a=0X00000000, b= 4, y=0X00000000\n00 00000000000000000000000000000000 01000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  13: fn=SHL, a=0X00000000, b= 8, y=0X00000000\n01 00000000000000000000000000000000 01000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  14: fn=SHR, a=0X00000000, b= 8, y=0X00000000\n11 00000000000000000000000000000000 01000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  15: fn=SRA, a=0X00000000, b= 8, y=0X00000000\n00 00000000000000000000000000000000 10000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  16: fn=SHL, a=0X00000000, b=16, y=0X00000000\n01 00000000000000000000000000000000 10000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  17: fn=SHR, a=0X00000000, b=16, y=0X00000000\n11 00000000000000000000000000000000 10000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  18: fn=SRA, a=0X00000000, b=16, y=0X00000000\n00 00000000000000000000000000000000 11111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  19: fn=SHL, a=0X00000000, b=31, y=0X00000000\n01 00000000000000000000000000000000 11111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  20: fn=SHR, a=0X00000000, b=31, y=0X00000000\n11 00000000000000000000000000000000 11111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  21: fn=SRA, a=0X00000000, b=31, y=0X00000000\n00 00000000000000000000000000000001 00000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH //  22: fn=SHL, a=0X00000001, b= 0, y=0X00000001\n01 00000000000000000000000000000001 00000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH //  23: fn=SHR, a=0X00000001, b= 0, y=0X00000001\n11 00000000000000000000000000000001 00000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH //  24: fn=SRA, a=0X00000001, b= 0, y=0X00000001\n00 00000000000000000000000000000001 00001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLHL //  25: fn=SHL, a=0X00000001, b= 1, y=0X00000002\n01 00000000000000000000000000000001 00001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  26: fn=SHR, a=0X00000001, b= 1, y=0X00000000\n11 00000000000000000000000000000001 00001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  27: fn=SRA, a=0X00000001, b= 1, y=0X00000000\n00 00000000000000000000000000000001 00010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLHLL //  28: fn=SHL, a=0X00000001, b= 2, y=0X00000004\n01 00000000000000000000000000000001 00010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  29: fn=SHR, a=0X00000001, b= 2, y=0X00000000\n11 00000000000000000000000000000001 00010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  30: fn=SRA, a=0X00000001, b= 2, y=0X00000000\n00 00000000000000000000000000000001 00100 LLLLLLLLLLLLLLLLLLLLLLLLLLLHLLLL //  31: fn=SHL, a=0X00000001, b= 4, y=0X00000010\n01 00000000000000000000000000000001 00100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  32: fn=SHR, a=0X00000001, b= 4, y=0X00000000\n11 00000000000000000000000000000001 00100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  33: fn=SRA, a=0X00000001, b= 4, y=0X00000000\n00 00000000000000000000000000000001 01000 LLLLLLLLLLLLLLLLLLLLLLLHLLLLLLLL //  34: fn=SHL, a=0X00000001, b= 8, y=0X00000100\n01 00000000000000000000000000000001 01000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  35: fn=SHR, a=0X00000001, b= 8, y=0X00000000\n11 00000000000000000000000000000001 01000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  36: fn=SRA, a=0X00000001, b= 8, y=0X00000000\n00 00000000000000000000000000000001 10000 LLLLLLLLLLLLLLLHLLLLLLLLLLLLLLLL //  37: fn=SHL, a=0X00000001, b=16, y=0X00010000\n01 00000000000000000000000000000001 10000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  38: fn=SHR, a=0X00000001, b=16, y=0X00000000\n11 00000000000000000000000000000001 10000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  39: fn=SRA, a=0X00000001, b=16, y=0X00000000\n00 00000000000000000000000000000001 11111 HLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  40: fn=SHL, a=0X00000001, b=31, y=0X80000000\n01 00000000000000000000000000000001 11111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  41: fn=SHR, a=0X00000001, b=31, y=0X00000000\n11 00000000000000000000000000000001 11111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  42: fn=SRA, a=0X00000001, b=31, y=0X00000000\n00 11111111111111111111111111111111 00000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  43: fn=SHL, a=0XFFFFFFFF, b= 0, y=0XFFFFFFFF\n01 11111111111111111111111111111111 00000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  44: fn=SHR, a=0XFFFFFFFF, b= 0, y=0XFFFFFFFF\n11 11111111111111111111111111111111 00000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  45: fn=SRA, a=0XFFFFFFFF, b= 0, y=0XFFFFFFFF\n00 11111111111111111111111111111111 00001 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHL //  46: fn=SHL, a=0XFFFFFFFF, b= 1, y=0XFFFFFFFE\n01 11111111111111111111111111111111 00001 LHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  47: fn=SHR, a=0XFFFFFFFF, b= 1, y=0X7FFFFFFF\n11 11111111111111111111111111111111 00001 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  48: fn=SRA, a=0XFFFFFFFF, b= 1, y=0XFFFFFFFF\n00 11111111111111111111111111111111 00010 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHLL //  49: fn=SHL, a=0XFFFFFFFF, b= 2, y=0XFFFFFFFC\n01 11111111111111111111111111111111 00010 LLHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  50: fn=SHR, a=0XFFFFFFFF, b= 2, y=0X3FFFFFFF\n11 11111111111111111111111111111111 00010 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  51: fn=SRA, a=0XFFFFFFFF, b= 2, y=0XFFFFFFFF\n00 11111111111111111111111111111111 00100 HHHHHHHHHHHHHHHHHHHHHHHHHHHHLLLL //  52: fn=SHL, a=0XFFFFFFFF, b= 4, y=0XFFFFFFF0\n01 11111111111111111111111111111111 00100 LLLLHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  53: fn=SHR, a=0XFFFFFFFF, b= 4, y=0X0FFFFFFF\n11 11111111111111111111111111111111 00100 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  54: fn=SRA, a=0XFFFFFFFF, b= 4, y=0XFFFFFFFF\n00 11111111111111111111111111111111 01000 HHHHHHHHHHHHHHHHHHHHHHHHLLLLLLLL //  55: fn=SHL, a=0XFFFFFFFF, b= 8, y=0XFFFFFF00\n01 11111111111111111111111111111111 01000 LLLLLLLLHHHHHHHHHHHHHHHHHHHHHHHH //  56: fn=SHR, a=0XFFFFFFFF, b= 8, y=0X00FFFFFF\n11 11111111111111111111111111111111 01000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  57: fn=SRA, a=0XFFFFFFFF, b= 8, y=0XFFFFFFFF\n00 11111111111111111111111111111111 10000 HHHHHHHHHHHHHHHHLLLLLLLLLLLLLLLL //  58: fn=SHL, a=0XFFFFFFFF, b=16, y=0XFFFF0000\n01 11111111111111111111111111111111 10000 LLLLLLLLLLLLLLLLHHHHHHHHHHHHHHHH //  59: fn=SHR, a=0XFFFFFFFF, b=16, y=0X0000FFFF\n11 11111111111111111111111111111111 10000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  60: fn=SRA, a=0XFFFFFFFF, b=16, y=0XFFFFFFFF\n00 11111111111111111111111111111111 11111 HLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  61: fn=SHL, a=0XFFFFFFFF, b=31, y=0X80000000\n01 11111111111111111111111111111111 11111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH //  62: fn=SHR, a=0XFFFFFFFF, b=31, y=0X00000001\n11 11111111111111111111111111111111 11111 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH //  63: fn=SRA, a=0XFFFFFFFF, b=31, y=0XFFFFFFFF\n00 00010010001101000101011001111000 00000 LLLHLLHLLLHHLHLLLHLHLHHLLHHHHLLL //  64: fn=SHL, a=0X12345678, b= 0, y=0X12345678\n01 00010010001101000101011001111000 00000 LLLHLLHLLLHHLHLLLHLHLHHLLHHHHLLL //  65: fn=SHR, a=0X12345678, b= 0, y=0X12345678\n11 00010010001101000101011001111000 00000 LLLHLLHLLLHHLHLLLHLHLHHLLHHHHLLL //  66: fn=SRA, a=0X12345678, b= 0, y=0X12345678\n00 00010010001101000101011001111000 00001 LLHLLHLLLHHLHLLLHLHLHHLLHHHHLLLL //  67: fn=SHL, a=0X12345678, b= 1, y=0X2468ACF0\n01 00010010001101000101011001111000 00001 LLLLHLLHLLLHHLHLLLHLHLHHLLHHHHLL //  68: fn=SHR, a=0X12345678, b= 1, y=0X091A2B3C\n11 00010010001101000101011001111000 00001 LLLLHLLHLLLHHLHLLLHLHLHHLLHHHHLL //  69: fn=SRA, a=0X12345678, b= 1, y=0X091A2B3C\n00 00010010001101000101011001111000 00010 LHLLHLLLHHLHLLLHLHLHHLLHHHHLLLLL //  70: fn=SHL, a=0X12345678, b= 2, y=0X48D159E0\n01 00010010001101000101011001111000 00010 LLLLLHLLHLLLHHLHLLLHLHLHHLLHHHHL //  71: fn=SHR, a=0X12345678, b= 2, y=0X048D159E\n11 00010010001101000101011001111000 00010 LLLLLHLLHLLLHHLHLLLHLHLHHLLHHHHL //  72: fn=SRA, a=0X12345678, b= 2, y=0X048D159E\n00 00010010001101000101011001111000 00100 LLHLLLHHLHLLLHLHLHHLLHHHHLLLLLLL //  73: fn=SHL, a=0X12345678, b= 4, y=0X23456780\n01 00010010001101000101011001111000 00100 LLLLLLLHLLHLLLHHLHLLLHLHLHHLLHHH //  74: fn=SHR, a=0X12345678, b= 4, y=0X01234567\n11 00010010001101000101011001111000 00100 LLLLLLLHLLHLLLHHLHLLLHLHLHHLLHHH //  75: fn=SRA, a=0X12345678, b= 4, y=0X01234567\n00 00010010001101000101011001111000 01000 LLHHLHLLLHLHLHHLLHHHHLLLLLLLLLLL //  76: fn=SHL, a=0X12345678, b= 8, y=0X34567800\n01 00010010001101000101011001111000 01000 LLLLLLLLLLLHLLHLLLHHLHLLLHLHLHHL //  77: fn=SHR, a=0X12345678, b= 8, y=0X00123456\n11 00010010001101000101011001111000 01000 LLLLLLLLLLLHLLHLLLHHLHLLLHLHLHHL //  78: fn=SRA, a=0X12345678, b= 8, y=0X00123456\n00 00010010001101000101011001111000 10000 LHLHLHHLLHHHHLLLLLLLLLLLLLLLLLLL //  79: fn=SHL, a=0X12345678, b=16, y=0X56780000\n01 00010010001101000101011001111000 10000 LLLLLLLLLLLLLLLLLLLHLLHLLLHHLHLL //  80: fn=SHR, a=0X12345678, b=16, y=0X00001234\n11 00010010001101000101011001111000 10000 LLLLLLLLLLLLLLLLLLLHLLHLLLHHLHLL //  81: fn=SRA, a=0X12345678, b=16, y=0X00001234\n00 00010010001101000101011001111000 11111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  82: fn=SHL, a=0X12345678, b=31, y=0X00000000\n01 00010010001101000101011001111000 11111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  83: fn=SHR, a=0X12345678, b=31, y=0X00000000\n11 00010010001101000101011001111000 11111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  84: fn=SRA, a=0X12345678, b=31, y=0X00000000\n00 11111110110111001011101010011000 00000 HHHHHHHLHHLHHHLLHLHHHLHLHLLHHLLL //  85: fn=SHL, a=0XFEDCBA98, b= 0, y=0XFEDCBA98\n01 11111110110111001011101010011000 00000 HHHHHHHLHHLHHHLLHLHHHLHLHLLHHLLL //  86: fn=SHR, a=0XFEDCBA98, b= 0, y=0XFEDCBA98\n11 11111110110111001011101010011000 00000 HHHHHHHLHHLHHHLLHLHHHLHLHLLHHLLL //  87: fn=SRA, a=0XFEDCBA98, b= 0, y=0XFEDCBA98\n00 11111110110111001011101010011000 00001 HHHHHHLHHLHHHLLHLHHHLHLHLLHHLLLL //  88: fn=SHL, a=0XFEDCBA98, b= 1, y=0XFDB97530\n01 11111110110111001011101010011000 00001 LHHHHHHHLHHLHHHLLHLHHHLHLHLLHHLL //  89: fn=SHR, a=0XFEDCBA98, b= 1, y=0X7F6E5D4C\n11 11111110110111001011101010011000 00001 HHHHHHHHLHHLHHHLLHLHHHLHLHLLHHLL //  90: fn=SRA, a=0XFEDCBA98, b= 1, y=0XFF6E5D4C\n00 11111110110111001011101010011000 00010 HHHHHLHHLHHHLLHLHHHLHLHLLHHLLLLL //  91: fn=SHL, a=0XFEDCBA98, b= 2, y=0XFB72EA60\n01 11111110110111001011101010011000 00010 LLHHHHHHHLHHLHHHLLHLHHHLHLHLLHHL //  92: fn=SHR, a=0XFEDCBA98, b= 2, y=0X3FB72EA6\n11 11111110110111001011101010011000 00010 HHHHHHHHHLHHLHHHLLHLHHHLHLHLLHHL //  93: fn=SRA, a=0XFEDCBA98, b= 2, y=0XFFB72EA6\n00 11111110110111001011101010011000 00100 HHHLHHLHHHLLHLHHHLHLHLLHHLLLLLLL //  94: fn=SHL, a=0XFEDCBA98, b= 4, y=0XEDCBA980\n01 11111110110111001011101010011000 00100 LLLLHHHHHHHLHHLHHHLLHLHHHLHLHLLH //  95: fn=SHR, a=0XFEDCBA98, b= 4, y=0X0FEDCBA9\n11 11111110110111001011101010011000 00100 HHHHHHHHHHHLHHLHHHLLHLHHHLHLHLLH //  96: fn=SRA, a=0XFEDCBA98, b= 4, y=0XFFEDCBA9\n00 11111110110111001011101010011000 01000 HHLHHHLLHLHHHLHLHLLHHLLLLLLLLLLL //  97: fn=SHL, a=0XFEDCBA98, b= 8, y=0XDCBA9800\n01 11111110110111001011101010011000 01000 LLLLLLLLHHHHHHHLHHLHHHLLHLHHHLHL //  98: fn=SHR, a=0XFEDCBA98, b= 8, y=0X00FEDCBA\n11 11111110110111001011101010011000 01000 HHHHHHHHHHHHHHHLHHLHHHLLHLHHHLHL //  99: fn=SRA, a=0XFEDCBA98, b= 8, y=0XFFFEDCBA\n00 11111110110111001011101010011000 10000 HLHHHLHLHLLHHLLLLLLLLLLLLLLLLLLL // 100: fn=SHL, a=0XFEDCBA98, b=16, y=0XBA980000\n01 11111110110111001011101010011000 10000 LLLLLLLLLLLLLLLLHHHHHHHLHHLHHHLL // 101: fn=SHR, a=0XFEDCBA98, b=16, y=0X0000FEDC\n11 11111110110111001011101010011000 10000 HHHHHHHHHHHHHHHHHHHHHHHLHHLHHHLL // 102: fn=SRA, a=0XFEDCBA98, b=16, y=0XFFFFFEDC\n00 11111110110111001011101010011000 11111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL // 103: fn=SHL, a=0XFEDCBA98, b=31, y=0X00000000\n01 11111110110111001011101010011000 11111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH // 104: fn=SHR, a=0XFEDCBA98, b=31, y=0X00000001\n11 11111110110111001011101010011000 11111 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH // 105: fn=SRA, a=0XFEDCBA98, b=31, y=0XFFFFFFFF\n\n.plot X(SFN[1:0])\n.plot X(A[31:0])\n.plot X(B[4:0])\n.plot X(Y[31:0])"
+                ]
+            ]
+        },
+        "/alu/arith": {
+            "properties": {
+                "icon-readonly": "true",
+                "test-readonly": "true",
+                "name": {
+                    "label": "Name",
+                    "type": "string",
+                    "value": "",
+                    "edit": "yes",
+                    "choices": [
+                        ""
+                    ]
+                },
+                "test-readonly": {
+                    "label": "Test readonly",
+                    "type": "string",
+                    "value": "true",
+                    "edit": "yes",
+                    "choices": [
+                        ""
+                    ]
+                }
+            },
+            "schematic": [
+                [
+                    "port",
+                    [
+                        56,
+                        -80,
+                        0
+                    ],
+                    {
+                        "signal": "A[31:0]"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        56,
+                        -64,
+                        0
+                    ],
+                    {
+                        "signal": "B[31:0]"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        56,
+                        -48,
+                        0
+                    ],
+                    {
+                        "signal": "AFN"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        144,
+                        -32,
+                        4
+                    ],
+                    {
+                        "signal": "S[31:0]",
+                        "direction": "out"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        144,
+                        -48,
+                        4
+                    ],
+                    {
+                        "signal": "V",
+                        "direction": "out"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        144,
+                        -64,
+                        4
+                    ],
+                    {
+                        "signal": "N",
+                        "direction": "out"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        144,
+                        -80,
+                        4
+                    ],
+                    {
+                        "signal": "Z",
+                        "direction": "out"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        136,
+                        -80,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "0'1"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        136,
+                        -64,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "0'1"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        136,
+                        -48,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "0'1"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        136,
+                        -32,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "0'32"
+                    }
+                ],
+                [
+                    "jumper",
+                    [
+                        136,
+                        -80,
+                        0
+                    ]
+                ],
+                [
+                    "jumper",
+                    [
+                        136,
+                        -64,
+                        0
+                    ]
+                ],
+                [
+                    "jumper",
+                    [
+                        136,
+                        -48,
+                        0
+                    ]
+                ],
+                [
+                    "jumper",
+                    [
+                        136,
+                        -32,
+                        0
+                    ]
+                ]
+            ],
+            "icon": [
+                [
+                    "text",
+                    [
+                        0,
+                        -11,
+                        0
+                    ],
+                    {
+                        "text": "ARITH",
+                        "font": "bold 6pt sans-serif",
+                        "align": "center"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        0,
+                        0
+                    ],
+                    {
+                        "name": "A[31:0]"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        8,
+                        0
+                    ],
+                    {
+                        "name": "B[31:0]"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        16,
+                        0
+                    ],
+                    {
+                        "name": "AFN"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        32,
+                        0,
+                        4
+                    ],
+                    {
+                        "name": "S[31:0]"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        8,
+                        0
+                    ],
+                    {
+                        "text": "B[31:0]",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        0,
+                        0
+                    ],
+                    {
+                        "text": "A[31:0]",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        16,
+                        0
+                    ],
+                    {
+                        "text": "AFN",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        23,
+                        0,
+                        0
+                    ],
+                    {
+                        "text": "S[31:0]",
+                        "font": "4pt sans-serif",
+                        "align": "center-right"
+                    }
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        -16,
+                        0,
+                        48,
+                        0
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        24,
+                        32,
+                        0,
+                        -48,
+                        0
+                    ]
+                ],
+                [
+                    "property",
+                    [
+                        0,
+                        -17,
+                        0
+                    ],
+                    {
+                        "format": "{name}",
+                        "align": "bottom-center"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -16,
+                        40,
+                        5
+                    ],
+                    {
+                        "name": "Z"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        0,
+                        40,
+                        5
+                    ],
+                    {
+                        "name": "V"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        16,
+                        40,
+                        5
+                    ],
+                    {
+                        "name": "N"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -16,
+                        31,
+                        0
+                    ],
+                    {
+                        "text": "Z",
+                        "font": "4pt sans-serif",
+                        "align": "bottom-center"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        0,
+                        31,
+                        0
+                    ],
+                    {
+                        "text": "V",
+                        "font": "4pt sans-serif",
+                        "align": "bottom-center"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        16,
+                        31,
+                        0
+                    ],
+                    {
+                        "text": "N",
+                        "font": "4pt sans-serif",
+                        "align": "bottom-center"
+                    }
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        -16,
+                        0,
+                        0,
+                        48
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        24,
+                        -16,
+                        0,
+                        0,
+                        48
+                    ]
+                ]
+            ],
+            "test": [
+                [
+                    "test",
+                    ".power Vdd=1\n.thresholds Vol=0 Vil=0.1 Vih=0.9 Voh=1\n\n.group inputs AFN A[31:0] B[31:0]\n.group outputs S[31:0] Z V N\n\n.mode gate\n\n.cycle assert inputs tran 99n sample outputs tran 1n\n\n0 00000000000000000000000000000000 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL //  1: afn=0, a=0X00000000, b=0X00000000, s=0X00000000\n0 00000000000000000000000000000000 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL //  2: afn=0, a=0X00000000, b=0X00000001, s=0X00000001\n0 00000000000000000000000000000000 11111111111111111111111111111111 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  3: afn=0, a=0X00000000, b=0XFFFFFFFF, s=0XFFFFFFFF\n0 00000000000000000000000000000000 10101010101010101010101010101010 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHL LLH //  4: afn=0, a=0X00000000, b=0XAAAAAAAA, s=0XAAAAAAAA\n0 00000000000000000000000000000000 01010101010101010101010101010101 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLH LLL //  5: afn=0, a=0X00000000, b=0X55555555, s=0X55555555\n0 00000000000000000000000000000001 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL //  6: afn=0, a=0X00000001, b=0X00000000, s=0X00000001\n0 00000000000000000000000000000001 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLHL LLL //  7: afn=0, a=0X00000001, b=0X00000001, s=0X00000002\n0 00000000000000000000000000000001 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL //  8: afn=0, a=0X00000001, b=0XFFFFFFFF, s=0X00000000\n0 00000000000000000000000000000001 10101010101010101010101010101010 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHH LLH //  9: afn=0, a=0X00000001, b=0XAAAAAAAA, s=0XAAAAAAAB\n0 00000000000000000000000000000001 01010101010101010101010101010101 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHHL LLL // 10: afn=0, a=0X00000001, b=0X55555555, s=0X55555556\n0 11111111111111111111111111111111 00000000000000000000000000000000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 11: afn=0, a=0XFFFFFFFF, b=0X00000000, s=0XFFFFFFFF\n0 11111111111111111111111111111111 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 12: afn=0, a=0XFFFFFFFF, b=0X00000001, s=0X00000000\n0 11111111111111111111111111111111 11111111111111111111111111111111 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHL LLH // 13: afn=0, a=0XFFFFFFFF, b=0XFFFFFFFF, s=0XFFFFFFFE\n0 11111111111111111111111111111111 10101010101010101010101010101010 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLLH LLH // 14: afn=0, a=0XFFFFFFFF, b=0XAAAAAAAA, s=0XAAAAAAA9\n0 11111111111111111111111111111111 01010101010101010101010101010101 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLL LLL // 15: afn=0, a=0XFFFFFFFF, b=0X55555555, s=0X55555554\n0 10101010101010101010101010101010 00000000000000000000000000000000 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHL LLH // 16: afn=0, a=0XAAAAAAAA, b=0X00000000, s=0XAAAAAAAA\n0 10101010101010101010101010101010 00000000000000000000000000000001 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHH LLH // 17: afn=0, a=0XAAAAAAAA, b=0X00000001, s=0XAAAAAAAB\n0 10101010101010101010101010101010 11111111111111111111111111111111 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLLH LLH // 18: afn=0, a=0XAAAAAAAA, b=0XFFFFFFFF, s=0XAAAAAAA9\n0 10101010101010101010101010101010 10101010101010101010101010101010 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLL LHL // 19: afn=0, a=0XAAAAAAAA, b=0XAAAAAAAA, s=0X55555554\n0 10101010101010101010101010101010 01010101010101010101010101010101 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 20: afn=0, a=0XAAAAAAAA, b=0X55555555, s=0XFFFFFFFF\n0 01010101010101010101010101010101 00000000000000000000000000000000 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLH LLL // 21: afn=0, a=0X55555555, b=0X00000000, s=0X55555555\n0 01010101010101010101010101010101 00000000000000000000000000000001 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHHL LLL // 22: afn=0, a=0X55555555, b=0X00000001, s=0X55555556\n0 01010101010101010101010101010101 11111111111111111111111111111111 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLL LLL // 23: afn=0, a=0X55555555, b=0XFFFFFFFF, s=0X55555554\n0 01010101010101010101010101010101 10101010101010101010101010101010 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 24: afn=0, a=0X55555555, b=0XAAAAAAAA, s=0XFFFFFFFF\n0 01010101010101010101010101010101 01010101010101010101010101010101 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHL LHH // 25: afn=0, a=0X55555555, b=0X55555555, s=0XAAAAAAAA\n1 00000000000000000000000000000000 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 26: fn=1, a=0X00000000, b=0X00000000, s=0X00000000\n1 00000000000000000000000000000000 00000000000000000000000000000001 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 27: fn=1, a=0X00000000, b=0X00000001, s=0XFFFFFFFF\n1 00000000000000000000000000000000 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL // 28: fn=1, a=0X00000000, b=0XFFFFFFFF, s=0X00000001\n1 00000000000000000000000000000000 10101010101010101010101010101010 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHHL LLL // 29: fn=1, a=0X00000000, b=0XAAAAAAAA, s=0X55555556\n1 00000000000000000000000000000000 01010101010101010101010101010101 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHH LLH // 30: fn=1, a=0X00000000, b=0X55555555, s=0XAAAAAAAB\n1 00000000000000000000000000000001 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL // 31: fn=1, a=0X00000001, b=0X00000000, s=0X00000001\n1 00000000000000000000000000000001 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 32: fn=1, a=0X00000001, b=0X00000001, s=0X00000000\n1 00000000000000000000000000000001 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLHL LLL // 33: fn=1, a=0X00000001, b=0XFFFFFFFF, s=0X00000002\n1 00000000000000000000000000000001 10101010101010101010101010101010 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHHH LLL // 34: fn=1, a=0X00000001, b=0XAAAAAAAA, s=0X55555557\n1 00000000000000000000000000000001 01010101010101010101010101010101 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHHLL LLH // 35: fn=1, a=0X00000001, b=0X55555555, s=0XAAAAAAAC\n1 11111111111111111111111111111111 00000000000000000000000000000000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 36: fn=1, a=0XFFFFFFFF, b=0X00000000, s=0XFFFFFFFF\n1 11111111111111111111111111111111 00000000000000000000000000000001 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHL LLH // 37: fn=1, a=0XFFFFFFFF, b=0X00000001, s=0XFFFFFFFE\n1 11111111111111111111111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 38: fn=1, a=0XFFFFFFFF, b=0XFFFFFFFF, s=0X00000000\n1 11111111111111111111111111111111 10101010101010101010101010101010 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLH LLL // 39: fn=1, a=0XFFFFFFFF, b=0XAAAAAAAA, s=0X55555555\n1 11111111111111111111111111111111 01010101010101010101010101010101 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHL LLH // 40: fn=1, a=0XFFFFFFFF, b=0X55555555, s=0XAAAAAAAA\n1 10101010101010101010101010101010 00000000000000000000000000000000 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHL LLH // 41: fn=1, a=0XAAAAAAAA, b=0X00000000, s=0XAAAAAAAA\n1 10101010101010101010101010101010 00000000000000000000000000000001 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLLH LLH // 42: fn=1, a=0XAAAAAAAA, b=0X00000001, s=0XAAAAAAA9\n1 10101010101010101010101010101010 11111111111111111111111111111111 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHH LLH // 43: fn=1, a=0XAAAAAAAA, b=0XFFFFFFFF, s=0XAAAAAAAB\n1 10101010101010101010101010101010 10101010101010101010101010101010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 44: fn=1, a=0XAAAAAAAA, b=0XAAAAAAAA, s=0X00000000\n1 10101010101010101010101010101010 01010101010101010101010101010101 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLH LHL // 45: fn=1, a=0XAAAAAAAA, b=0X55555555, s=0X55555555\n1 01010101010101010101010101010101 00000000000000000000000000000000 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLH LLL // 46: fn=1, a=0X55555555, b=0X00000000, s=0X55555555\n1 01010101010101010101010101010101 00000000000000000000000000000001 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLL LLL // 47: fn=1, a=0X55555555, b=0X00000001, s=0X55555554\n1 01010101010101010101010101010101 11111111111111111111111111111111 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHHL LLL // 48: fn=1, a=0X55555555, b=0XFFFFFFFF, s=0X55555556\n1 01010101010101010101010101010101 10101010101010101010101010101010 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHH LHH // 49: fn=1, a=0X55555555, b=0XAAAAAAAA, s=0XAAAAAAAB\n1 01010101010101010101010101010101 01010101010101010101010101010101 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 50: fn=1, a=0X55555555, b=0X55555555, s=0X00000000\n1 01111111111111111111111111111111 11111111111111111111111111111111 HLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LHH // 51: fn=1, a=0X7FFFFFFF, b=0XFFFFFFFF, s=0X80000000\n1 00111111111111111111111111111111 11111111111111111111111111111111 LHLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL // 52: fn=1, a=0X3FFFFFFF, b=0XFFFFFFFF, s=0X40000000\n1 00011111111111111111111111111111 11111111111111111111111111111111 LLHLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL // 53: fn=1, a=0X1FFFFFFF, b=0XFFFFFFFF, s=0X20000000\n1 00001111111111111111111111111111 11111111111111111111111111111111 LLLHLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL // 54: fn=1, a=0X0FFFFFFF, b=0XFFFFFFFF, s=0X10000000\n1 00000111111111111111111111111111 11111111111111111111111111111111 LLLLHLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL // 55: fn=1, a=0X07FFFFFF, b=0XFFFFFFFF, s=0X08000000\n1 00000011111111111111111111111111 11111111111111111111111111111111 LLLLLHLLLLLLLLLLLLLLLLLLLLLLLLLL LLL // 56: fn=1, a=0X03FFFFFF, b=0XFFFFFFFF, s=0X04000000\n1 00000001111111111111111111111111 11111111111111111111111111111111 LLLLLLHLLLLLLLLLLLLLLLLLLLLLLLLL LLL // 57: fn=1, a=0X01FFFFFF, b=0XFFFFFFFF, s=0X02000000\n1 00000000111111111111111111111111 11111111111111111111111111111111 LLLLLLLHLLLLLLLLLLLLLLLLLLLLLLLL LLL // 58: fn=1, a=0X00FFFFFF, b=0XFFFFFFFF, s=0X01000000\n1 00000000011111111111111111111111 11111111111111111111111111111111 LLLLLLLLHLLLLLLLLLLLLLLLLLLLLLLL LLL // 59: fn=1, a=0X007FFFFF, b=0XFFFFFFFF, s=0X00800000\n1 00000000001111111111111111111111 11111111111111111111111111111111 LLLLLLLLLHLLLLLLLLLLLLLLLLLLLLLL LLL // 60: fn=1, a=0X003FFFFF, b=0XFFFFFFFF, s=0X00400000\n1 00000000000111111111111111111111 11111111111111111111111111111111 LLLLLLLLLLHLLLLLLLLLLLLLLLLLLLLL LLL // 61: fn=1, a=0X001FFFFF, b=0XFFFFFFFF, s=0X00200000\n1 00000000000011111111111111111111 11111111111111111111111111111111 LLLLLLLLLLLHLLLLLLLLLLLLLLLLLLLL LLL // 62: fn=1, a=0X000FFFFF, b=0XFFFFFFFF, s=0X00100000\n1 00000000000001111111111111111111 11111111111111111111111111111111 LLLLLLLLLLLLHLLLLLLLLLLLLLLLLLLL LLL // 63: fn=1, a=0X0007FFFF, b=0XFFFFFFFF, s=0X00080000\n1 00000000000000111111111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLHLLLLLLLLLLLLLLLLLL LLL // 64: fn=1, a=0X0003FFFF, b=0XFFFFFFFF, s=0X00040000\n1 00000000000000011111111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLHLLLLLLLLLLLLLLLLL LLL // 65: fn=1, a=0X0001FFFF, b=0XFFFFFFFF, s=0X00020000\n1 00000000000000001111111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLHLLLLLLLLLLLLLLLL LLL // 66: fn=1, a=0X0000FFFF, b=0XFFFFFFFF, s=0X00010000\n1 00000000000000000111111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLHLLLLLLLLLLLLLLL LLL // 67: fn=1, a=0X00007FFF, b=0XFFFFFFFF, s=0X00008000\n1 00000000000000000011111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLHLLLLLLLLLLLLLL LLL // 68: fn=1, a=0X00003FFF, b=0XFFFFFFFF, s=0X00004000\n1 00000000000000000001111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLHLLLLLLLLLLLLL LLL // 69: fn=1, a=0X00001FFF, b=0XFFFFFFFF, s=0X00002000\n1 00000000000000000000111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLHLLLLLLLLLLLL LLL // 70: fn=1, a=0X00000FFF, b=0XFFFFFFFF, s=0X00001000\n1 00000000000000000000011111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLHLLLLLLLLLLL LLL // 71: fn=1, a=0X000007FF, b=0XFFFFFFFF, s=0X00000800\n1 00000000000000000000001111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLHLLLLLLLLLL LLL // 72: fn=1, a=0X000003FF, b=0XFFFFFFFF, s=0X00000400\n1 00000000000000000000000111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLHLLLLLLLLL LLL // 73: fn=1, a=0X700001FF, b=0XFFFFFFFF, s=0X00000200\n1 00000000000000000000000011111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLHLLLLLLLL LLL // 74: fn=1, a=0X000000FF, b=0XFFFFFFFF, s=0X00000100\n1 00000000000000000000000001111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLHLLLLLLL LLL // 75: fn=1, a=0X0000007F, b=0XFFFFFFFF, s=0X00000080\n1 00000000000000000000000000111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLHLLLLLL LLL // 76: fn=1, a=0X0000003F, b=0XFFFFFFFF, s=0X00000040\n1 00000000000000000000000000011111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLHLLLLL LLL // 77: fn=1, a=0X0000001F, b=0XFFFFFFFF, s=0X00000020\n1 00000000000000000000000000001111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLHLLLL LLL // 78: fn=1, a=0X0000000F, b=0XFFFFFFFF, s=0X00000010\n1 00000000000000000000000000000111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLHLLL LLL // 79: fn=1, a=0X00000007, b=0XFFFFFFFF, s=0X00000008\n1 00000000000000000000000000000011 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLHLL LLL // 80: fn=1, a=0X00000003, b=0XFFFFFFFF, s=0X00000004\n1 00000000000000000000000000000001 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLHL LLL // 81: fn=1, a=0X00000001, b=0XFFFFFFFF, s=0X00000002\n1 00000000000000000000000000000000 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL // 82: fn=1, a=0X00000000, b=0XFFFFFFFF, s=0X00000001\n      \n.plot X(AFN)\n.plot X(A[31:0])\n.plot X(B[31:0])\n.plot X(S[31:0])\n.plot Z\n.plot V\n.plot N\n"
+                ]
+            ]
+        },
+        "/alu/bool": {
+            "properties": {
+                "icon-readonly": "true",
+                "test-readonly": "true",
+                "name": {
+                    "label": "Name",
+                    "type": "string",
+                    "value": "",
+                    "edit": "yes",
+                    "choices": [
+                        ""
+                    ]
+                },
+                "test-readonly": {
+                    "label": "Test readonly",
+                    "type": "string",
+                    "value": "true",
+                    "edit": "yes",
+                    "choices": [
+                        ""
+                    ]
+                }
+            },
+            "test": [
+                [
+                    "test",
+                    ".power Vdd=1\n.thresholds Vol=0 Vil=0.1 Vih=0.9 Voh=1\n\n.group inputs BFN[3:0] A[31:0] B[31:0]\n.group outputs Y[31:0]\n\n.mode gate\n\n.cycle assert inputs tran 99n sample outputs tran 1n\n\n0000 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL //  1: bfn=0b0000, a=0XFF00FF00, b=0XFFFF0000, y=0X00000000\n0001 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLHHHHHHHH //  2: bfn=0b0001, a=0XFF00FF00, b=0XFFFF0000, y=0X000000FF\n0010 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLLLLLLLLLHHHHHHHHLLLLLLLL //  3: bfn=0b0010, a=0XFF00FF00, b=0XFFFF0000, y=0X0000FF00\n0011 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLLLLLLLLLHHHHHHHHHHHHHHHH //  4: bfn=0b0011, a=0XFF00FF00, b=0XFFFF0000, y=0X0000FFFF\n0100 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLHHHHHHHHLLLLLLLLLLLLLLLL //  5: bfn=0b0100, a=0XFF00FF00, b=0XFFFF0000, y=0X00FF0000\n0101 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLHHHHHHHHLLLLLLLLHHHHHHHH //  6: bfn=0b0101, a=0XFF00FF00, b=0XFFFF0000, y=0X00FF00FF\n0110 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLHHHHHHHHHHHHHHHHLLLLLLLL //  7: bfn=0b0110, a=0XFF00FF00, b=0XFFFF0000, y=0X00FFFF00\n0111 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLHHHHHHHHHHHHHHHHHHHHHHHH //  8: bfn=0b0111, a=0XFF00FF00, b=0XFFFF0000, y=0X00FFFFFF\n1000 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHLLLLLLLLLLLLLLLLLLLLLLLL //  9: bfn=0b1000, a=0XFF00FF00, b=0XFFFF0000, y=0XFF000000\n1001 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHLLLLLLLLLLLLLLLLHHHHHHHH // 10: bfn=0b1001, a=0XFF00FF00, b=0XFFFF0000, y=0XFF0000FF\n1010 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHLLLLLLLLHHHHHHHHLLLLLLLL // 11: bfn=0b1010, a=0XFF00FF00, b=0XFFFF0000, y=0XFF00FF00\n1011 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHLLLLLLLLHHHHHHHHHHHHHHHH // 12: bfn=0b1011, a=0XFF00FF00, b=0XFFFF0000, y=0XFF00FFFF\n1100 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHHHHHHHHHLLLLLLLLLLLLLLLL // 13: bfn=0b1100, a=0XFF00FF00, b=0XFFFF0000, y=0XFFFF0000\n1101 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHHHHHHHHHLLLLLLLLHHHHHHHH // 14: bfn=0b1101, a=0XFF00FF00, b=0XFFFF0000, y=0XFFFF00FF\n1110 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHHHHHHHHHHHHHHHHHLLLLLLLL // 15: bfn=0b1110, a=0XFF00FF00, b=0XFFFF0000, y=0XFFFFFF00\n1111 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH // 16: bfn=0b1111, a=0XFF00FF00, b=0XFFFF0000, y=0XFFFFFFFF\n      \n.plot X(BFN[3:0])\n.plot X(A[31:0])\n.plot X(B[31:0])\n.plot X(Y[31:0])\n"
+                ]
+            ],
+            "schematic": [
+                [
+                    "port",
+                    [
+                        0,
+                        -72,
+                        4
+                    ],
+                    {
+                        "signal": "Y[31:0]",
+                        "direction": "out"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -88,
+                        -56,
+                        0
+                    ],
+                    {
+                        "signal": "BFN[3:0]"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -88,
+                        -72,
+                        0
+                    ],
+                    {
+                        "signal": "B[31:0]"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -88,
+                        -88,
+                        0
+                    ],
+                    {
+                        "signal": "A[31:0]"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        -8,
+                        -72,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "0'32"
+                    }
+                ],
+                [
+                    "jumper",
+                    [
+                        -8,
+                        -72,
+                        0
+                    ]
+                ]
+            ],
+            "icon": [
+                [
+                    "text",
+                    [
+                        0,
+                        -3,
+                        0
+                    ],
+                    {
+                        "text": "BOOL",
+                        "font": "bold 6pt sans-serif",
+                        "align": "center"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        8,
+                        0
+                    ],
+                    {
+                        "name": "A[31:0]"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        16,
+                        0
+                    ],
+                    {
+                        "name": "B[31:0]"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        24,
+                        0
+                    ],
+                    {
+                        "name": "BFN[3:0]"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        32,
+                        8,
+                        4
+                    ],
+                    {
+                        "name": "Y[31:0]"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        16,
+                        0
+                    ],
+                    {
+                        "text": "B[31:0]",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        8,
+                        0
+                    ],
+                    {
+                        "text": "A[31:0]",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        24,
+                        0
+                    ],
+                    {
+                        "text": "BFN[3:0]",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        23,
+                        8,
+                        0
+                    ],
+                    {
+                        "text": "Y[31:0]",
+                        "font": "4pt sans-serif",
+                        "align": "center-right"
+                    }
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        -8,
+                        0,
+                        48,
+                        0
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        24,
+                        32,
+                        0,
+                        -48,
+                        0
+                    ]
+                ],
+                [
+                    "property",
+                    [
+                        0,
+                        -9,
+                        0
+                    ],
+                    {
+                        "format": "{name}",
+                        "align": "bottom-center"
+                    }
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        -8,
+                        0,
+                        0,
+                        40
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        24,
+                        -8,
+                        0,
+                        0,
+                        40
+                    ]
+                ]
+            ]
+        },
+        "/alu/alu": {
+            "properties": {
+                "readonly": "true",
+                "name": {
+                    "label": "Name",
+                    "type": "string",
+                    "value": "",
+                    "edit": "yes",
+                    "choices": [
+                        ""
+                    ]
+                }
+            },
+            "schematic": [
+                [
+                    "/alu/bool",
+                    [
+                        -32,
+                        -40,
+                        0
+                    ],
+                    {
+                        "name": "bool"
+                    }
+                ],
+                [
+                    "/alu/cmp",
+                    [
+                        -32,
+                        88,
+                        0
+                    ],
+                    {
+                        "name": "cmp"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        -64,
+                        96,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "FN[2:1]"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        -64,
+                        -16,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "FN[3:0]"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -128,
+                        -88,
+                        0
+                    ],
+                    {
+                        "signal": "A[31:0]"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -128,
+                        -24,
+                        0
+                    ],
+                    {
+                        "signal": "B[31:0]"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        -128,
+                        48,
+                        0
+                    ],
+                    {
+                        "signal": "FN[5:0]"
+                    }
+                ],
+                [
+                    "port",
+                    [
+                        104,
+                        72,
+                        4
+                    ],
+                    {
+                        "signal": "Y[31:0]",
+                        "direction": "out"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        -64,
+                        -72,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "FN[1:0]"
+                    }
+                ],
+                [
+                    "/alu/arith",
+                    [
+                        -32,
+                        24,
+                        0
+                    ],
+                    {
+                        "name": "arith"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        -64,
+                        40,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "FN[0]"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        -120,
+                        24,
+                        0,
+                        56,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        -64,
+                        -80,
+                        0,
+                        -8,
+                        0
+                    ],
+                    {
+                        "signal": "B[4:0]"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        -64,
+                        -88,
+                        0,
+                        -56,
+                        0
+                    ]
+                ],
+                [
+                    "/gates/mux4",
+                    [
+                        88,
+                        48,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        -120,
+                        -32,
+                        0,
+                        56,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        96,
+                        112,
+                        0,
+                        0,
+                        8
+                    ],
+                    {
+                        "signal": "FN[5:4]"
+                    }
+                ],
+                [
+                    "/alu/shift",
+                    [
+                        -32,
+                        -88,
+                        0
+                    ],
+                    {
+                        "name": "shift"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        -48,
+                        64,
+                        0,
+                        0,
+                        8
+                    ],
+                    {
+                        "signal": "z"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        -32,
+                        64,
+                        0,
+                        0,
+                        8
+                    ],
+                    {
+                        "signal": "v"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        -16,
+                        64,
+                        0,
+                        0,
+                        8
+                    ],
+                    {
+                        "signal": "n"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        -64,
+                        -24,
+                        0,
+                        -64,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        -64,
+                        32,
+                        0,
+                        -64,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        -128,
+                        -88,
+                        0,
+                        8,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        0,
+                        -88,
+                        0,
+                        48,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        0,
+                        24,
+                        0,
+                        8,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        8,
+                        24,
+                        0,
+                        0,
+                        56
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        0,
+                        -32,
+                        0,
+                        32,
+                        0
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        -120,
+                        -32,
+                        0,
+                        0,
+                        56
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        -120,
+                        -88,
+                        0,
+                        0,
+                        56
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        -128,
+                        -24,
+                        0,
+                        0,
+                        56
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        48,
+                        -88,
+                        0,
+                        0,
+                        136
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        32,
+                        -32,
+                        0,
+                        0,
+                        96
+                    ]
+                ],
+                [
+                    "wire",
+                    [
+                        48,
+                        48,
+                        0,
+                        40,
+                        0
+                    ],
+                    {
+                        "signal": "shift[31:0]"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        32,
+                        64,
+                        0,
+                        56,
+                        0
+                    ],
+                    {
+                        "signal": "bool[31:0]"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        8,
+                        80,
+                        0,
+                        80,
+                        0
+                    ],
+                    {
+                        "signal": "arith[31:0]"
+                    }
+                ],
+                [
+                    "wire",
+                    [
+                        0,
+                        96,
+                        0,
+                        88,
+                        0
+                    ],
+                    {
+                        "signal": "cmp[31:0]"
+                    }
+                ]
+            ],
+            "icon": [
+                [
+                    "text",
+                    [
+                        -8,
+                        -8,
+                        0
+                    ],
+                    {
+                        "text": "ALU",
+                        "font": "bold 6pt sans-serif",
+                        "align": "center"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        -16,
+                        0
+                    ],
+                    {
+                        "name": "B[31:0]"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -32,
+                        16,
+                        0
+                    ],
+                    {
+                        "name": "A[31:0]"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        -8,
+                        40,
+                        3
+                    ],
+                    {
+                        "name": "FN[5:0]"
+                    }
+                ],
+                [
+                    "terminal",
+                    [
+                        16,
+                        0,
+                        4
+                    ],
+                    {
+                        "name": "Y[31:0]"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        16,
+                        0
+                    ],
+                    {
+                        "text": "A[31:0]",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -23,
+                        -16,
+                        0
+                    ],
+                    {
+                        "text": "B[31:0]",
+                        "font": "4pt sans-serif"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        7,
+                        0,
+                        0
+                    ],
+                    {
+                        "text": "Y[31:0]",
+                        "font": "4pt sans-serif",
+                        "align": "center-right"
+                    }
+                ],
+                [
+                    "text",
+                    [
+                        -8,
+                        25,
+                        0
+                    ],
+                    {
+                        "text": "FN[5:0]",
+                        "font": "4pt sans-serif",
+                        "align": "bottom-center"
+                    }
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        -3,
+                        0,
+                        4,
+                        3
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        -20,
+                        0,
+                        0,
+                        -4,
+                        3
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        32,
+                        0,
+                        32,
+                        -12
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        8,
+                        -21,
+                        0,
+                        -32,
+                        -11
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        -32,
+                        0,
+                        0,
+                        29
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        -24,
+                        3,
+                        0,
+                        0,
+                        29
+                    ]
+                ],
+                [
+                    "line",
+                    [
+                        8,
+                        -21,
+                        0,
+                        0,
+                        41
+                    ]
+                ],
+                [
+                    "property",
+                    [
+                        -8,
+                        -27,
+                        0
+                    ],
+                    {
+                        "format": "{name}",
+                        "align": "bottom-left"
+                    }
+                ],
+                [
+                    "line",
+                    [
+                        -8,
+                        32,
+                        0,
+                        0,
+                        -6
+                    ]
+                ]
+            ],
+            "test": [
+                [
+                    "test",
+                    ".power Vdd=1\n.thresholds Vol=0 Vil=0.1 Vih=0.9 Voh=1\n\n.group inputs FN[5:0] A[31:0] B[31:0]\n.group outputs Y[31:0] Z V N\n\n.mode gate\n\n.cycle assert inputs tran 99n sample outputs tran 1n\n\n100000 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //   1: fn=F0000, a=0xff00ff00, b=0xffff0000, y=0x00000000\n100001 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLHHHHHHHH LLH //   2: fn=F0001, a=0xff00ff00, b=0xffff0000, y=0x000000ff\n100010 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLLLLLLLLLHHHHHHHHLLLLLLLL LLH //   3: fn=F0010, a=0xff00ff00, b=0xffff0000, y=0x0000ff00\n100011 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLLLLLLLLLHHHHHHHHHHHHHHHH LLH //   4: fn=F0011, a=0xff00ff00, b=0xffff0000, y=0x0000ffff\n100100 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLHHHHHHHHLLLLLLLLLLLLLLLL LLH //   5: fn=F0100, a=0xff00ff00, b=0xffff0000, y=0x00ff0000\n100101 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLHHHHHHHHLLLLLLLLHHHHHHHH LLH //   6: fn=F0101, a=0xff00ff00, b=0xffff0000, y=0x00ff00ff\n100110 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLHHHHHHHHHHHHHHHHLLLLLLLL LLH //   7: fn=  XOR, a=0xff00ff00, b=0xffff0000, y=0x00ffff00\n100111 11111111000000001111111100000000 11111111111111110000000000000000 LLLLLLLLHHHHHHHHHHHHHHHHHHHHHHHH LLH //   8: fn=F0111, a=0xff00ff00, b=0xffff0000, y=0x00ffffff\n101000 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHLLLLLLLLLLLLLLLLLLLLLLLL LLH //   9: fn=  AND, a=0xff00ff00, b=0xffff0000, y=0xff000000\n101001 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHLLLLLLLLLLLLLLLLHHHHHHHH LLH //  10: fn= XNOR, a=0xff00ff00, b=0xffff0000, y=0xff0000ff\n101010 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHLLLLLLLLHHHHHHHHLLLLLLLL LLH //  11: fn=    A, a=0xff00ff00, b=0xffff0000, y=0xff00ff00\n101011 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHLLLLLLLLHHHHHHHHHHHHHHHH LLH //  12: fn=F1011, a=0xff00ff00, b=0xffff0000, y=0xff00ffff\n101100 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHHHHHHHHHLLLLLLLLLLLLLLLL LLH //  13: fn=F1100, a=0xff00ff00, b=0xffff0000, y=0xffff0000\n101101 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHHHHHHHHHLLLLLLLLHHHHHHHH LLH //  14: fn=F1101, a=0xff00ff00, b=0xffff0000, y=0xffff00ff\n101110 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHHHHHHHHHHHHHHHHHLLLLLLLL LLH //  15: fn=   OR, a=0xff00ff00, b=0xffff0000, y=0xffffff00\n101111 11111111000000001111111100000000 11111111111111110000000000000000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  16: fn=F1111, a=0xff00ff00, b=0xffff0000, y=0xffffffff\n110000 00000000000000000000000000000000 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL //  17: fn=  SHL, a=0x00000000, b=0x00000000, y=0x00000000\n110001 00000000000000000000000000000000 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL //  18: fn=  SHR, a=0x00000000, b=0x00000000, y=0x00000000\n110011 00000000000000000000000000000000 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL //  19: fn=  SRA, a=0x00000000, b=0x00000000, y=0x00000000\n110000 00000000000000000000000000000000 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL //  20: fn=  SHL, a=0x00000000, b=0x00000001, y=0x00000000\n110001 00000000000000000000000000000000 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  21: fn=  SHR, a=0x00000000, b=0x00000001, y=0x00000000\n110011 00000000000000000000000000000000 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  22: fn=  SRA, a=0x00000000, b=0x00000001, y=0x00000000\n110000 00000000000000000000000000000000 00000000000000000000000000000010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL //  23: fn=  SHL, a=0x00000000, b=0x00000002, y=0x00000000\n110001 00000000000000000000000000000000 00000000000000000000000000000010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  24: fn=  SHR, a=0x00000000, b=0x00000002, y=0x00000000\n110011 00000000000000000000000000000000 00000000000000000000000000000010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  25: fn=  SRA, a=0x00000000, b=0x00000002, y=0x00000000\n110000 00000000000000000000000000000000 00000000000000000000000000000100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL //  26: fn=  SHL, a=0x00000000, b=0x00000004, y=0x00000000\n110001 00000000000000000000000000000000 00000000000000000000000000000100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  27: fn=  SHR, a=0x00000000, b=0x00000004, y=0x00000000\n110011 00000000000000000000000000000000 00000000000000000000000000000100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  28: fn=  SRA, a=0x00000000, b=0x00000004, y=0x00000000\n110000 00000000000000000000000000000000 00000000000000000000000000001000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL //  29: fn=  SHL, a=0x00000000, b=0x00000008, y=0x00000000\n110001 00000000000000000000000000000000 00000000000000000000000000001000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  30: fn=  SHR, a=0x00000000, b=0x00000008, y=0x00000000\n110011 00000000000000000000000000000000 00000000000000000000000000001000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  31: fn=  SRA, a=0x00000000, b=0x00000008, y=0x00000000\n110000 00000000000000000000000000000000 00000000000000000000000000010000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL //  32: fn=  SHL, a=0x00000000, b=0x00000010, y=0x00000000\n110001 00000000000000000000000000000000 00000000000000000000000000010000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  33: fn=  SHR, a=0x00000000, b=0x00000010, y=0x00000000\n110011 00000000000000000000000000000000 00000000000000000000000000010000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  34: fn=  SRA, a=0x00000000, b=0x00000010, y=0x00000000\n110000 00000000000000000000000000000000 00000000000000000000000000011111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL //  35: fn=  SHL, a=0x00000000, b=0x0000001f, y=0x00000000\n110001 00000000000000000000000000000000 00000000000000000000000000011111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  36: fn=  SHR, a=0x00000000, b=0x0000001f, y=0x00000000\n110011 00000000000000000000000000000000 00000000000000000000000000011111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  37: fn=  SRA, a=0x00000000, b=0x0000001f, y=0x00000000\n110000 00000000000000000000000000000001 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL //  38: fn=  SHL, a=0x00000001, b=0x00000000, y=0x00000001\n110001 00000000000000000000000000000001 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL //  39: fn=  SHR, a=0x00000001, b=0x00000000, y=0x00000001\n110011 00000000000000000000000000000001 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL //  40: fn=  SRA, a=0x00000001, b=0x00000000, y=0x00000001\n110000 00000000000000000000000000000001 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLHL LLL //  41: fn=  SHL, a=0x00000001, b=0x00000001, y=0x00000002\n110001 00000000000000000000000000000001 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL //  42: fn=  SHR, a=0x00000001, b=0x00000001, y=0x00000000\n110011 00000000000000000000000000000001 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL //  43: fn=  SRA, a=0x00000001, b=0x00000001, y=0x00000000\n110000 00000000000000000000000000000001 00000000000000000000000000000010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLHLL LLL //  44: fn=  SHL, a=0x00000001, b=0x00000002, y=0x00000004\n110001 00000000000000000000000000000001 00000000000000000000000000000010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  45: fn=  SHR, a=0x00000001, b=0x00000002, y=0x00000000\n110011 00000000000000000000000000000001 00000000000000000000000000000010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  46: fn=  SRA, a=0x00000001, b=0x00000002, y=0x00000000\n110000 00000000000000000000000000000001 00000000000000000000000000000100 LLLLLLLLLLLLLLLLLLLLLLLLLLLHLLLL LLL //  47: fn=  SHL, a=0x00000001, b=0x00000004, y=0x00000010\n110001 00000000000000000000000000000001 00000000000000000000000000000100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  48: fn=  SHR, a=0x00000001, b=0x00000004, y=0x00000000\n110011 00000000000000000000000000000001 00000000000000000000000000000100 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  49: fn=  SRA, a=0x00000001, b=0x00000004, y=0x00000000\n110000 00000000000000000000000000000001 00000000000000000000000000001000 LLLLLLLLLLLLLLLLLLLLLLLHLLLLLLLL LLL //  50: fn=  SHL, a=0x00000001, b=0x00000008, y=0x00000100\n110001 00000000000000000000000000000001 00000000000000000000000000001000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  51: fn=  SHR, a=0x00000001, b=0x00000008, y=0x00000000\n110011 00000000000000000000000000000001 00000000000000000000000000001000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  52: fn=  SRA, a=0x00000001, b=0x00000008, y=0x00000000\n110000 00000000000000000000000000000001 00000000000000000000000000010000 LLLLLLLLLLLLLLLHLLLLLLLLLLLLLLLL LLL //  53: fn=  SHL, a=0x00000001, b=0x00000010, y=0x00010000\n110001 00000000000000000000000000000001 00000000000000000000000000010000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  54: fn=  SHR, a=0x00000001, b=0x00000010, y=0x00000000\n110011 00000000000000000000000000000001 00000000000000000000000000010000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  55: fn=  SRA, a=0x00000001, b=0x00000010, y=0x00000000\n110000 00000000000000000000000000000001 00000000000000000000000000011111 HLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL //  56: fn=  SHL, a=0x00000001, b=0x0000001f, y=0x80000000\n110001 00000000000000000000000000000001 00000000000000000000000000011111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  57: fn=  SHR, a=0x00000001, b=0x0000001f, y=0x00000000\n110011 00000000000000000000000000000001 00000000000000000000000000011111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH //  58: fn=  SRA, a=0x00000001, b=0x0000001f, y=0x00000000\n110000 11111111111111111111111111111111 00000000000000000000000000000000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  59: fn=  SHL, a=0xffffffff, b=0x00000000, y=0xffffffff\n110001 11111111111111111111111111111111 00000000000000000000000000000000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  60: fn=  SHR, a=0xffffffff, b=0x00000000, y=0xffffffff\n110011 11111111111111111111111111111111 00000000000000000000000000000000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  61: fn=  SRA, a=0xffffffff, b=0x00000000, y=0xffffffff\n110000 11111111111111111111111111111111 00000000000000000000000000000001 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHL HLL //  62: fn=  SHL, a=0xffffffff, b=0x00000001, y=0xfffffffe\n110001 11111111111111111111111111111111 00000000000000000000000000000001 LHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  63: fn=  SHR, a=0xffffffff, b=0x00000001, y=0x7fffffff\n110011 11111111111111111111111111111111 00000000000000000000000000000001 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  64: fn=  SRA, a=0xffffffff, b=0x00000001, y=0xffffffff\n110000 11111111111111111111111111111111 00000000000000000000000000000010 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHLL LLL //  65: fn=  SHL, a=0xffffffff, b=0x00000002, y=0xfffffffc\n110001 11111111111111111111111111111111 00000000000000000000000000000010 LLHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  66: fn=  SHR, a=0xffffffff, b=0x00000002, y=0x3fffffff\n110011 11111111111111111111111111111111 00000000000000000000000000000010 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  67: fn=  SRA, a=0xffffffff, b=0x00000002, y=0xffffffff\n110000 11111111111111111111111111111111 00000000000000000000000000000100 HHHHHHHHHHHHHHHHHHHHHHHHHHHHLLLL LLL //  68: fn=  SHL, a=0xffffffff, b=0x00000004, y=0xfffffff0\n110001 11111111111111111111111111111111 00000000000000000000000000000100 LLLLHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  69: fn=  SHR, a=0xffffffff, b=0x00000004, y=0x0fffffff\n110011 11111111111111111111111111111111 00000000000000000000000000000100 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  70: fn=  SRA, a=0xffffffff, b=0x00000004, y=0xffffffff\n110000 11111111111111111111111111111111 00000000000000000000000000001000 HHHHHHHHHHHHHHHHHHHHHHHHLLLLLLLL LLL //  71: fn=  SHL, a=0xffffffff, b=0x00000008, y=0xffffff00\n110001 11111111111111111111111111111111 00000000000000000000000000001000 LLLLLLLLHHHHHHHHHHHHHHHHHHHHHHHH LLH //  72: fn=  SHR, a=0xffffffff, b=0x00000008, y=0x00ffffff\n110011 11111111111111111111111111111111 00000000000000000000000000001000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  73: fn=  SRA, a=0xffffffff, b=0x00000008, y=0xffffffff\n110000 11111111111111111111111111111111 00000000000000000000000000010000 HHHHHHHHHHHHHHHHLLLLLLLLLLLLLLLL LLL //  74: fn=  SHL, a=0xffffffff, b=0x00000010, y=0xffff0000\n110001 11111111111111111111111111111111 00000000000000000000000000010000 LLLLLLLLLLLLLLLLHHHHHHHHHHHHHHHH LLH //  75: fn=  SHR, a=0xffffffff, b=0x00000010, y=0x0000ffff\n110011 11111111111111111111111111111111 00000000000000000000000000010000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  76: fn=  SRA, a=0xffffffff, b=0x00000010, y=0xffffffff\n110000 11111111111111111111111111111111 00000000000000000000000000011111 HLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL //  77: fn=  SHL, a=0xffffffff, b=0x0000001f, y=0x80000000\n110001 11111111111111111111111111111111 00000000000000000000000000011111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLH //  78: fn=  SHR, a=0xffffffff, b=0x0000001f, y=0x00000001\n110011 11111111111111111111111111111111 00000000000000000000000000011111 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH //  79: fn=  SRA, a=0xffffffff, b=0x0000001f, y=0xffffffff\n110000 00010010001101000101011001111000 00000000000000000000000000000000 LLLHLLHLLLHHLHLLLHLHLHHLLHHHHLLL LLL //  80: fn=  SHL, a=0x12345678, b=0x00000000, y=0x12345678\n110001 00010010001101000101011001111000 00000000000000000000000000000000 LLLHLLHLLLHHLHLLLHLHLHHLLHHHHLLL LLL //  81: fn=  SHR, a=0x12345678, b=0x00000000, y=0x12345678\n110011 00010010001101000101011001111000 00000000000000000000000000000000 LLLHLLHLLLHHLHLLLHLHLHHLLHHHHLLL LLL //  82: fn=  SRA, a=0x12345678, b=0x00000000, y=0x12345678\n110000 00010010001101000101011001111000 00000000000000000000000000000001 LLHLLHLLLHHLHLLLHLHLHHLLHHHHLLLL LLL //  83: fn=  SHL, a=0x12345678, b=0x00000001, y=0x2468acf0\n110001 00010010001101000101011001111000 00000000000000000000000000000001 LLLLHLLHLLLHHLHLLLHLHLHHLLHHHHLL LLL //  84: fn=  SHR, a=0x12345678, b=0x00000001, y=0x091a2b3c\n110011 00010010001101000101011001111000 00000000000000000000000000000001 LLLLHLLHLLLHHLHLLLHLHLHHLLHHHHLL LLL //  85: fn=  SRA, a=0x12345678, b=0x00000001, y=0x091a2b3c\n110000 00010010001101000101011001111000 00000000000000000000000000000010 LHLLHLLLHHLHLLLHLHLHHLLHHHHLLLLL LLL //  86: fn=  SHL, a=0x12345678, b=0x00000002, y=0x48d159e0\n110001 00010010001101000101011001111000 00000000000000000000000000000010 LLLLLHLLHLLLHHLHLLLHLHLHHLLHHHHL LLL //  87: fn=  SHR, a=0x12345678, b=0x00000002, y=0x048d159e\n110011 00010010001101000101011001111000 00000000000000000000000000000010 LLLLLHLLHLLLHHLHLLLHLHLHHLLHHHHL LLL //  88: fn=  SRA, a=0x12345678, b=0x00000002, y=0x048d159e\n110000 00010010001101000101011001111000 00000000000000000000000000000100 LLHLLLHHLHLLLHLHLHHLLHHHHLLLLLLL LLL //  89: fn=  SHL, a=0x12345678, b=0x00000004, y=0x23456780\n110001 00010010001101000101011001111000 00000000000000000000000000000100 LLLLLLLHLLHLLLHHLHLLLHLHLHHLLHHH LLL //  90: fn=  SHR, a=0x12345678, b=0x00000004, y=0x01234567\n110011 00010010001101000101011001111000 00000000000000000000000000000100 LLLLLLLHLLHLLLHHLHLLLHLHLHHLLHHH LLL //  91: fn=  SRA, a=0x12345678, b=0x00000004, y=0x01234567\n110000 00010010001101000101011001111000 00000000000000000000000000001000 LLHHLHLLLHLHLHHLLHHHHLLLLLLLLLLL LLL //  92: fn=  SHL, a=0x12345678, b=0x00000008, y=0x34567800\n110001 00010010001101000101011001111000 00000000000000000000000000001000 LLLLLLLLLLLHLLHLLLHHLHLLLHLHLHHL LLL //  93: fn=  SHR, a=0x12345678, b=0x00000008, y=0x00123456\n110011 00010010001101000101011001111000 00000000000000000000000000001000 LLLLLLLLLLLHLLHLLLHHLHLLLHLHLHHL LLL //  94: fn=  SRA, a=0x12345678, b=0x00000008, y=0x00123456\n110000 00010010001101000101011001111000 00000000000000000000000000010000 LHLHLHHLLHHHHLLLLLLLLLLLLLLLLLLL LLL //  95: fn=  SHL, a=0x12345678, b=0x00000010, y=0x56780000\n110001 00010010001101000101011001111000 00000000000000000000000000010000 LLLLLLLLLLLLLLLLLLLHLLHLLLHHLHLL LLL //  96: fn=  SHR, a=0x12345678, b=0x00000010, y=0x00001234\n110011 00010010001101000101011001111000 00000000000000000000000000010000 LLLLLLLLLLLLLLLLLLLHLLHLLLHHLHLL LLL //  97: fn=  SRA, a=0x12345678, b=0x00000010, y=0x00001234\n110000 00010010001101000101011001111000 00000000000000000000000000011111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL //  98: fn=  SHL, a=0x12345678, b=0x0000001f, y=0x00000000\n110001 00010010001101000101011001111000 00000000000000000000000000011111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL //  99: fn=  SHR, a=0x12345678, b=0x0000001f, y=0x00000000\n110011 00010010001101000101011001111000 00000000000000000000000000011111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL // 100: fn=  SRA, a=0x12345678, b=0x0000001f, y=0x00000000\n110000 11111110110111001010101110011000 00000000000000000000000000000000 HHHHHHHLHHLHHHLLHLHLHLHHHLLHHLLL LLH // 101: fn=  SHL, a=0xfedcab98, b=0x00000000, y=0xfedcab98\n110001 11111110110111001010101110011000 00000000000000000000000000000000 HHHHHHHLHHLHHHLLHLHLHLHHHLLHHLLL LLH // 102: fn=  SHR, a=0xfedcab98, b=0x00000000, y=0xfedcab98\n110011 11111110110111001010101110011000 00000000000000000000000000000000 HHHHHHHLHHLHHHLLHLHLHLHHHLLHHLLL LLH // 103: fn=  SRA, a=0xfedcab98, b=0x00000000, y=0xfedcab98\n110000 11111110110111001010101110011000 00000000000000000000000000000001 HHHHHHLHHLHHHLLHLHLHLHHHLLHHLLLL LLH // 104: fn=  SHL, a=0xfedcab98, b=0x00000001, y=0xfdb95730\n110001 11111110110111001010101110011000 00000000000000000000000000000001 LHHHHHHHLHHLHHHLLHLHLHLHHHLLHHLL LLH // 105: fn=  SHR, a=0xfedcab98, b=0x00000001, y=0x7f6e55cc\n110011 11111110110111001010101110011000 00000000000000000000000000000001 HHHHHHHHLHHLHHHLLHLHLHLHHHLLHHLL LLH // 106: fn=  SRA, a=0xfedcab98, b=0x00000001, y=0xff6e55cc\n110000 11111110110111001010101110011000 00000000000000000000000000000010 HHHHHLHHLHHHLLHLHLHLHHHLLHHLLLLL LLH // 107: fn=  SHL, a=0xfedcab98, b=0x00000002, y=0xfb72ae60\n110001 11111110110111001010101110011000 00000000000000000000000000000010 LLHHHHHHHLHHLHHHLLHLHLHLHHHLLHHL LLH // 108: fn=  SHR, a=0xfedcab98, b=0x00000002, y=0x3fb72ae6\n110011 11111110110111001010101110011000 00000000000000000000000000000010 HHHHHHHHHLHHLHHHLLHLHLHLHHHLLHHL LLH // 109: fn=  SRA, a=0xfedcab98, b=0x00000002, y=0xffb72ae6\n110000 11111110110111001010101110011000 00000000000000000000000000000100 HHHLHHLHHHLLHLHLHLHHHLLHHLLLLLLL LLH // 110: fn=  SHL, a=0xfedcab98, b=0x00000004, y=0xedcab980\n110001 11111110110111001010101110011000 00000000000000000000000000000100 LLLLHHHHHHHLHHLHHHLLHLHLHLHHHLLH LLH // 111: fn=  SHR, a=0xfedcab98, b=0x00000004, y=0x0fedcab9\n110011 11111110110111001010101110011000 00000000000000000000000000000100 HHHHHHHHHHHLHHLHHHLLHLHLHLHHHLLH LLH // 112: fn=  SRA, a=0xfedcab98, b=0x00000004, y=0xffedcab9\n110000 11111110110111001010101110011000 00000000000000000000000000001000 HHLHHHLLHLHLHLHHHLLHHLLLLLLLLLLL LLH // 113: fn=  SHL, a=0xfedcab98, b=0x00000008, y=0xdcab9800\n110001 11111110110111001010101110011000 00000000000000000000000000001000 LLLLLLLLHHHHHHHLHHLHHHLLHLHLHLHH LLH // 114: fn=  SHR, a=0xfedcab98, b=0x00000008, y=0x00fedcab\n110011 11111110110111001010101110011000 00000000000000000000000000001000 HHHHHHHHHHHHHHHLHHLHHHLLHLHLHLHH LLH // 115: fn=  SRA, a=0xfedcab98, b=0x00000008, y=0xfffedcab\n110000 11111110110111001010101110011000 00000000000000000000000000010000 HLHLHLHHHLLHHLLLLLLLLLLLLLLLLLLL LLH // 116: fn=  SHL, a=0xfedcab98, b=0x00000010, y=0xab980000\n110001 11111110110111001010101110011000 00000000000000000000000000010000 LLLLLLLLLLLLLLLLHHHHHHHLHHLHHHLL LLH // 117: fn=  SHR, a=0xfedcab98, b=0x00000010, y=0x0000fedc\n110011 11111110110111001010101110011000 00000000000000000000000000010000 HHHHHHHHHHHHHHHHHHHHHHHLHHLHHHLL LLH // 118: fn=  SRA, a=0xfedcab98, b=0x00000010, y=0xfffffedc\n110000 11111110110111001010101110011000 00000000000000000000000000011111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH // 119: fn=  SHL, a=0xfedcab98, b=0x0000001f, y=0x00000000\n110001 11111110110111001010101110011000 00000000000000000000000000011111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLH // 120: fn=  SHR, a=0xfedcab98, b=0x0000001f, y=0x00000001\n110011 11111110110111001010101110011000 00000000000000000000000000011111 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 121: fn=  SRA, a=0xfedcab98, b=0x0000001f, y=0xffffffff\n010000 00000000000000000000000000000000 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 122: fn=  ADD, a=0x00000000, b=0x00000000, y=0x00000000\n010000 00000000000000000000000000000000 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL // 123: fn=  ADD, a=0x00000000, b=0x00000001, y=0x00000001\n010000 00000000000000000000000000000000 11111111111111111111111111111111 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 124: fn=  ADD, a=0x00000000, b=0x-0000001, y=0xffffffff\n010000 00000000000000000000000000000000 10101010101010101010101010101010 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHL LLH // 125: fn=  ADD, a=0x00000000, b=0xaaaaaaaa, y=0xaaaaaaaa\n010000 00000000000000000000000000000000 01010101010101010101010101010101 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLH LLL // 126: fn=  ADD, a=0x00000000, b=0x55555555, y=0x55555555\n010000 00000000000000000000000000000001 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL // 127: fn=  ADD, a=0x00000001, b=0x00000000, y=0x00000001\n010000 00000000000000000000000000000001 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLHL LLL // 128: fn=  ADD, a=0x00000001, b=0x00000001, y=0x00000002\n010000 00000000000000000000000000000001 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 129: fn=  ADD, a=0x00000001, b=0x-0000001, y=0x00000000\n010000 00000000000000000000000000000001 10101010101010101010101010101010 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHH LLH // 130: fn=  ADD, a=0x00000001, b=0xaaaaaaaa, y=0xaaaaaaab\n010000 00000000000000000000000000000001 01010101010101010101010101010101 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHHL LLL // 131: fn=  ADD, a=0x00000001, b=0x55555555, y=0x55555556\n010000 11111111111111111111111111111111 00000000000000000000000000000000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 132: fn=  ADD, a=0x-0000001, b=0x00000000, y=0xffffffff\n010000 11111111111111111111111111111111 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 133: fn=  ADD, a=0x-0000001, b=0x00000001, y=0x00000000\n010000 11111111111111111111111111111111 11111111111111111111111111111111 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHL LLH // 134: fn=  ADD, a=0x-0000001, b=0x-0000001, y=0xfffffffe\n010000 11111111111111111111111111111111 10101010101010101010101010101010 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLLH LLH // 135: fn=  ADD, a=0x-0000001, b=0xaaaaaaaa, y=0xaaaaaaa9\n010000 11111111111111111111111111111111 01010101010101010101010101010101 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLL LLL // 136: fn=  ADD, a=0x-0000001, b=0x55555555, y=0x55555554\n010000 10101010101010101010101010101010 00000000000000000000000000000000 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHL LLH // 137: fn=  ADD, a=0xaaaaaaaa, b=0x00000000, y=0xaaaaaaaa\n010000 10101010101010101010101010101010 00000000000000000000000000000001 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHH LLH // 138: fn=  ADD, a=0xaaaaaaaa, b=0x00000001, y=0xaaaaaaab\n010000 10101010101010101010101010101010 11111111111111111111111111111111 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLLH LLH // 139: fn=  ADD, a=0xaaaaaaaa, b=0x-0000001, y=0xaaaaaaa9\n010000 10101010101010101010101010101010 10101010101010101010101010101010 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLL LHL // 140: fn=  ADD, a=0xaaaaaaaa, b=0xaaaaaaaa, y=0x55555554\n010000 10101010101010101010101010101010 01010101010101010101010101010101 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 141: fn=  ADD, a=0xaaaaaaaa, b=0x55555555, y=0xffffffff\n010000 01010101010101010101010101010101 00000000000000000000000000000000 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLH LLL // 142: fn=  ADD, a=0x55555555, b=0x00000000, y=0x55555555\n010000 01010101010101010101010101010101 00000000000000000000000000000001 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHHL LLL // 143: fn=  ADD, a=0x55555555, b=0x00000001, y=0x55555556\n010000 01010101010101010101010101010101 11111111111111111111111111111111 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLL LLL // 144: fn=  ADD, a=0x55555555, b=0x-0000001, y=0x55555554\n010000 01010101010101010101010101010101 10101010101010101010101010101010 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 145: fn=  ADD, a=0x55555555, b=0xaaaaaaaa, y=0xffffffff\n010000 01010101010101010101010101010101 01010101010101010101010101010101 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHL LHH // 146: fn=  ADD, a=0x55555555, b=0x55555555, y=0xaaaaaaaa\n010001 00000000000000000000000000000000 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 147: fn=  SUB, a=0x00000000, b=0x00000000, y=0x00000000\n010001 00000000000000000000000000000000 00000000000000000000000000000001 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 148: fn=  SUB, a=0x00000000, b=0x00000001, y=0xffffffff\n010001 00000000000000000000000000000000 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL // 149: fn=  SUB, a=0x00000000, b=0x-0000001, y=0x00000001\n010001 00000000000000000000000000000000 10101010101010101010101010101010 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHHL LLL // 150: fn=  SUB, a=0x00000000, b=0xaaaaaaaa, y=0x55555556\n010001 00000000000000000000000000000000 01010101010101010101010101010101 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHH LLH // 151: fn=  SUB, a=0x00000000, b=0x55555555, y=0xaaaaaaab\n010001 00000000000000000000000000000001 00000000000000000000000000000000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLL // 152: fn=  SUB, a=0x00000001, b=0x00000000, y=0x00000001\n010001 00000000000000000000000000000001 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 153: fn=  SUB, a=0x00000001, b=0x00000001, y=0x00000000\n010001 00000000000000000000000000000001 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLHL LLL // 154: fn=  SUB, a=0x00000001, b=0x-0000001, y=0x00000002\n010001 00000000000000000000000000000001 10101010101010101010101010101010 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHHH LLL // 155: fn=  SUB, a=0x00000001, b=0xaaaaaaaa, y=0x55555557\n010001 00000000000000000000000000000001 01010101010101010101010101010101 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHHLL LLH // 156: fn=  SUB, a=0x00000001, b=0x55555555, y=0xaaaaaaac\n010001 11111111111111111111111111111111 00000000000000000000000000000000 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH LLH // 157: fn=  SUB, a=0x-0000001, b=0x00000000, y=0xffffffff\n010001 11111111111111111111111111111111 00000000000000000000000000000001 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHL LLH // 158: fn=  SUB, a=0x-0000001, b=0x00000001, y=0xfffffffe\n010001 11111111111111111111111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 159: fn=  SUB, a=0x-0000001, b=0x-0000001, y=0x00000000\n010001 11111111111111111111111111111111 10101010101010101010101010101010 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLH LLL // 160: fn=  SUB, a=0x-0000001, b=0xaaaaaaaa, y=0x55555555\n010001 11111111111111111111111111111111 01010101010101010101010101010101 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHL LLH // 161: fn=  SUB, a=0x-0000001, b=0x55555555, y=0xaaaaaaaa\n010001 10101010101010101010101010101010 00000000000000000000000000000000 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHL LLH // 162: fn=  SUB, a=0xaaaaaaaa, b=0x00000000, y=0xaaaaaaaa\n010001 10101010101010101010101010101010 00000000000000000000000000000001 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLLH LLH // 163: fn=  SUB, a=0xaaaaaaaa, b=0x00000001, y=0xaaaaaaa9\n010001 10101010101010101010101010101010 11111111111111111111111111111111 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHH LLH // 164: fn=  SUB, a=0xaaaaaaaa, b=0x-0000001, y=0xaaaaaaab\n010001 10101010101010101010101010101010 10101010101010101010101010101010 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 165: fn=  SUB, a=0xaaaaaaaa, b=0xaaaaaaaa, y=0x00000000\n010001 10101010101010101010101010101010 01010101010101010101010101010101 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLH LHL // 166: fn=  SUB, a=0xaaaaaaaa, b=0x55555555, y=0x55555555\n010001 01010101010101010101010101010101 00000000000000000000000000000000 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLH LLL // 167: fn=  SUB, a=0x55555555, b=0x00000000, y=0x55555555\n010001 01010101010101010101010101010101 00000000000000000000000000000001 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHLL LLL // 168: fn=  SUB, a=0x55555555, b=0x00000001, y=0x55555554\n010001 01010101010101010101010101010101 11111111111111111111111111111111 LHLHLHLHLHLHLHLHLHLHLHLHLHLHLHHL LLL // 169: fn=  SUB, a=0x55555555, b=0x-0000001, y=0x55555556\n010001 01010101010101010101010101010101 10101010101010101010101010101010 HLHLHLHLHLHLHLHLHLHLHLHLHLHLHLHH LHH // 170: fn=  SUB, a=0x55555555, b=0xaaaaaaaa, y=0xaaaaaaab\n010001 01010101010101010101010101010101 01010101010101010101010101010101 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 171: fn=  SUB, a=0x55555555, b=0x55555555, y=0x00000000\n000011 00000000000000000000000000000101 11011110101011011011111011101111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL // 172: fn=CMPEQ, a=0x00000005, b=0xdeadbeef, y=0x00000000\n000101 00000000000000000000000000000101 11011110101011011011111011101111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL // 173: fn=CMPLT, a=0x00000005, b=0xdeadbeef, y=0x00000000\n000111 00000000000000000000000000000101 11011110101011011011111011101111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLL // 174: fn=CMPLE, a=0x00000005, b=0xdeadbeef, y=0x00000000\n000011 00010010001101000101011001111000 00010010001101000101011001111000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH HLL // 175: fn=CMPEQ, a=0x12345678, b=0x12345678, y=0x00000001\n000101 00010010001101000101011001111000 00010010001101000101011001111000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL HLL // 176: fn=CMPLT, a=0x12345678, b=0x12345678, y=0x00000000\n000111 00010010001101000101011001111000 00010010001101000101011001111000 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH HLL // 177: fn=CMPLE, a=0x12345678, b=0x12345678, y=0x00000001\n000011 10000000000000000000000000000000 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LHL // 178: fn=CMPEQ, a=0x80000000, b=0x00000001, y=0x00000000\n000101 10000000000000000000000000000000 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LHL // 179: fn=CMPLT, a=0x80000000, b=0x00000001, y=0x00000001\n000111 10000000000000000000000000000000 00000000000000000000000000000001 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LHL // 180: fn=CMPLE, a=0x80000000, b=0x00000001, y=0x00000001\n000011 11011110101011011011111011101111 00000000000000000000000000000101 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LLH // 181: fn=CMPEQ, a=0xdeadbeef, b=0x00000005, y=0x00000000\n000101 11011110101011011011111011101111 00000000000000000000000000000101 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLH // 182: fn=CMPLT, a=0xdeadbeef, b=0x00000005, y=0x00000001\n000111 11011110101011011011111011101111 00000000000000000000000000000101 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLH LLH // 183: fn=CMPLE, a=0xdeadbeef, b=0x00000005, y=0x00000001\n000011 01111111111111111111111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LHH // 184: fn=CMPEQ, a=0x7fffffff, b=0xffffffff, y=0x00000000\n000101 01111111111111111111111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LHH // 185: fn=CMPLT, a=0x7fffffff, b=0xffffffff, y=0x00000000\n000111 01111111111111111111111111111111 11111111111111111111111111111111 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL LHH // 186: fn=CMPLE, a=0x7fffffff, b=0xffffffff, y=0x00000000\n\n// map FN[5:0] to text for operation\n.plotdef op ? ? ? CMPEQ ? CMPLT ? CMPLE ? ? ? ? ? ? ? ? ADD SUB ? ? ? ? ? ? ? ? ? ? ? ? ? ? F0000 F0001 F0010 F0011 F0100 F0101 XOR F0111 AND XNOR A F1011 F1100 F1101 OR F1111 SHL SHR ? SRA ? ? ? ? ? ? ? ? ? ? ? ?\n\n.plot op(FN[5:0])\n.plot X(A[31:0])\n.plot X(B[31:0])\n.plot X(Y[31:0])\n.plot Z\n.plot V\n.plot N"
+                ]
+            ]
+        }
+    }
+    }</div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link type="text/css" href="../jade.css" rel="Stylesheet"/>
+<!-- build:js jade.min.js -->
+<script type="text/javascript" src="../jquery-1.11.2.js"></script>
+<script type="text/javascript" src="../jade.js"></script>
+<script type="text/javascript" src="../model.js"></script>
+<script type="text/javascript" src="../netlist.js"></script>
+<script type="text/javascript" src="../icons.js"></script>
+<script type="text/javascript" src="../schematic_view.js"></script>
+<script type="text/javascript" src="../icon_view.js"></script>
+<script type="text/javascript" src="../property_view.js"></script>
+<script type="text/javascript" src="../test_view.js"></script>
+<script type="text/javascript" src="../utils.js"></script>
+<script type="text/javascript" src="../plot.js"></script>
+<script type="text/javascript" src="../device_level.js"></script>
+<script type="text/javascript" src="../cktsim.js"></script>
+<script type="text/javascript" src="../gate_level.js"></script>
+<script type="text/javascript" src="../gatesim.js"></script>
+<script type="text/javascript" src="../jade_standalone.js"></script>
+<script type="text/javascript" src="../analog.js"></script>
+<script type="text/javascript" src="../gates.js"></script>
+</head>
+<body>
+<div class="jade">{ 
+    "hierarchical": "true",
+    "parts": ["memory", "/gates/.*","/fsm/.*","/user/.*"],
+    "tools": ["check"],
+    "editors": ["schematic","icon","test"],
+    "edit": "/fsm/fsm",
+    "initial_state": {
+        "/fsm/fsm" : {"test": [["test", ".power Vdd=1\n.thresholds Vol=0 Vil=0.1 Vih=0.9 Voh=1\n\n.group inputs RESET IN\n.group outputs U V\n.mode gate\n\n.cycle CLK=0 assert inputs tran 10n CLK=1 tran 20n CLK=0 tran 5n sample outputs tran 5n\n\n1 0 LH //  1. now in SA\n0 0 LH //  2. now in SA\n0 1 LL //  3. now in SB\n0 0 LL //  4. now in SD\n0 1 HL //  5. now in SF\n0 1 HL //  6. now in SF\n0 0 LH //  7. now in SA\n0 1 LL //  8. now in SB\n0 1 HH //  9. now in SC\n0 0 LL // 10. now in SD\n0 0 LL // 11. now in SE\n0 1 HH // 12. now in SC\n0 1 LL // 13. now in SE\n0 0 HL // 14. now in SF\n0 0 LH // 15. now in SA\n\n// now test that RESET always returns us SA\n1 0 LH // 16. now in SA (reset asserted)\n0 1 LL // 17. now in SB\n1 0 LH // 18. now in SA (reset asserted)\n0 1 LL // 19. now in SB\n0 1 HH // 20. now in SC\n1 0 LH // 21. now in SA (reset asserted)\n0 1 LL // 22. now in SB\n0 0 LL // 23. now in SD\n1 0 LH // 24. now in SA (reset asserted)\n0 1 LL // 25. now in SB\n0 0 LL // 26. now in SD\n0 1 HL // 27. now in SF\n1 0 LH // 28. now in SA (reset asserted)\n0 1 LL // 29. now in SB\n0 0 LL // 30. now in SD\n0 0 LL // 31. now in SE\n1 0 LH // 32. now in SA (reset asserted)\n\n// test RESET again this time with IN=1 on reset cycles\n1 1 LH // 33. now in SA (reset asserted)\n0 1 LL // 34. now in SB\n1 1 LH // 35. now in SA (reset asserted)\n0 1 LL // 36. now in SB\n0 1 HH // 37. now in SC\n1 1 LH // 38. now in SA (reset asserted)\n0 1 LL // 39. now in SB\n0 0 LL // 40. now in SD\n1 1 LH // 41. now in SA (reset asserted)\n0 1 LL // 42. now in SB\n0 0 LL // 43. now in SD\n0 1 HL // 44. now in SF\n1 1 LH // 45. now in SA (reset asserted)\n0 1 LL // 46. now in SB\n0 0 LL // 47. now in SD\n0 0 LL // 48. now in SE\n1 1 LH // 49. now in SA (reset asserted)\n\n.plot CLK\n.plot RESET\n.plot IN\n.plot U\n.plot V\n"]], "properties": {"test-readonly": "true","name":{"edit":"yes","type":"name","value":"","label":"Name"}, "name": {"edit": "yes", "type": "name", "value": "", "label": "Name"}}, "schematic": [["port", [-16, -64, 0], {"signal": "CLK"}], ["port", [-16, -80, 0], {"signal": "RESET"}], ["port", [-16, -96, 0], {"signal": "IN"}], ["port", [16, -96, 4], {"signal": "U", "direction": "out"}], ["port", [16, -80, 4], {"signal": "V", "direction": "out"}]]}
+    }}
+</div>
+</body>
+</html>
